@@ -1,0 +1,188 @@
+[
+  {
+    "user": "admin@test.com",
+    "module": "auth_register",
+    "status": "FAIL",
+    "plan": "agency"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "auth",
+    "status": "OK",
+    "plan": "starter",
+    "role": "operator"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "auth",
+    "status": "OK",
+    "plan": "pro",
+    "role": "operator"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "auth",
+    "status": "OK",
+    "plan": "agency",
+    "role": "operator"
+  },
+  {
+    "user": "viewer@test.com",
+    "module": "auth",
+    "status": "OK",
+    "plan": "starter",
+    "role": "viewer"
+  },
+  {
+    "module": "pricing_structure",
+    "status": "OK",
+    "tiers": 3
+  },
+  {
+    "user": "starter@test.com",
+    "module": "booster_execute",
+    "status": "OK"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "cloner_blocked",
+    "status": "OK"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "account_create",
+    "status": "FAIL",
+    "plan": "starter"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "account_create",
+    "status": "FAIL",
+    "plan": "pro"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "account_create",
+    "status": "FAIL",
+    "plan": "agency"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "persona_create",
+    "status": "OK",
+    "id": 13,
+    "plan": "starter"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "persona_create",
+    "status": "OK",
+    "id": 14,
+    "plan": "pro"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "persona_create",
+    "status": "OK",
+    "id": 15,
+    "plan": "agency"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "group_create",
+    "status": "OK",
+    "id": 15,
+    "plan": "starter"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "group_create",
+    "status": "OK",
+    "id": 16,
+    "plan": "pro"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "group_create",
+    "status": "OK",
+    "id": 17,
+    "plan": "agency"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "campaign_create",
+    "status": "OK",
+    "id": 15,
+    "plan": "starter"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "campaign_start",
+    "status": "OK",
+    "id": 15,
+    "plan": "starter"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "campaign_create",
+    "status": "OK",
+    "id": 16,
+    "plan": "pro"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "campaign_start",
+    "status": "OK",
+    "id": 16,
+    "plan": "pro"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "campaign_create",
+    "status": "OK",
+    "id": 17,
+    "plan": "agency"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "campaign_start",
+    "status": "OK",
+    "id": 17,
+    "plan": "agency"
+  },
+  {
+    "module": "payment_create",
+    "status": "INFO",
+    "detail": "module 'app.services.nowpayments_service' has no attribute 'create_payment'"
+  },
+  {
+    "module": "manual_deposit",
+    "status": "INFO"
+  },
+  {
+    "module": "modules_list",
+    "status": "OK",
+    "total": 29,
+    "active": 29
+  },
+  {
+    "module": "converter_exists",
+    "status": "OK"
+  },
+  {
+    "module": "mass_messaging_exists",
+    "status": "OK"
+  },
+  {
+    "module": "invite_modules_exists",
+    "status": "OK"
+  },
+  {
+    "module": "cloner_exists",
+    "status": "OK"
+  },
+  {
+    "module": "bot_creator_exists",
+    "status": "OK"
+  }
+]

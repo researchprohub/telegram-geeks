@@ -1,0 +1,7 @@
+{
+  "api_id": 12345,
+  "api_hash": "test_hash",
+  "session_string": "TEST_SESSION",
+  "phone_number": "+1234567890",
+  "display_name": "Test User"
+}

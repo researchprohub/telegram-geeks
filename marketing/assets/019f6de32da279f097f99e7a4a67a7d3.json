@@ -1,0 +1,17 @@
+{
+  "kind": "agnes_image",
+  "mode": "text_to_image",
+  "model": "agnes-image-2.1-flash",
+  "original_prompt": "Multi-account orchestration illustration for TelegramGeeks",
+  "enhanced_prompt": "Premium glassmorphism illustration of multi-account orchestration. Multiple translucent glass cards arranged in a network pattern, each card showing a different colored avatar circle, connected by glowing lines. Blue and purple gradient background, floating luminous orbs. Team coordination aesthetic, soft shadows, no text.",
+  "size": "1024x768",
+  "remote_url": "https://platform-outputs.agnes-ai.space/images/t2i/881081889f0b45f6a7748016adb00a66.png",
+  "local_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\.agnes\\artifacts\\images\\agnes-image-20260717-022352-019f6de32da279f097f99e7a4a67a7d3.png",
+  "metadata_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\.agnes\\artifacts\\images\\agnes-image-20260717-022352-019f6de32da279f097f99e7a4a67a7d3.json",
+  "mime_type": "image/png",
+  "width": 1152,
+  "height": 864,
+  "bytes": 1233950,
+  "preview": null,
+  "created_at": "2026-07-17T02:23:52.738693300+00:00"
+}

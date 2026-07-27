@@ -1,0 +1,17 @@
+{
+  "kind": "agnes_image",
+  "mode": "text_to_image",
+  "model": "agnes-image-2.1-flash",
+  "original_prompt": "Funnel pipeline illustration for TelegramGeeks",
+  "enhanced_prompt": "Premium glassmorphism illustration of the full funnel pipeline. Four frosted glass panels arranged horizontally showing stages: Monitor (eye icon), Seed (sprout icon), Amplify (megaphone icon), Convert (target icon). Connected by glowing blue-purple gradient arrows. Dark background with luminous orbs. Process flow aesthetic, no text.",
+  "size": "1024x768",
+  "remote_url": "https://platform-outputs.agnes-ai.space/images/t2i/1e7a46ac652640a2bff82bc98d40718b.png",
+  "local_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\.agnes\\artifacts\\images\\agnes-image-20260717-022849-019f6de7b44171e2bb33c211ed964712.png",
+  "metadata_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\.agnes\\artifacts\\images\\agnes-image-20260717-022849-019f6de7b44171e2bb33c211ed964712.json",
+  "mime_type": "image/png",
+  "width": 1152,
+  "height": 864,
+  "bytes": 1066473,
+  "preview": null,
+  "created_at": "2026-07-17T02:28:49.345784900+00:00"
+}

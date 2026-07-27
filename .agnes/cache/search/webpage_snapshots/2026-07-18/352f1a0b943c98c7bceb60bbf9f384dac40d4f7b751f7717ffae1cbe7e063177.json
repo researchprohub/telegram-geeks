@@ -1,0 +1,20 @@
+{
+  "kind": "webpage_snapshot",
+  "url": "https://affdude.com/octobrowser-pricing/",
+  "final_url": "https://affdude.com/octobrowser-pricing/",
+  "status": 200,
+  "read_status": "blocked",
+  "content_type": "text/html; charset=UTF-8",
+  "fetched_at": "2026-07-18T15:24:01.875620900+00:00",
+  "title": "OctoBrowser Pricing 2026: Huge 60% Stack + Feature Goldmine",
+  "description": "A fast OctoBrowser pricing audit: what to downgrade, what to keep, and where hidden limits hit. Covers anti-detect costs, profiles, proxies, and seats.",
+  "site_name": "AFFDude",
+  "published_at": "2026-01-20T06:39:34+00:00",
+  "source_type": "unknown",
+  "text": "",
+  "quote_candidates": [],
+  "word_count": 0,
+  "truncated": false,
+  "blocked": true,
+  "source": "direct_http"
+}

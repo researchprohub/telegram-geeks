@@ -1,0 +1,23 @@
+{
+  "kind": "webpage_snapshot",
+  "url": "https://en.telegramexpert.pro/",
+  "final_url": "https://en.telegramexpert.pro/",
+  "status": 200,
+  "read_status": "ok",
+  "content_type": "text/html; charset=utf-8",
+  "fetched_at": "2026-07-18T15:21:16.507926500+00:00",
+  "title": "Optimize your business with Telegram Soft Expert: The Best Software for Telegram",
+  "description": "Looking for software for bulk messaging and invites in Telegram? Telegram Expert is fast and efficient software that will grow your audience. Free trial available!",
+  "site_name": "Telegram Expert",
+  "published_at": null,
+  "source_type": "unknown",
+  "text": "Welcome! Today, almost everyone who promotes projects or services in Telegram has heard about us, and many are already members of our community. Mass messaging, boosting, group invitations, and other ways of getting traffic are done with Telegram Expert!",
+  "quote_candidates": [
+    "Today, almost everyone who promotes projects or services in Telegram has heard about us, and many are already members of our community.",
+    "Mass messaging, boosting, group invitations, and other ways of getting traffic are done with Telegram Expert!"
+  ],
+  "word_count": 39,
+  "truncated": false,
+  "blocked": false,
+  "source": "direct_http"
+}

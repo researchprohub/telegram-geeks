@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo — TelegramGeeks</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">TelegramGeeks</a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="features.html">Modules</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="demo.html">Demo</a>
+        <a href="blog.html">Blog</a>
+        <a href="#" class="btn btn-primary btn-sm">Start Free Trial</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero" style="padding-top:140px;padding-bottom:60px;">
+    <div class="container" style="text-align:center;">
+      <h1 class="animate-in">Interactive <span class="text-gradient">Demo</span></h1>
+      <p class="animate-in delay-1" style="font-size:1.1rem;">See TelegramGeeks in action. Explore the dashboard, manage accounts, and run campaigns.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="card animate-in" style="padding:0;overflow:hidden;border:2px solid var(--primary-light);margin-bottom:48px;">
+        <img src="assets/dashboard-glass.png" alt="Dashboard Demo" style="width:100%;">
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;">
+        <div class="card animate-in">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="width:40px;height:40px;border-radius:10px;background:var(--primary-light);display:flex;align-items:center;justify-content:center;"><i data-lucide="users" style="color:var(--primary);width:20px;height:20px;"></i></div>
+            <h4>Account Management</h4>
+          </div>
+          <p style="font-size:0.9rem;">Monitor trust scores, daily message limits, and account health in real-time.</p>
+        </div>
+        <div class="card animate-in delay-1">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="width:40px;height:40px;border-radius:10px;background:var(--primary-light);display:flex;align-items:center;justify-content:center;"><i data-lucide="bar-chart-3" style="color:var(--primary);width:20px;height:20px;"></i></div>
+            <h4>Analytics Dashboard</h4>
+          </div>
+          <p style="font-size:0.9rem;">Track engagement scores, conversion funnels, and ROI across all campaigns.</p>
+        </div>
+        <div class="card animate-in delay-2">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="width:40px;height:40px;border-radius:10px;background:var(--primary-light);display:flex;align-items:center;justify-content:center;"><i data-lucide="cpu" style="color:var(--primary);width:20px;height:20px;"></i></div>
+            <h4>AI Configuration</h4>
+          </div>
+          <p style="font-size:0.9rem;">Select from 13 AI providers, configure fallback chains, and test personas.</p>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:48px;">
+        <a href="#" class="btn btn-primary btn-lg"><i data-lucide="rocket" style="width:18px;height:18px"></i> Start Your Free Trial</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <span>© 2026 TelegramGeeks. All rights reserved.</span>
+        <span>Built with ❤️</span>
+      </div>
+    </div>
+  </footer>
+  <script src="assets/scripts.js"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

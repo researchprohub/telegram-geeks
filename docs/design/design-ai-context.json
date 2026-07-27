@@ -1,0 +1,189 @@
+{
+  "project": "TelegramGeeks",
+  "version": "1.0.0",
+  "generated": "2026-07-19",
+  "platform": "Telegram Marketing SaaS",
+  "tech_stack": {
+    "frontend": {
+      "framework": "Next.js 14",
+      "router": "App Router",
+      "language": "TypeScript",
+      "styling": "Tailwind CSS",
+      "icons": "Lucide React",
+      "charts": "Recharts",
+      "forms": "React Hook Form + Zod"
+    },
+    "backend": {
+      "framework": "FastAPI",
+      "database": "PostgreSQL",
+      "cache": "Redis",
+      "orm": "SQLAlchemy"
+    },
+    "infrastructure": {
+      "container": "Docker",
+      "orchestration": "Docker Compose",
+      "reverse_proxy": "Nginx",
+      "ports": {
+        "nginx": 80,
+        "nextjs": 3000,
+        "fastapi": 8000
+      }
+    }
+  },
+  "design_system": {
+    "philosophy": "Dark mode first, Telegram-native accent, glassmorphism selective, bento grid dashboard, command palette navigation, progressive disclosure, snappy animations, 9-element maximum density",
+    "colors": {
+      "dark": {
+        "bg_primary": "#0B0E14",
+        "bg_secondary": "#111827",
+        "bg_tertiary": "#1F2937",
+        "bg_elevated": "#273449",
+        "bg_glass": "rgba(17, 24, 39, 0.72)",
+        "accent": "#0088CC",
+        "accent_hover": "#00A3E5",
+        "accent_active": "#0077B5",
+        "accent_subtle": "rgba(0, 136, 204, 0.12)",
+        "text_primary": "#F9FAFB",
+        "text_secondary": "#9CA3AF",
+        "text_tertiary": "#6B7280",
+        "text_accent": "#5BB8F5",
+        "border": "rgba(255, 255, 255, 0.08)",
+        "border_strong": "rgba(255, 255, 255, 0.15)",
+        "status_success": "#10B981",
+        "status_warning": "#F59E0B",
+        "status_error": "#EF4444",
+        "status_info": "#3B82F6"
+      },
+      "light": {
+        "bg_primary": "#FFFFFF",
+        "bg_secondary": "#F9FAFB",
+        "bg_tertiary": "#F3F4F6",
+        "bg_elevated": "#FFFFFF",
+        "text_primary": "#111827",
+        "text_secondary": "#4B5563",
+        "text_tertiary": "#9CA3AF",
+        "border": "rgba(0, 0, 0, 0.08)",
+        "border_strong": "rgba(0, 0, 0, 0.15)"
+      }
+    },
+    "typography": {
+      "families": {
+        "ui": ["Inter Variable", "system-ui", "sans-serif"],
+        "mono": ["JetBrains Mono Variable", "monospace"],
+        "display": ["Inter Variable", "Inter Variable", "system-ui", "sans-serif"]
+      },
+      "scale": [
+        { "level": "H1", "size": "32px", "weight": 600, "line_height": 1.2, "letter_spacing": "-0.02em" },
+        { "level": "H2", "size": "24px", "weight": 600, "line_height": 1.3, "letter_spacing": "-0.02em" },
+        { "level": "H3", "size": "20px", "weight": 600, "line_height": 1.3, "letter_spacing": "-0.02em" },
+        { "level": "Body-lg", "size": "16px", "weight": 400, "line_height": 1.5, "letter_spacing": "0" },
+        { "level": "Body", "size": "14px", "weight": 400, "line_height": 1.5, "letter_spacing": "0" },
+        { "level": "Body-sm", "size": "12px", "weight": 400, "line_height": 1.4, "letter_spacing": "0" },
+        { "level": "Caption", "size": "11px", "weight": 500, "line_height": 1.3, "letter_spacing": "0.04em" }
+      ]
+    },
+    "spacing_base_px": 4,
+    "spacing_scale": [4, 8, 12, 16, 20, 24, 32, 48, 64],
+    "border_radius": {
+      "sm": "4px",
+      "DEFAULT": "8px",
+      "lg": "12px",
+      "xl": "16px",
+      "full": "9999px"
+    },
+    "animations": {
+      "default_duration_ms": 150,
+      "fast_ms": 100,
+      "slow_ms": 250,
+      "easing": "cubic-bezier(0.2, 0, 0, 1)",
+      "reduced_motion": true
+    },
+    "icons": {
+      "library": "Lucide React",
+      "grid_size": "24x24",
+      "stroke_width": 2,
+      "sizes": [16, 20, 24, 32, 48]
+    },
+    "responsive": {
+      "breakpoints": {
+        "mobile": "<640px",
+        "tablet": "640-1024px",
+        "desktop": "1024-1280px",
+        "wide": ">1280px"
+      },
+      "touch_target_min": "44x44px",
+      "max_elements_per_view": 9
+    },
+    "components": {
+      "buttons": ["primary", "secondary", "ghost", "danger", "icon"],
+      "cards": { "padding": "20px", "radius": "12px", "shadow": "0 1px 3px rgba(0,0,0,0.3)" },
+      "inputs": { "height": "40px", "radius": "8px" },
+      "badges": ["success", "warning", "error", "info", "neutral", "accent"],
+      "tables": { "row_height_compact": "48px", "row_height_standard": "56px" },
+      "modals": { "max_width": "560px", "blur": "12px", "opacity": 0.72 },
+      "toasts": { "position": "bottom-right", "animation_in": "200ms", "animation_out": "150ms" }
+    }
+  },
+  "routes": {
+    "operator": [
+      "/", "/auth/login", "/auth/register", "/auth/forgot-password",
+      "/dashboard", "/dashboard/bots", "/dashboard/bots/[id]/connect", "/dashboard/bots/[id]/settings",
+      "/dashboard/campaigns", "/dashboard/campaigns/new", "/dashboard/campaigns/[id]/edit", "/dashboard/campaigns/[id]/analytics", "/dashboard/campaigns/[id]/preview",
+      "/dashboard/audiences", "/dashboard/audiences/[id]/segments", "/dashboard/audiences/import", "/dashboard/audiences/[id]/members",
+      "/dashboard/messages", "/dashboard/messages/templates",
+      "/dashboard/scheduling",
+      "/dashboard/automations", "/dashboard/automations/[id]",
+      "/dashboard/analytics", "/dashboard/analytics/realtime", "/dashboard/analytics/export",
+      "/dashboard/payments", "/dashboard/payments/usage",
+      "/dashboard/settings/profile", "/dashboard/settings/security", "/dashboard/settings/notifications",
+      "/dashboard/integrations", "/dashboard/referrals",
+      "/dashboard/onboarding", "/dashboard/help", "/dashboard/support/ticket"
+    ],
+    "admin": [
+      "/admin", "/admin/users", "/admin/users/[id]", "/admin/bots",
+      "/admin/campaigns", "/admin/analytics", "/admin/analytics/revenue",
+      "/admin/compliance", "/admin/compliance/reports",
+      "/admin/settings/general", "/admin/settings/pricing", "/admin/settings/webhooks",
+      "/admin/logs", "/admin/ai/models", "/admin/health"
+    ]
+  },
+  "north_star_metric": "Weekly Active Campaigns (WAC)",
+  "anti_features": [
+    "No mass DMs to non-followers",
+    "No group/channel scraping at scale",
+    "No account farming",
+    "No rate-limit circumvention",
+    "No social growth manipulation",
+    "No phishing or deceptive practices",
+    "No external service divergence"
+  ],
+  "competitive_benchmarks": [
+    "Linear — Dark mode first, LCH color space, keyboard navigation",
+    "Sentry — Data-dense dark dashboard, severity coloring",
+    "Instantly.ai — Step-by-step campaign builder, warmup visualization",
+    "PostHog — Query builder for audience segmentation",
+    "Stripe — Transaction tables, single accent philosophy",
+    "Attio — Bento grid layouts, three-voice typography",
+    "Telegram Native — Platform baseline for blue accent differentiation"
+  ],
+  "selected_design_trends": [
+    "Dark mode first",
+    "Glassmorphism (selective)",
+    "Bento grid",
+    "AI-ranked views",
+    "Command palette",
+    "Progressive disclosure"
+  ],
+  "telegram_compliance_url": "https://telegram.org/tos/bot-developers",
+  "deliverables": {
+    "product_vision": "docs/product/PRODUCT-VISION.md",
+    "workflow_atlas": "docs/product/WORKFLOW-ATLAS.md",
+    "screen_inventory": "docs/design/SCREEN-INVENTORY.md",
+    "design_system": "docs/design/DESIGN_SYSTEM.md",
+    "competitive_research": "docs/design/COMPETITIVE-DESIGN-RESEARCH.md",
+    "design_ai_master_prompt": "docs/design/DESIGN-AI-MASTER-PROMPT.md",
+    "production_readiness": "docs/qa/PRODUCTION-READINESS.md",
+    "sprint_planning": "docs/qa/SPRINT-PLANNING.md",
+    "ai_slop_audit": "docs/qa/AI-SLOP-AUDIT.md"
+  }
+}

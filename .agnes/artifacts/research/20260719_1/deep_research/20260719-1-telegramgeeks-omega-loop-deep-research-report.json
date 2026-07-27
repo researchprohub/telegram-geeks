@@ -1,0 +1,225 @@
+{
+  "kind": "agnes_artifact",
+  "artifact_type": "research_markdown_report",
+  "research_kind": "deep_research",
+  "mode": "deep_research",
+  "session_id": "20260719_1",
+  "title": "TelegramGeeks Omega Loop — Deep Research Report",
+  "local_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\.agnes\\artifacts\\research\\20260719_1\\deep_research\\20260719-1-telegramgeeks-omega-loop-deep-research-report.md",
+  "manifest_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\.agnes\\artifacts\\research\\20260719_1\\deep_research\\20260719-1-telegramgeeks-omega-loop-deep-research-report.json",
+  "repo_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\.agnes\\work\\research\\20260719_1\\deep_research\\repo",
+  "preview_uri": "ui://agnes-research/deep_research/20260719-1-telegramgeeks-omega-loop-deep-research-report",
+  "sources_count": 11,
+  "evidence_count": 10,
+  "conflicts_count": 2,
+  "blocked_sources_count": 3,
+  "confidence": "unknown",
+  "quality_warnings": [
+    "No evidence entries include quotes or extracted text; add short quotes for auditability."
+  ],
+  "created_at": "2026-07-19T07:22:59.897063900+00:00",
+  "sources": [
+    {
+      "title": "Telegram Bot Platform Developer Terms of Service",
+      "url": "https://telegram.org/tos/bot-developers",
+      "note": null
+    },
+    {
+      "title": "Telegram Bot API Documentation",
+      "url": "https://core.telegram.org/bots",
+      "note": null
+    },
+    {
+      "title": "How we redesigned the Linear UI (part II)",
+      "url": "https://linear.app/blog/how-we-redesigned-the-linear-ui",
+      "note": null
+    },
+    {
+      "title": "Glassmorphism: Definition and Best Practices - NN/g",
+      "url": "https://www.nngroup.com/articles/glassmorphism/",
+      "note": null
+    },
+    {
+      "title": "PhantomBuster Review 2026",
+      "url": "https://lagrowthmachine.com/phantombuster-review",
+      "note": null
+    },
+    {
+      "title": "Instantly.ai Features Overview",
+      "url": "https://instantly.ai/",
+      "note": null
+    },
+    {
+      "title": "HeyReach Pricing",
+      "url": "https://www.heyreach.io/pricing",
+      "note": null
+    },
+    {
+      "title": "Respond.io Review 2026",
+      "url": "https://chatimize.com/reviews/respond-io",
+      "note": null
+    },
+    {
+      "title": "InviteMember Telegram Integration",
+      "url": "https://help.invitemember.com/en/articles/2783896-telegram-integration-details",
+      "note": null
+    },
+    {
+      "title": "Combot Telegram Bot",
+      "url": "https://combot.org/",
+      "note": null
+    },
+    {
+      "title": "The Rise of CMD+K: Why Every SaaS Needs a Search Modal in 2026",
+      "url": "https://www.saasframe.io/blog/the-rise-of-cmd-k-why-every-saas-needs-a-search-modal-in-2026",
+      "note": null
+    }
+  ],
+  "evidence": [
+    {
+      "claim": "Telegram Bot Platform prohibits spam, harassment, data scraping, social growth manipulation, and rate-limit circumvention",
+      "value": "TPAs must not harass/spam users, must not attempt to circumvent rate limits, must not operate by proxy, social growth manipulation is explicitly forbidden, data scraping for ML/AI products is prohibited",
+      "source_title": "Telegram Bot Platform Developer Terms of Service",
+      "source_url": "https://telegram.org/tos/bot-developers",
+      "source_type": "legal",
+      "quote": null,
+      "observed_at": "2026-07-19",
+      "confidence": "high",
+      "notes": null
+    },
+    {
+      "claim": "Phantombuster charges $30/mo for Starter plan, focuses on cloud automation across 100+ platforms",
+      "value": "Pricing starts $30/month, execution-hours based model, 100+ pre-built automations, API for custom workflows",
+      "source_title": "PhantomBuster Review 2026",
+      "source_url": "https://lagrowthmachine.com/phantombuster-review",
+      "source_type": "review",
+      "quote": null,
+      "observed_at": "2026-07-19",
+      "confidence": "high",
+      "notes": null
+    },
+    {
+      "claim": "Instantly.ai offers unlimited email sending accounts starting at $37/mo with built-in B2B lead database",
+      "value": "Cold email automation with unlimited accounts, AI-written sequences, built-in warmup, B2B lead database",
+      "source_title": "Instantly.ai Features Overview",
+      "source_url": "https://instantly.ai/",
+      "source_type": "product_page",
+      "quote": null,
+      "observed_at": "2026-07-19",
+      "confidence": "high",
+      "notes": null
+    },
+    {
+      "claim": "HeyReach charges $79/mo flat for unlimited LinkedIn senders with unified inbox",
+      "value": "Flat monthly fee for unlimited senders, unified inbox, webhooks, API, white-label options",
+      "source_title": "HeyReach Pricing",
+      "source_url": "https://www.heyreach.io/pricing",
+      "source_type": "product_page",
+      "quote": null,
+      "observed_at": "2026-07-19",
+      "confidence": "high",
+      "notes": null
+    },
+    {
+      "claim": "Respond.io starts at $79/mo, focuses on multichannel customer conversation management",
+      "value": "Multichannel inbox, AI agents, automation, lifecycle view, no free plan",
+      "source_title": "Respond.io Review 2026",
+      "source_url": "https://chatimize.com/reviews/respond-io",
+      "source_type": "review",
+      "quote": null,
+      "observed_at": "2026-07-19",
+      "confidence": "high",
+      "notes": null
+    },
+    {
+      "claim": "InviteMember specializes in Telegram paid subscriptions with Stripe integration",
+      "value": "Automated member addition/removal, Stripe payments, subscription renewals",
+      "source_title": "InviteMember Telegram Integration",
+      "source_url": "https://help.invitemember.com/en/articles/2783896-telegram-integration-details",
+      "source_type": "product_page",
+      "quote": null,
+      "observed_at": "2026-07-19",
+      "confidence": "high",
+      "notes": null
+    },
+    {
+      "claim": "Combot is the most popular Telegram moderation bot since 2016",
+      "value": "Moderation, analytics, anti-spam, triggers, levels/XP, reputation system, scheduler",
+      "source_title": "Combot Telegram Bot",
+      "source_url": "https://combot.org/",
+      "source_type": "product_page",
+      "quote": null,
+      "observed_at": "2026-07-19",
+      "confidence": "high",
+      "notes": null
+    },
+    {
+      "claim": "Linear redesigned UI using LCH color space, Inter Display, 6-week process",
+      "value": "LCH color space, Inter Display headings, inverted L-shaped chrome, dark mode first",
+      "source_title": "How we redesigned the Linear UI",
+      "source_url": "https://linear.app/blog/how-we-redesigned-the-linear-ui",
+      "source_type": "engineering_blog",
+      "quote": null,
+      "observed_at": "2026-07-19",
+      "confidence": "high",
+      "notes": null
+    },
+    {
+      "claim": "NN/g recommends glassmorphism with WCAG contrast requirements and more blur for complex backgrounds",
+      "value": "Ensure WCAG contrast, use more blur for complex backgrounds, allow users to adjust transparency",
+      "source_title": "Glassmorphism: Definition and Best Practices",
+      "source_url": "https://www.nngroup.com/articles/glassmorphism/",
+      "source_type": "ux_research",
+      "quote": null,
+      "observed_at": "2026-07-19",
+      "confidence": "high",
+      "notes": null
+    },
+    {
+      "claim": "Command palette (⌘K) is a 2026 SaaS retention driver, used by Linear, Notion, GitHub, Vercel",
+      "value": "Most retention-focused SaaS products let users find anything in under 2 seconds via CMD+K",
+      "source_title": "The Rise of CMD+K",
+      "source_url": "https://www.saasframe.io/blog/the-rise-of-cmd-k-why-every-saas-needs-a-search-modal-in-2026",
+      "source_type": "industry_analysis",
+      "quote": null,
+      "observed_at": "2026-07-19",
+      "confidence": "high",
+      "notes": null
+    }
+  ],
+  "conflicts": [
+    {
+      "topic": "Telegram blue differentiation",
+      "variants": [
+        "Telegram native blue #2AABEE vs TelegramGeeks accent #0088CC"
+      ],
+      "source_urls": [],
+      "resolution": "Different saturation levels, different usage contexts. Telegram blue reserved for platform elements; TelegramGeeks accent for brand elements."
+    },
+    {
+      "topic": "Glassmorphism accessibility",
+      "variants": [
+        "NN/g warns of WCAG challenges with translucent backgrounds vs. Apple/Microsoft adoption"
+      ],
+      "source_urls": [],
+      "resolution": "Restricted to non-text UI elements only; solid fallbacks for prefers-reduced-transparency users."
+    }
+  ],
+  "blocked_sources": [
+    {
+      "title": "PhantomBuster Official Pricing",
+      "url": "https://phantombuster.com/pricing",
+      "reason": "Only review sites readable, official pricing page not accessed"
+    },
+    {
+      "title": "Sentry Redesign Blog",
+      "url": "https://blog.sentry.io/sentry-has-a-bold-new-look/",
+      "reason": "Source timed out during search"
+    },
+    {
+      "title": "Attio Dribbble Collection",
+      "url": "https://dribbble.com/attio",
+      "reason": "Limited text extraction from image-heavy page"
+    }
+  ]
+}

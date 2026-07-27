@@ -1,0 +1,17 @@
+{
+  "kind": "agnes_image",
+  "mode": "text_to_image",
+  "model": "agnes-image-2.1-flash",
+  "original_prompt": "Group engagement illustration for TelegramGeeks",
+  "enhanced_prompt": "Premium glassmorphism illustration of Telegram group engagement. Multiple translucent glass cards showing user avatars, chat bubbles, reaction hearts, and growth arrows. Blue and purple gradient background with floating orbs. Modern SaaS aesthetic, luminous borders, soft shadows, no text.",
+  "size": "1024x768",
+  "remote_url": "https://platform-outputs.agnes-ai.space/images/t2i/8aa6e672486f4f14a4cafcc035e5508f.png",
+  "local_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\.agnes\\artifacts\\images\\agnes-image-20260717-021954-019f6ddf8a0a70c29c10101d4d952b92.png",
+  "metadata_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\.agnes\\artifacts\\images\\agnes-image-20260717-021954-019f6ddf8a0a70c29c10101d4d952b92.json",
+  "mime_type": "image/png",
+  "width": 1152,
+  "height": 864,
+  "bytes": 1056203,
+  "preview": null,
+  "created_at": "2026-07-17T02:19:54.250604700+00:00"
+}

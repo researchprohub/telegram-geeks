@@ -1,0 +1,17 @@
+{
+  "kind": "agnes_image",
+  "mode": "text_to_image",
+  "model": "agnes-image-2.1-flash",
+  "original_prompt": "Anti-detection security illustration for TelegramGeeks",
+  "enhanced_prompt": "Premium glassmorphism illustration of anti-detection security. Shield icon made of frosted glass, surrounded by lock icons, proxy arrows, and fingerprint symbols. Blue and purple gradient background with luminous orbs. Cybersecurity aesthetic, soft shadows, no text.",
+  "size": "1024x768",
+  "remote_url": "https://platform-outputs.agnes-ai.space/images/t2i/2a3f2f1fb3ed4acf98b235f0ccd9c52e.png",
+  "local_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\.agnes\\artifacts\\images\\agnes-image-20260717-022238-019f6de20bcb7560bbd4856e3d90fc6a.png",
+  "metadata_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\.agnes\\artifacts\\images\\agnes-image-20260717-022238-019f6de20bcb7560bbd4856e3d90fc6a.json",
+  "mime_type": "image/png",
+  "width": 1152,
+  "height": 864,
+  "bytes": 1198266,
+  "preview": null,
+  "created_at": "2026-07-17T02:22:38.539976900+00:00"
+}

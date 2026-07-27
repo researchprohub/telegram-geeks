@@ -1,0 +1,9 @@
+{
+  "api_id": 12345,
+  "api_hash": "test_hash",
+  "device_model": "TelegramGeeks",
+  "app_version": "1.0.0",
+  "system_version": "Windows 10",
+  "language_pack": "en",
+  "system_language_pack": "en"
+}

@@ -1,0 +1,17 @@
+{
+  "kind": "agnes_image",
+  "mode": "text_to_image",
+  "model": "agnes-image-2.1-flash",
+  "original_prompt": "Gradient mesh hero background for TelegramGeeks",
+  "enhanced_prompt": "Abstract gradient mesh background for SaaS landing page hero. Flowing waves of electric blue (#1856FF) transitioning to deep purple (#3A344E) to violet (#8B5CF6). Glassmorphism effect with frosted translucent orbs floating. Cinematic lighting, volumetric rays, depth of field, ultra-modern tech aesthetic, 4K resolution, no text, no objects.",
+  "size": "1024x512",
+  "remote_url": "https://platform-outputs.agnes-ai.space/images/t2i/3a8a7086f5924a3db2ef654869a6570f.png",
+  "local_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\.agnes\\artifacts\\images\\agnes-image-20260717-021343-019f6dd9e05273439a8454bb180952e1.png",
+  "metadata_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\.agnes\\artifacts\\images\\agnes-image-20260717-021343-019f6dd9e05273439a8454bb180952e1.json",
+  "mime_type": "image/png",
+  "width": 1312,
+  "height": 736,
+  "bytes": 1191993,
+  "preview": null,
+  "created_at": "2026-07-17T02:13:43.122223200+00:00"
+}

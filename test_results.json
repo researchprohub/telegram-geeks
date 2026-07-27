@@ -1,0 +1,445 @@
+[
+  {
+    "user": "a@b.com",
+    "module": "auth",
+    "status": "OK",
+    "plan": "agency",
+    "role": "admin"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "auth",
+    "status": "OK",
+    "plan": "starter",
+    "role": "operator"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "auth",
+    "status": "OK",
+    "plan": "pro",
+    "role": "operator"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "auth",
+    "status": "OK",
+    "plan": "agency",
+    "role": "operator"
+  },
+  {
+    "user": "viewer@test.com",
+    "module": "auth",
+    "status": "OK",
+    "plan": "starter",
+    "role": "viewer"
+  },
+  {
+    "user": "basic@test.com",
+    "module": "auth",
+    "status": "OK",
+    "plan": "starter",
+    "role": "operator"
+  },
+  {
+    "user": "premium@test.com",
+    "module": "auth",
+    "status": "OK",
+    "plan": "pro",
+    "role": "operator"
+  },
+  {
+    "module": "modules_list",
+    "status": "OK",
+    "total": 29,
+    "active": 29
+  },
+  {
+    "module": "converter/execute",
+    "status": "queued",
+    "operation": "convert_to_tdata"
+  },
+  {
+    "module": "booster/execute",
+    "status": "queued",
+    "operation": "start_warmup"
+  },
+  {
+    "module": "registrar/execute",
+    "status": "unknown",
+    "operation": "get_phone_number"
+  },
+  {
+    "module": "duplicator/execute",
+    "status": "unknown",
+    "operation": "duplicate_session"
+  },
+  {
+    "module": "json_generator/execute",
+    "status": "unknown",
+    "operation": "generate_json"
+  },
+  {
+    "module": "spambot_remover/execute",
+    "status": "unknown",
+    "operation": "check_spam_status"
+  },
+  {
+    "module": "account_management/execute",
+    "status": "unknown",
+    "operation": "mass_inspection"
+  },
+  {
+    "module": "number_checker/execute",
+    "status": "unknown",
+    "operation": "check_number"
+  },
+  {
+    "module": "mass_messaging/execute",
+    "status": "queued",
+    "operation": "send_to_database"
+  },
+  {
+    "module": "autoreponder/execute",
+    "status": "queued",
+    "operation": "add_template"
+  },
+  {
+    "module": "autoposting/execute",
+    "status": "queued",
+    "operation": "post_to_chats_v1"
+  },
+  {
+    "module": "stories/execute",
+    "status": "queued",
+    "operation": "publish_story"
+  },
+  {
+    "module": "reactions/execute",
+    "status": "queued",
+    "operation": "add_reaction"
+  },
+  {
+    "module": "message_editor/execute",
+    "status": "queued",
+    "operation": "edit_message"
+  },
+  {
+    "module": "invite_modules/execute",
+    "status": "queued",
+    "operation": "invite_by_numbers"
+  },
+  {
+    "module": "audience_collector/execute",
+    "status": "queued",
+    "operation": "collect_from_comments"
+  },
+  {
+    "module": "contact_book/execute",
+    "status": "queued",
+    "operation": "add_contact"
+  },
+  {
+    "module": "mass_unsubscriber/execute",
+    "status": "queued",
+    "operation": "unsubscribe_from_channels"
+  },
+  {
+    "module": "gender_detector/execute",
+    "status": "queued",
+    "operation": "detect_gender"
+  },
+  {
+    "module": "cloner/execute",
+    "status": "unknown",
+    "operation": "clone_channel"
+  },
+  {
+    "module": "interceptor/execute",
+    "status": "unknown",
+    "operation": "add_keyword"
+  },
+  {
+    "module": "forwarder/execute",
+    "status": "unknown",
+    "operation": "start_forwarding"
+  },
+  {
+    "module": "bot_creator/execute",
+    "status": "unknown",
+    "operation": "create_bot"
+  },
+  {
+    "module": "referrals/execute",
+    "status": "unknown",
+    "operation": "create_referral_link"
+  },
+  {
+    "module": "reporter/execute",
+    "status": "unknown",
+    "operation": "report_message"
+  },
+  {
+    "module": "admin/execute",
+    "status": "unknown",
+    "operation": "create_chat"
+  },
+  {
+    "module": "link_checker/execute",
+    "status": "unknown",
+    "operation": "check_link"
+  },
+  {
+    "module": "database_tools/execute",
+    "status": "unknown",
+    "operation": "union_databases"
+  },
+  {
+    "module": "calculator_reports/execute",
+    "status": "unknown",
+    "operation": "calculate_roi"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "account_create",
+    "status": "SKIP",
+    "plan": "starter"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "account_create",
+    "status": "SKIP",
+    "plan": "pro"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "account_create",
+    "status": "SKIP",
+    "plan": "agency"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "persona_create",
+    "status": "OK",
+    "id": 10,
+    "plan": "starter"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "persona_test",
+    "status": "OK",
+    "id": 10,
+    "plan": "starter"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "persona_create",
+    "status": "OK",
+    "id": 11,
+    "plan": "pro"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "persona_test",
+    "status": "OK",
+    "id": 11,
+    "plan": "pro"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "persona_create",
+    "status": "OK",
+    "id": 12,
+    "plan": "agency"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "persona_test",
+    "status": "OK",
+    "id": 12,
+    "plan": "agency"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "group_create",
+    "status": "FAIL",
+    "plan": "starter"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "group_create",
+    "status": "FAIL",
+    "plan": "pro"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "group_create",
+    "status": "FAIL",
+    "plan": "agency"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "campaign_create",
+    "status": "OK",
+    "id": 12,
+    "plan": "starter"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "campaign_start",
+    "status": "OK",
+    "id": 12,
+    "plan": "starter"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "campaign_pause",
+    "status": "OK",
+    "id": 12,
+    "plan": "starter"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "campaign_create",
+    "status": "OK",
+    "id": 13,
+    "plan": "pro"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "campaign_start",
+    "status": "OK",
+    "id": 13,
+    "plan": "pro"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "campaign_pause",
+    "status": "OK",
+    "id": 13,
+    "plan": "pro"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "campaign_create",
+    "status": "OK",
+    "id": 14,
+    "plan": "agency"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "campaign_start",
+    "status": "OK",
+    "id": 14,
+    "plan": "agency"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "campaign_pause",
+    "status": "OK",
+    "id": 14,
+    "plan": "agency"
+  },
+  {
+    "module": "analytics_account_health",
+    "status": "SKIP"
+  },
+  {
+    "module": "analytics_summary",
+    "status": "SKIP"
+  },
+  {
+    "module": "admin_users",
+    "status": "OK",
+    "count": 11
+  },
+  {
+    "module": "admin_settings",
+    "status": "OK"
+  },
+  {
+    "module": "payment_create",
+    "status": "INFO"
+  },
+  {
+    "module": "manual_deposit",
+    "status": "INFO"
+  },
+  {
+    "user": "a@b.com",
+    "module": "data_access",
+    "status": "OK",
+    "plan": "agency",
+    "role": "admin",
+    "accounts": 0,
+    "personas": 0,
+    "campaigns": 0,
+    "groups": 0
+  },
+  {
+    "user": "starter@test.com",
+    "module": "data_access",
+    "status": "OK",
+    "plan": "starter",
+    "role": "operator",
+    "accounts": 0,
+    "personas": 0,
+    "campaigns": 0,
+    "groups": 0
+  },
+  {
+    "user": "pro@test.com",
+    "module": "data_access",
+    "status": "OK",
+    "plan": "pro",
+    "role": "operator",
+    "accounts": 0,
+    "personas": 0,
+    "campaigns": 0,
+    "groups": 0
+  },
+  {
+    "user": "agency@test.com",
+    "module": "data_access",
+    "status": "OK",
+    "plan": "agency",
+    "role": "operator",
+    "accounts": 0,
+    "personas": 0,
+    "campaigns": 0,
+    "groups": 0
+  },
+  {
+    "user": "viewer@test.com",
+    "module": "data_access",
+    "status": "OK",
+    "plan": "starter",
+    "role": "operator",
+    "accounts": 0,
+    "personas": 0,
+    "campaigns": 0,
+    "groups": 0
+  },
+  {
+    "user": "basic@test.com",
+    "module": "data_access",
+    "status": "OK",
+    "plan": "starter",
+    "role": "operator",
+    "accounts": 0,
+    "personas": 0,
+    "campaigns": 0,
+    "groups": 0
+  },
+  {
+    "user": "premium@test.com",
+    "module": "data_access",
+    "status": "OK",
+    "plan": "pro",
+    "role": "operator",
+    "accounts": 0,
+    "personas": 0,
+    "campaigns": 0,
+    "groups": 0
+  }
+]

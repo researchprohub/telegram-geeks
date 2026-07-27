@@ -1,0 +1,17 @@
+{
+  "kind": "agnes_image",
+  "mode": "text_to_image",
+  "model": "agnes-image-2.1-flash",
+  "original_prompt": "Glassmorphism dashboard for TelegramGeeks",
+  "enhanced_prompt": "Glassmorphism dashboard UI floating on gradient background. Sleek analytics dashboard with frosted glass panels, translucent cards showing charts and metrics. Blue and purple gradient backdrop. Modern SaaS aesthetic, soft shadows, luminous borders, ultra-clean design. Dark mode. No text on screens.",
+  "size": "1024x768",
+  "remote_url": "https://platform-outputs.agnes-ai.space/images/t2i/9b2f3b8565244b2fb8219624279c84b3.png",
+  "local_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\.agnes\\artifacts\\images\\agnes-image-20260717-021506-019f6ddb278a7c42b5524718a6618e00.png",
+  "metadata_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\.agnes\\artifacts\\images\\agnes-image-20260717-021506-019f6ddb278a7c42b5524718a6618e00.json",
+  "mime_type": "image/png",
+  "width": 1152,
+  "height": 864,
+  "bytes": 1214855,
+  "preview": null,
+  "created_at": "2026-07-17T02:15:06.890417300+00:00"
+}

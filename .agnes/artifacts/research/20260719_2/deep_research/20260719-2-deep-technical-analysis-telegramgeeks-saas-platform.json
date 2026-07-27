@@ -1,0 +1,111 @@
+{
+  "kind": "agnes_artifact",
+  "artifact_type": "research_markdown_report",
+  "research_kind": "deep_research",
+  "mode": "deep_research",
+  "session_id": "20260719_2",
+  "title": "Deep Technical Analysis — TelegramGeeks SaaS Platform",
+  "local_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\.agnes\\artifacts\\research\\20260719_2\\deep_research\\20260719-2-deep-technical-analysis-telegramgeeks-saas-platform.md",
+  "manifest_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\.agnes\\artifacts\\research\\20260719_2\\deep_research\\20260719-2-deep-technical-analysis-telegramgeeks-saas-platform.json",
+  "repo_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\.agnes\\work\\research\\20260719_2\\deep_research\\repo",
+  "preview_uri": "ui://agnes-research/deep_research/20260719-2-deep-technical-analysis-telegramgeeks-saas-platform",
+  "sources_count": 17,
+  "evidence_count": 0,
+  "conflicts_count": 0,
+  "blocked_sources_count": 0,
+  "confidence": "unknown",
+  "quality_warnings": [
+    "Deep research report has no structured evidence ledger; important claims may be hard to audit."
+  ],
+  "created_at": "2026-07-19T07:31:46.138907300+00:00",
+  "sources": [
+    {
+      "title": "FastAPI Application Entry Point",
+      "url": "backend/app/main.py",
+      "note": null
+    },
+    {
+      "title": "Platform Configuration",
+      "url": "backend/app/core/config.py",
+      "note": null
+    },
+    {
+      "title": "JWT and Password Security Utilities",
+      "url": "backend/app/core/security.py",
+      "note": null
+    },
+    {
+      "title": "Authentication Endpoints",
+      "url": "backend/app/api/v1/endpoints/auth.py",
+      "note": null
+    },
+    {
+      "title": "Admin Panel Endpoints",
+      "url": "backend/app/api/v1/endpoints/admin.py",
+      "note": null
+    },
+    {
+      "title": "Module Registry and Dispatcher",
+      "url": "backend/app/api/v1/endpoints/modules.py",
+      "note": null
+    },
+    {
+      "title": "Payment Gateway Integration",
+      "url": "backend/app/api/v1/endpoints/payments.py",
+      "note": null
+    },
+    {
+      "title": "SQLAlchemy Database Models",
+      "url": "backend/app/models/__init__.py",
+      "note": null
+    },
+    {
+      "title": "Module Service Dispatcher",
+      "url": "backend/app/services/module_dispatcher.py",
+      "note": null
+    },
+    {
+      "title": "Axios API Client with JWT Interceptor",
+      "url": "frontend/src/lib/api.ts",
+      "note": null
+    },
+    {
+      "title": "Dashboard Overview Page",
+      "url": "frontend/src/app/dashboard/page.tsx",
+      "note": null
+    },
+    {
+      "title": "Login Page",
+      "url": "frontend/src/app/login/page.tsx",
+      "note": null
+    },
+    {
+      "title": "Registration Page",
+      "url": "frontend/src/app/register/page.tsx",
+      "note": null
+    },
+    {
+      "title": "Custom Dialog Component",
+      "url": "frontend/src/components/ui/dialog.tsx",
+      "note": null
+    },
+    {
+      "title": "Sidebar Navigation Component",
+      "url": "frontend/src/components/layout/sidebar.tsx",
+      "note": null
+    },
+    {
+      "title": "Docker Compose Infrastructure",
+      "url": "docker-compose.yml",
+      "note": null
+    },
+    {
+      "title": "Nginx Reverse Proxy Configuration",
+      "url": "nginx/nginx.conf",
+      "note": null
+    }
+  ],
+  "evidence": [],
+  "conflicts": [],
+  "blocked_sources": []
+}

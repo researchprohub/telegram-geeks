@@ -1,0 +1,32 @@
+{
+  "proxy": {
+    "enabled": false,
+    "source": "account",
+    "timeout": 5,
+    "retry_count": 3,
+    "connection_delay": 1,
+    "auto_switch": true
+  },
+  "delays": {
+    "min_seconds": 2,
+    "max_seconds": 10
+  },
+  "threads": {
+    "stream_control": false,
+    "max_streams": 5
+  },
+  "gpt": {
+    "enabled": true,
+    "model": "gpt-4o-mini",
+    "api_key": "sk-test"
+  },
+  "license": {
+    "key": "TEST-KEY-12345",
+    "last_verified": "2026-07-21T22:38:01.538150",
+    "valid": false
+  },
+  "antivirus": {
+    "last_warned": null
+  },
+  "updated_at": "2026-07-21T22:32:03.524779"
+}

@@ -1,0 +1,19 @@
+# Telegram Engagement Platform - Root pyproject.toml for monorepo.
+
+[project]
+name = "telegram-engagement-platform"
+version = "1.0.0"
+requires-python = ">=3.11"
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "I", "N", "W", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["backend", "ai_engine", "telegram_layer", "orchestrator", "anti_detection", "analytics_engine"]

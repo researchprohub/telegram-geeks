@@ -1,0 +1,17 @@
+{
+  "kind": "agnes_image",
+  "mode": "text_to_image",
+  "model": "agnes-image-2.1-flash",
+  "original_prompt": "Crypto payment illustration for TelegramGeeks",
+  "enhanced_prompt": "Premium glassmorphism crypto payment illustration. Translucent glass wallet cards showing Bitcoin, Ethereum, USDT, USDC coins. Payment flow arrows connecting wallets. Blue and purple gradient background with floating luminous orbs. Modern fintech aesthetic, soft shadows, no text.",
+  "size": "1024x768",
+  "remote_url": "https://platform-outputs.agnes-ai.space/images/t2i/dd3d9b6f2b7c4bedb08c559481c6b2f6.png",
+  "local_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\.agnes\\artifacts\\images\\agnes-image-20260717-022121-019f6de0df8a7cd082c4853dbfca2ab5.png",
+  "metadata_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\.agnes\\artifacts\\images\\agnes-image-20260717-022121-019f6de0df8a7cd082c4853dbfca2ab5.json",
+  "mime_type": "image/png",
+  "width": 1152,
+  "height": 864,
+  "bytes": 1169157,
+  "preview": null,
+  "created_at": "2026-07-17T02:21:21.674987700+00:00"
+}

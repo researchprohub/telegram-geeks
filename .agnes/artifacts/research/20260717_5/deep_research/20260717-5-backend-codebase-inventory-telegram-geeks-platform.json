@@ -1,0 +1,111 @@
+{
+  "kind": "agnes_artifact",
+  "artifact_type": "research_markdown_report",
+  "research_kind": "deep_research",
+  "mode": "deep_research",
+  "session_id": "20260717_5",
+  "title": "Backend Codebase Inventory — Telegram Geeks Platform",
+  "local_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\.agnes\\artifacts\\research\\20260717_5\\deep_research\\20260717-5-backend-codebase-inventory-telegram-geeks-platform.md",
+  "manifest_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\.agnes\\artifacts\\research\\20260717_5\\deep_research\\20260717-5-backend-codebase-inventory-telegram-geeks-platform.json",
+  "repo_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\.agnes\\work\\research\\20260717_5\\deep_research\\repo",
+  "preview_uri": "ui://agnes-research/deep_research/20260717-5-backend-codebase-inventory-telegram-geeks-platform",
+  "sources_count": 17,
+  "evidence_count": 0,
+  "conflicts_count": 0,
+  "blocked_sources_count": 0,
+  "confidence": "unknown",
+  "quality_warnings": [
+    "Deep research report has no structured evidence ledger; important claims may be hard to audit."
+  ],
+  "created_at": "2026-07-17T21:47:40.280540700+00:00",
+  "sources": [
+    {
+      "title": "api/v1/router.py",
+      "url": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\backend\\app\\api\\v1\\router.py",
+      "note": null
+    },
+    {
+      "title": "endpoints/accounts.py",
+      "url": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\backend\\app\\api\\v1\\endpoints\\accounts.py",
+      "note": null
+    },
+    {
+      "title": "endpoints/admin.py",
+      "url": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\backend\\app\\api\\v1\\endpoints\\admin.py",
+      "note": null
+    },
+    {
+      "title": "endpoints/analytics.py",
+      "url": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\backend\\app\\api\\v1\\endpoints\\analytics.py",
+      "note": null
+    },
+    {
+      "title": "endpoints/auth.py",
+      "url": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\backend\\app\\api\\v1\\endpoints\\auth.py",
+      "note": null
+    },
+    {
+      "title": "endpoints/campaigns.py",
+      "url": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\backend\\app\\api\\v1\\endpoints\\campaigns.py",
+      "note": null
+    },
+    {
+      "title": "endpoints/groups.py",
+      "url": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\backend\\app\\api\\v1\\endpoints\\groups.py",
+      "note": null
+    },
+    {
+      "title": "endpoints/modules.py",
+      "url": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\backend\\app\\api\\v1\\endpoints\\modules.py",
+      "note": null
+    },
+    {
+      "title": "endpoints/payments.py",
+      "url": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\backend\\app\\api\\v1\\endpoints\\payments.py",
+      "note": null
+    },
+    {
+      "title": "endpoints/personas.py",
+      "url": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\backend\\app\\api\\v1\\endpoints\\personas.py",
+      "note": null
+    },
+    {
+      "title": "endpoints/tdata_upload.py",
+      "url": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\backend\\app\\api\\v1\\endpoints\\tdata_upload.py",
+      "note": null
+    },
+    {
+      "title": "schemas/__init__.py",
+      "url": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\backend\\app\\schemas\\__init__.py",
+      "note": null
+    },
+    {
+      "title": "models/__init__.py",
+      "url": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\backend\\app\\models\\__init__.py",
+      "note": null
+    },
+    {
+      "title": "models/base.py",
+      "url": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\backend\\app\\models\\base.py",
+      "note": null
+    },
+    {
+      "title": "core/config.py",
+      "url": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\backend\\app\\core\\config.py",
+      "note": null
+    },
+    {
+      "title": "core/security.py",
+      "url": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\backend\\app\\core\\security.py",
+      "note": null
+    },
+    {
+      "title": "alembic/versions/001_initial_schema.py",
+      "url": "C:\\Users\\SMG\\Documents\\AgnesCode\\telegram-geeks\\backend\\alembic\\versions\\001_initial_schema.py",
+      "note": null
+    }
+  ],
+  "evidence": [],
+  "conflicts": [],
+  "blocked_sources": []
+}

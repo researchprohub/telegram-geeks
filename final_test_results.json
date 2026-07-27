@@ -1,0 +1,159 @@
+[
+  {
+    "user": "admin@test.com",
+    "module": "auth",
+    "status": "OK",
+    "plan": "agency",
+    "role": "admin"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "auth",
+    "status": "OK",
+    "plan": "starter",
+    "role": "operator"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "auth",
+    "status": "OK",
+    "plan": "pro",
+    "role": "operator"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "auth",
+    "status": "OK",
+    "plan": "agency",
+    "role": "operator"
+  },
+  {
+    "user": "viewer@test.com",
+    "module": "auth",
+    "status": "OK",
+    "plan": "starter",
+    "role": "viewer"
+  },
+  {
+    "module": "pricing_validation",
+    "status": "OK"
+  },
+  {
+    "module": "starter_booster",
+    "status": "OK"
+  },
+  {
+    "module": "starter_cloner_blocked",
+    "status": "OK"
+  },
+  {
+    "module": "admin_all_modules",
+    "status": "OK"
+  },
+  {
+    "module": "admin_users",
+    "status": "OK",
+    "count": 11
+  },
+  {
+    "module": "admin_settings",
+    "status": "OK"
+  },
+  {
+    "module": "admin_analytics",
+    "status": "OK"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "account_create",
+    "status": "OK",
+    "id": 20,
+    "plan": "starter"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "account_create",
+    "status": "OK",
+    "id": 21,
+    "plan": "pro"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "account_create",
+    "status": "OK",
+    "id": 22,
+    "plan": "agency"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "persona_create",
+    "status": "OK",
+    "plan": "starter"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "persona_create",
+    "status": "OK",
+    "plan": "pro"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "persona_create",
+    "status": "OK",
+    "plan": "agency"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "group_create",
+    "status": "OK",
+    "plan": "starter"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "group_create",
+    "status": "OK",
+    "plan": "pro"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "group_create",
+    "status": "OK",
+    "plan": "agency"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "campaign_create",
+    "status": "OK",
+    "plan": "starter"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "campaign_start",
+    "status": "OK",
+    "plan": "starter"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "campaign_create",
+    "status": "OK",
+    "plan": "pro"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "campaign_start",
+    "status": "OK",
+    "plan": "pro"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "campaign_create",
+    "status": "OK",
+    "plan": "agency"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "campaign_start",
+    "status": "OK",
+    "plan": "agency"
+  }
+]

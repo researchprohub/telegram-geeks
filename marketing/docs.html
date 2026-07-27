@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TelegramGeeks — Documentation</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-orbs"></div>
+
+  <nav class="nav">
+    <div class="container">
+      <a href="index.html" class="nav-logo">TelegramGeeks</a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="features.html">Features</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="blog.html">Blog</a>
+        <a href="docs.html" class="active">Docs</a>
+        <a href="#" class="btn btn-outline btn-sm">Login</a>
+        <a href="#" class="btn btn-primary btn-sm">Start Free Trial</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero" style="padding-top: 140px; padding-bottom: 60px;">
+    <div class="container">
+      <span class="badge badge-primary" style="margin-bottom: 24px;">Documentation</span>
+      <h1>API & <span class="text-gradient">Developer Docs</span></h1>
+      <p style="font-size: 1.2rem; color: var(--text-muted); max-width: 550px; margin: 0 auto;">Everything you need to integrate TelegramGeeks into your workflow.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="bento-grid">
+        <div class="bento-card animate-in" style="cursor: pointer;">
+          <div class="bento-icon"><i data-lucide="book-open"></i></div>
+          <h3>Getting Started</h3>
+          <p>Installation, configuration, and first campaign setup.</p>
+        </div>
+        <div class="bento-card animate-in delay-1" style="cursor: pointer;">
+          <div class="bento-icon"><i data-lucide="code"></i></div>
+          <h3>REST API Reference</h3>
+          <p>Complete API docs for accounts, campaigns, personas, and analytics.</p>
+        </div>
+        <div class="bento-card animate-in delay-2" style="cursor: pointer;">
+          <div class="bento-icon"><i data-lucide="credit-card"></i></div>
+          <h3>Payment Integration</h3>
+          <p>NowPayments & Oxapay API integration guide.</p>
+        </div>
+        <div class="bento-card animate-in" style="cursor: pointer;">
+          <div class="bento-icon"><i data-lucide="bot"></i></div>
+          <h3>AI Providers</h3>
+          <p>Configuring and switching between 13 AI providers.</p>
+        </div>
+        <div class="bento-card animate-in delay-1" style="cursor: pointer;">
+          <div class="bento-icon"><i data-lucide="shield-check"></i></div>
+          <h3>Anti-Detection Guide</h3>
+          <p>Proxy rotation, timing, and behavioral fingerprinting setup.</p>
+        </div>
+        <div class="bento-card animate-in delay-2" style="cursor: pointer;">
+          <div class="bento-icon"><i data-lucide="database"></i></div>
+          <h3>Database Schema</h3>
+          <p>PostgreSQL models, Redis queues, and migration guide.</p>
+        </div>
+        <div class="bento-card span-2 animate-in" style="cursor: pointer;">
+          <div class="bento-icon"><i data-lucide="container"></i></div>
+          <h3>Docker Deployment</h3>
+          <p>Full deployment guide with docker-compose, Nginx, SSL, and production hardening.</p>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div style="margin-top: 60px; text-align: center;" class="animate-in">
+        <h4 style="color: var(--text-muted); margin-bottom: 24px;">Quick Links</h4>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;">
+          <a href="../docs/API.md" class="btn btn-outline btn-sm"><i data-lucide="file-text" style="width: 14px; height: 14px;"></i> API Docs</a>
+          <a href="../docs/ARCHITECTURE.md" class="btn btn-outline btn-sm"><i data-lucide="layout" style="width: 14px; height: 14px;"></i> Architecture</a>
+          <a href="../docs/DEPLOYMENT.md" class="btn btn-outline btn-sm"><i data-lucide="server" style="width: 14px; height: 14px;"></i> Deployment</a>
+          <a href="../docs/SECURITY.md" class="btn btn-outline btn-sm"><i data-lucide="lock" style="width: 14px; height: 14px;"></i> Security</a>
+          <a href="../docs/IMPLEMENTATION_PLAN.md" class="btn btn-outline btn-sm"><i data-lucide="list-checks" style="width: 14px; height: 14px;"></i> Implementation Plan</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="footer-bottom" style="justify-content: center;">
+        <span>© 2026 TelegramGeeks. All rights reserved.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

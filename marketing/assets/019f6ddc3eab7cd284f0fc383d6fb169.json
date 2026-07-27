@@ -1,0 +1,17 @@
+{
+  "kind": "agnes_image",
+  "mode": "text_to_image",
+  "model": "agnes-image-2.1-flash",
+  "original_prompt": "Glassmorphism pricing illustration for TelegramGeeks",
+  "enhanced_prompt": "Premium SaaS pricing illustration with three frosted glass cards floating in 3D space. Left card clean, middle card elevated with purple glow aura, right card premium dark glass. Cryptocurrency coins (Bitcoin gold, Ethereum silver, USDT green) orbiting around. Electric blue and violet gradient background, volumetric lighting, ultra-modern fintech aesthetic, 4K.",
+  "size": "1024x768",
+  "remote_url": "https://platform-outputs.agnes-ai.space/images/t2i/e288bb3664c24049a5a2b65364e5ec63.png",
+  "local_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\.agnes\\artifacts\\images\\agnes-image-20260717-021618-019f6ddc3eab7cd284f0fc383d6fb169.png",
+  "metadata_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\.agnes\\artifacts\\images\\agnes-image-20260717-021618-019f6ddc3eab7cd284f0fc383d6fb169.json",
+  "mime_type": "image/png",
+  "width": 1152,
+  "height": 864,
+  "bytes": 1196790,
+  "preview": null,
+  "created_at": "2026-07-17T02:16:18.347965900+00:00"
+}

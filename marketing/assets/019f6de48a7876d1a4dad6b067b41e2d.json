@@ -1,0 +1,17 @@
+{
+  "kind": "agnes_image",
+  "mode": "text_to_image",
+  "model": "agnes-image-2.1-flash",
+  "original_prompt": "Topic intelligence illustration for TelegramGeeks",
+  "enhanced_prompt": "Premium glassmorphism illustration of topic intelligence and AI analysis. Brain icon made of frosted glass with data streams flowing in and out. Chart graphs, trend lines, and sparklines emerging from the brain. Blue and purple gradient background, floating luminous orbs. AI analytics aesthetic, soft shadows, no text.",
+  "size": "1024x768",
+  "remote_url": "https://platform-outputs.agnes-ai.space/images/t2i/daf34796efe247f6bed762070eef894d.png",
+  "local_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\.agnes\\artifacts\\images\\agnes-image-20260717-022522-019f6de48a7876d1a4dad6b067b41e2d.png",
+  "metadata_path": "C:\\Users\\SMG\\Documents\\AgnesCode\\.agnes\\artifacts\\images\\agnes-image-20260717-022522-019f6de48a7876d1a4dad6b067b41e2d.json",
+  "mime_type": "image/png",
+  "width": 1152,
+  "height": 864,
+  "bytes": 1341537,
+  "preview": null,
+  "created_at": "2026-07-17T02:25:22.040692100+00:00"
+}
