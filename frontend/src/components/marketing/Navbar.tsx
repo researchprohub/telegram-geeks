@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ChevronDown, ShoppingCart, User, Menu, X, Globe } from "lucide-react";
+import { ChevronDown, ShoppingCart, User, Menu, X } from "lucide-react";
 
 const navItems = [
   { label: "Download", href: "/download" },
   { label: "Prices", href: "/#price" },
-    {
-      label: "Information",
-      href: "#",
-      dropdown: true,
-      children: [
+  { label: "Blog", href: "/blog" },
+  {
+    label: "Information",
+    href: "#",
+    dropdown: true,
+    children: [
       { label: "About us", href: "/about" },
       {
         label: "Catalog",
@@ -26,7 +27,6 @@ const navItems = [
       { label: "Partners", href: "/partner" },
       { label: "Referral", href: "/refferal" },
       { label: "Manual", href: "/manuals" },
-      { label: "Articles", href: "/posts" },
       { label: "Reviews", href: "/reviews" },
       { label: "Benefits", href: "/telegram-promotion" },
       { label: "Updates feed", href: "/upd" },
@@ -58,26 +58,26 @@ export function Navbar({ locale = "en" }: { locale?: string }) {
     <header
       className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-background/90 backdrop-blur-xl border-b border-border"
-          : "bg-transparent"
+          ? "bg-[#020303]/90 backdrop-blur-xl border-b border-white/[0.08] shadow-lg shadow-black/40"
+          : "bg-[#020303]/50 backdrop-blur-md border-b border-white/[0.04]"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary-foreground))" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+            <div className="w-8 h-8 rounded-md bg-[#2ffcd4] flex items-center justify-center shadow-[0_0_15px_rgba(47,252,212,0.3)] transition-transform group-hover:scale-105">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#071412" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 2L11 13" /><path d="M22 2L15 22L11 13L2 9L22 2Z" />
               </svg>
             </div>
-            <span className="font-bold text-lg tracking-tight text-foreground">
-              Telegram<span className="text-primary">Geeks</span>
+            <span className="font-bold text-lg tracking-tight text-white font-['Science_Gothic',sans-serif]">
+              Telegram<span className="text-[#2ffcd4]">Geeks</span>
             </span>
           </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1">
+          {/* Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center gap-1 lg:gap-2">
             {navItems.map((item) =>
               item.dropdown ? (
                 <div
@@ -86,25 +86,27 @@ export function Navbar({ locale = "en" }: { locale?: string }) {
                   onMouseEnter={() => setOpenDropdown(item.label)}
                   onMouseLeave={() => setOpenDropdown(null)}
                 >
-                  <button className="flex items-center gap-1 px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent">
+                  <button
+                    className="flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium text-white/70 hover:text-white hover:bg-white/[0.06] rounded-md transition-colors"
+                  >
                     {item.label}
-                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openDropdown === item.label ? "rotate-180" : ""}`} />
+                    <ChevronDown className={`w-3.5 h-3.5 opacity-70 transition-transform ${openDropdown === item.label ? "rotate-180" : ""}`} />
                   </button>
                   {openDropdown === item.label && (
-                    <div className="absolute top-full left-0 mt-1 w-56 rounded-xl border border-border bg-card shadow-2xl shadow-black/50 py-2">
+                    <div className="absolute top-full left-0 mt-1.5 w-56 rounded-lg border border-white/[0.1] bg-[#090b0b]/95 backdrop-blur-xl shadow-2xl shadow-black/80 py-2 animate-fade-in">
                       {item.children!.map((child) =>
                         child.nested ? (
                           <div key={child.label} className="relative group/sub">
-                            <div className="flex items-center justify-between px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
+                            <div className="flex items-center justify-between px-4 py-2 text-[13px] text-white/70 hover:text-white hover:bg-white/[0.06] transition-colors cursor-pointer">
                               {child.label}
-                              <ChevronDown className="w-3 h-3 -rotate-90" />
+                              <ChevronDown className="w-3 h-3 -rotate-90 opacity-60" />
                             </div>
-                            <div className="absolute left-full top-0 ml-1 w-56 rounded-xl border border-border bg-card shadow-2xl shadow-black/50 py-2 hidden group-hover/sub:block">
+                            <div className="absolute left-full top-0 ml-1 w-56 rounded-lg border border-white/[0.1] bg-[#090b0b]/95 backdrop-blur-xl shadow-2xl shadow-black/80 py-2 hidden group-hover/sub:block animate-fade-in">
                               {child.nested.map((sub) => (
                                 <Link
                                   key={sub.label}
                                   href={sub.href}
-                                  className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                                  className="block px-4 py-2 text-[13px] text-white/70 hover:text-white hover:bg-white/[0.06] transition-colors"
                                 >
                                   {sub.label}
                                 </Link>
@@ -115,7 +117,7 @@ export function Navbar({ locale = "en" }: { locale?: string }) {
                           <Link
                             key={child.label}
                             href={child.href}
-                            className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                            className="block px-4 py-2 text-[13px] text-white/70 hover:text-white hover:bg-white/[0.06] transition-colors"
                           >
                             {child.label}
                           </Link>
@@ -128,7 +130,7 @@ export function Navbar({ locale = "en" }: { locale?: string }) {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent"
+                  className="px-3 py-2 text-[13px] font-medium text-white/70 hover:text-white hover:bg-white/[0.06] rounded-md transition-colors"
                 >
                   {item.label}
                 </Link>
@@ -136,51 +138,48 @@ export function Navbar({ locale = "en" }: { locale?: string }) {
             )}
           </nav>
 
-          {/* Right */}
-          <div className="flex items-center gap-2">
-            {/* Language */}
-            <div className="hidden md:flex items-center gap-0.5 text-xs font-medium">
-              {languages.map((lang, i) => (
-                <span key={lang.code}>
-                  <Link
-                    href={lang.href}
-                    className={`px-2 py-1 rounded ${
-                      locale === lang.code.toLowerCase()
-                        ? "text-foreground bg-accent"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                    } transition-colors`}
-                  >
-                    {lang.code}
-                  </Link>
-                  {i < languages.length - 1 && (
-                    <span className="text-muted-foreground/50 mx-0.5">|</span>
-                  )}
-                </span>
+          {/* Right Section: Language, Cart, Login */}
+          <div className="flex items-center gap-3">
+            {/* Language Switcher */}
+            <div className="hidden sm:flex items-center bg-white/[0.04] border border-white/[0.08] rounded-md p-0.5 text-xs font-medium">
+              {languages.map((lang) => (
+                <Link
+                  key={lang.code}
+                  href={lang.href}
+                  className={`px-2.5 py-1 rounded transition-colors text-[11px] font-semibold ${
+                    locale === lang.code.toLowerCase()
+                      ? "text-[#071412] bg-[#2ffcd4]"
+                      : "text-white/60 hover:text-white"
+                  }`}
+                >
+                  {lang.code}
+                </Link>
               ))}
             </div>
 
-            {/* Cart */}
+            {/* Cart Button */}
             <Link
               href="/cart"
-              className="hidden md:flex items-center gap-1.5 px-3 py-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent relative"
+              className="hidden sm:flex items-center justify-center w-9 h-9 rounded-md border border-white/[0.08] bg-white/[0.04] text-white/70 hover:text-white hover:bg-white/[0.08] transition-colors relative"
+              aria-label="Shopping Cart"
             >
               <ShoppingCart className="w-4 h-4" />
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-primary" />
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#2ffcd4]" />
             </Link>
 
-            {/* Login */}
+            {/* Login Button */}
             <Link
               href="/login"
-              className="hidden md:inline-flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent"
+              className="hidden sm:inline-flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-md bg-white text-[#071412] hover:bg-white/90 transition-all hover:shadow-[0_0_15px_rgba(255,255,255,0.2)]"
             >
-              <User className="w-4 h-4" />
+              <User className="w-3.5 h-3.5" />
               Log in
             </Link>
 
-            {/* Burger */}
+            {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 text-muted-foreground hover:text-foreground"
+              className="md:hidden p-2 rounded-md text-white/70 hover:text-white hover:bg-white/[0.06] transition-colors"
               aria-label="Toggle menu"
             >
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -189,84 +188,83 @@ export function Navbar({ locale = "en" }: { locale?: string }) {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Dropdown Menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-border bg-background/95 backdrop-blur-xl max-h-[80vh] overflow-y-auto">
-          <div className="px-4 py-4 space-y-1">
-            {navItems.map((item) =>
-              item.dropdown ? (
-                <div key={item.label}>
-                  <button
-                    onClick={() => setMobileSubOpen(mobileSubOpen === item.label ? null : item.label)}
-                    className="flex items-center justify-between w-full px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground rounded-lg hover:bg-accent"
-                  >
-                    {item.label}
-                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${mobileSubOpen === item.label ? "rotate-180" : ""}`} />
-                  </button>
-                  {mobileSubOpen === item.label && (
-                    <div className="ml-4 space-y-0.5 pb-1">
-                      {item.children!.map((child) =>
-                        child.nested ? (
-                          <div key={child.label}>
-                            <div className="px-3 py-2 text-xs text-muted-foreground uppercase tracking-wider">
-                              {child.label}
-                            </div>
-                            {child.nested.map((sub) => (
-                              <Link
-                                key={sub.label}
-                                href={sub.href}
-                                onClick={() => setMobileOpen(false)}
-                                className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-lg hover:bg-accent ml-2"
-                              >
-                                {sub.label}
-                              </Link>
-                            ))}
-                          </div>
-                        ) : (
-                          <Link
-                            key={child.label}
-                            href={child.href}
-                            onClick={() => setMobileOpen(false)}
-                            className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-lg hover:bg-accent"
-                          >
-                            {child.label}
-                          </Link>
-                        )
-                      )}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="block px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground rounded-lg hover:bg-accent"
+        <div className="md:hidden border-t border-white/[0.08] bg-[#050707]/98 backdrop-blur-2xl max-h-[85vh] overflow-y-auto px-4 py-5 space-y-2">
+          {navItems.map((item) =>
+            item.dropdown ? (
+              <div key={item.label} className="border-b border-white/[0.04] pb-2">
+                <button
+                  onClick={() => setMobileSubOpen(mobileSubOpen === item.label ? null : item.label)}
+                  className="flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium text-white/80 hover:text-white rounded-md"
                 >
                   {item.label}
+                  <ChevronDown className={`w-4 h-4 transition-transform ${mobileSubOpen === item.label ? "rotate-180" : ""}`} />
+                </button>
+                {mobileSubOpen === item.label && (
+                  <div className="ml-4 pl-2 border-l border-white/[0.08] space-y-1 mt-1">
+                    {item.children!.map((child) =>
+                      child.nested ? (
+                        <div key={child.label} className="py-1">
+                          <div className="px-3 py-1 text-[11px] font-semibold text-white/40 uppercase tracking-wider">
+                            {child.label}
+                          </div>
+                          {child.nested.map((sub) => (
+                            <Link
+                              key={sub.label}
+                              href={sub.href}
+                              onClick={() => setMobileOpen(false)}
+                              className="block px-3 py-1.5 text-xs text-white/70 hover:text-[#2ffcd4]"
+                            >
+                              {sub.label}
+                            </Link>
+                          ))}
+                        </div>
+                      ) : (
+                        <Link
+                          key={child.label}
+                          href={child.href}
+                          onClick={() => setMobileOpen(false)}
+                          className="block px-3 py-1.5 text-xs text-white/70 hover:text-[#2ffcd4]"
+                        >
+                          {child.label}
+                        </Link>
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                key={item.label}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                className="block px-3 py-2 text-sm font-medium text-white/80 hover:text-white rounded-md"
+              >
+                {item.label}
+              </Link>
+            )
+          )}
+          <div className="pt-4 border-t border-white/[0.08] flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              {languages.map((lang) => (
+                <Link
+                  key={lang.code}
+                  href={lang.href}
+                  className={`px-3 py-1 text-xs font-semibold rounded ${
+                    locale === lang.code.toLowerCase() ? "bg-[#2ffcd4] text-[#071412]" : "text-white/60"
+                  }`}
+                >
+                  {lang.code}
                 </Link>
-              )
-            )}
-            <div className="pt-3 mt-3 border-t border-border flex items-center gap-2">
-              {languages.map((lang, i) => (
-                <span key={lang.code}>
-                  <Link
-                    href={lang.href}
-                    className={`px-2 py-1 text-xs rounded ${
-                      locale === lang.code.toLowerCase() ? "text-foreground bg-accent" : "text-muted-foreground"
-                    }`}
-                  >
-                    {lang.code}
-                  </Link>
-                </span>
               ))}
             </div>
             <Link
               href="/login"
               onClick={() => setMobileOpen(false)}
-              className="flex items-center justify-center gap-2 w-full py-2.5 mt-2 rounded-lg border border-border text-sm text-foreground hover:bg-accent transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-md bg-white text-[#071412]"
             >
-              <User className="w-4 h-4" />
+              <User className="w-3.5 h-3.5" />
               Log in
             </Link>
           </div>

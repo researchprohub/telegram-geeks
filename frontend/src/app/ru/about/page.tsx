@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { motion } from "framer-motion";
 import { Navbar } from "@/components/marketing/Navbar";
@@ -57,7 +57,7 @@ export default function AboutPage() {
             <AnimatedSection>
             <div className="max-w-3xl mx-auto space-y-6 text-muted-foreground leading-relaxed mb-14">
               <p>
-                Telegram Geeks — это универсальная платформа для Telegram-маркетинга, предоставляющая автоматическую регистрацию аккаунтов,
+                TelegramGeeks Pro — это универсальная платформа для Telegram-маркетинга, предоставляющая автоматическую регистрацию аккаунтов,
                 расширенный таргетинг аудитории, массовую рассылку и комплексные инструменты управления аккаунтами.
               </p>
               <p>

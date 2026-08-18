@@ -14,7 +14,7 @@ const reviews = [
     license: "1个月许可证",
   },
   {
-    text: "几年前用过类似的软件，但由于各种bug转向了定制方案。今年决定试试Telegram Geeks，其稳定性令我惊讶。现在任务执行速度快了数倍，也更加简单。",
+    text: "几年前用过类似的软件，但由于各种bug转向了定制方案。今年决定试试TelegramGeeks Pro，其稳定性令我惊讶。现在任务执行速度快了数倍，也更加简单。",
     name: "mulad",
     license: "1年许可证",
   },
@@ -24,12 +24,12 @@ const reviews = [
     license: "1个月许可证",
   },
   {
-    text: "使用Telegram Geeks已经两年了。对功能、价格和稳定性非常满意。推荐！",
+    text: "使用TelegramGeeks Pro已经两年了。对功能、价格和稳定性非常满意。推荐！",
     name: "yuri555",
     license: "1年许可证",
   },
   {
-    text: "多年来我一直从事Telegram自动化和流量管理工作，Telegram Geeks确实是我用过的最稳定、设计最精良的工具之一。软件在处理群发、邀请、会话管理和账号养号方面非常流畅，从未出现卡顿或崩溃。最让我印象深刻的是功能的灵活性和界面的直观性，即使是复杂任务也能轻松上手。可以看出开发者真正理解实际的Telegram工作流程。更新频繁，支持响应迅速，整体质量持续提升。如果你认真考虑扩展Telegram业务同时减少封号风险并确保账号安全，这款软件绝对值得拥有。",
+    text: "多年来我一直从事Telegram自动化和流量管理工作，TelegramGeeks Pro确实是我用过的最稳定、设计最精良的工具之一。软件在处理群发、邀请、会话管理和账号养号方面非常流畅，从未出现卡顿或崩溃。最让我印象深刻的是功能的灵活性和界面的直观性，即使是复杂任务也能轻松上手。可以看出开发者真正理解实际的Telegram工作流程。更新频繁，支持响应迅速，整体质量持续提升。如果你认真考虑扩展Telegram业务同时减少封号风险并确保账号安全，这款软件绝对值得拥有。",
     name: "q0659588439",
     license: "1个月许可证",
   },
@@ -51,7 +51,7 @@ export default function ReviewsPage() {
                 用户评价
               </h1>
               <p className="text-muted-foreground text-lg">
-                看看客户对Telegram Geeks的评价
+                看看客户对TelegramGeeks Pro的评价
               </p>
             </div>
           </div>

@@ -21,20 +21,20 @@ const bonusTiers = [
   { keys: 5, reward: "License key or any module*", note: "*except «Universal Registrar»" },
   { keys: 15, reward: "Any module** of your choice for 1 year", note: "**except «Universal Registrar»" },
   { keys: 25, reward: "Any module** of your choice for 2 years", note: "" },
-  { keys: 35, reward: "Telegram Geeks for 3 years with all modules", note: "" },
+  { keys: 35, reward: "TelegramGeeks Pro for 3 years with all modules", note: "" },
 ];
 
 const levels = [
   {
     level: 1, percent: 5, title: "Level One",
-    desc: "You need to sell just 5 license keys for 1 year to move to the next level. If you do not have a Telegram Geeks license key yet, this is a great opportunity to get one. At the next level you will receive a bonus key valid for one year!",
-    bonus: "A Telegram Geeks license key or any module of your choice for 1 year",
+    desc: "You need to sell just 5 license keys for 1 year to move to the next level. If you do not have a TelegramGeeks Pro license key yet, this is a great opportunity to get one. At the next level you will receive a bonus key valid for one year!",
+    bonus: "A TelegramGeeks Pro license key or any module of your choice for 1 year",
     exception: "except «Universal Registrar»",
   },
   {
     level: 2, percent: 10, title: "Level Two",
     desc: "The level is assigned automatically after reaching 5 sales of one-year license keys or the equivalent amount.",
-    bonus: "A Telegram Geeks license key or any module of your choice for 1 year",
+    bonus: "A TelegramGeeks Pro license key or any module of your choice for 1 year",
     exception: "except «Universal Registrar»",
   },
   {
@@ -52,7 +52,7 @@ const levels = [
   {
     level: 5, percent: 25, title: "Level Five",
     desc: "The level is assigned automatically after reaching 35 sales of one-year license keys or the equivalent amount.",
-    bonus: "A Telegram Geeks license for 3 years with all modules",
+    bonus: "A TelegramGeeks Pro license for 3 years with all modules",
     exception: "",
   },
 ];
@@ -90,7 +90,7 @@ export default function RefferalPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-2xl mx-auto mb-12">
               <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-4">
-                How to earn with Telegram Geeks?
+                How to earn with TelegramGeeks Pro?
               </h2>
               <p className="text-muted-foreground">
                 Where to sell? Choose the channels that work best for you
@@ -205,7 +205,7 @@ export default function RefferalPage() {
                   Bonuses are more than gifts
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Bonuses in Telegram Geeks are not just gifts, but a reward for activity. The more you work, the more often you get paid modules for free. We are interested in every partner earning well and regularly.
+                  Bonuses in TelegramGeeks Pro are not just gifts, but a reward for activity. The more you work, the more often you get paid modules for free. We are interested in every partner earning well and regularly.
                 </p>
               </div>
 
@@ -218,7 +218,7 @@ export default function RefferalPage() {
                   Go to your personal account on the website — the referral link is located in the left sidebar menu. It is always at hand so you can use it quickly.
                 </p>
                 <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                  The «Performance» tab also helps track clicks on your referral links. By analyzing this data, you can choose the best approach to monetization with Telegram Geeks.
+                  The «Performance» tab also helps track clicks on your referral links. By analyzing this data, you can choose the best approach to monetization with TelegramGeeks Pro.
                 </p>
                 <div className="flex items-start gap-3 p-4 rounded-lg bg-primary/5 border border-primary/10">
                   <BarChart3 className="w-5 h-5 text-primary shrink-0 mt-0.5" />

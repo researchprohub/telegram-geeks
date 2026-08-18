@@ -1,83 +1,81 @@
-import { Star, ArrowRight } from "lucide-react";
-import Link from "next/link";
+"use client";
 
-type ReviewDict = { [key: string]: { text: string; name: string }[] };
+import { useState } from "react";
+import { Star } from "lucide-react";
 
-const reviewsDict: ReviewDict = {
-  en: [
-    { text: "Excellent software! I have been using Telegram Geeks for over a year now. The functionality is constantly expanding, the support team is always in touch and helps solve any issues.", name: "elot_178" },
-    { text: "I bought a license for a year. Fully satisfied. The session duplicator and mass messaging work flawlessly. The anti-ban system is well thought out.", name: "Roman1992" },
-    { text: "I recommend it to everyone who is seriously involved in Telegram promotion. The program pays for itself in the first month of use.", name: "Dr Zoidberg" },
-    { text: "Great product, convenient interface, many features. I especially like the audience collection and database management tools.", name: "ssw024" },
-    { text: "I was looking for a Telegram promotion tool for a long time. Tried several options, settled on Telegram Geeks. The best solution on the market.", name: "dyadyauasya" },
-    { text: "Cooperation with Telegram Geeks has significantly simplified our work with Telegram. Automated processes that used to take hours now run in the background.", name: "SMS-Activate" },
-    { text: "The session duplicator feature is absolute gold. I can clone my entire Telegram setup across multiple machines in seconds. This saves me hours of manual setup.", name: "TechExplorer" },
-    { text: "I bought a lifetime license and never regretted it. The team regularly releases updates with new features that make our workflows even more efficient.", name: "Bog" },
-  ],
-  ru: [
-    { text: "Отличный софт! Пользуюсь Telegram Geeks уже больше года. Функционал постоянно расширяется, служба поддержки всегда на связи и помогает решить любые вопросы.", name: "elot_178" },
-    { text: "Купил лицензию на год. Полностью доволен. Дубликатор сессий и массовая рассылка работают безупречно. Система антибан хорошо продумана.", name: "Roman1992" },
-    { text: "Рекомендую всем, кто серьёзно занимается продвижением в Telegram. Программа окупается в первый же месяц использования.", name: "Dr Zoidberg" },
-    { text: "Отличный продукт, удобный интерфейс, много функций. Особенно нравятся инструменты сбора аудитории и управления базами данных.", name: "ssw024" },
-    { text: "Долго искал инструмент для продвижения в Telegram. Перепробовал несколько вариантов, остановился на Telegram Geeks. Лучшее решение на рынке.", name: "dyadyauasya" },
-    { text: "Сотрудничество с Telegram Geeks значительно упростило нашу работу с Telegram. Автоматизированные процессы, которые раньше занимали часы, теперь работают в фоне.", name: "SMS-Activate" },
-    { text: "Отличный софт за свои деньги. Купил лицензию и ни разу не пожалел. Команда регулярно выпускает обновления с новыми функциями.", name: "Bog" },
-    { text: "Session Duplicator is absolute gold. I can clone my entire Telegram setup across multiple machines in seconds. Saves hours of manual setup.", name: "TechExplorer" },
-    { text: "Purchased a lifetime license and never regretted it. Team regularly releases updates with new features that make workflows even more efficient.", name: "PremiumUser" },
-  ],
-  cn: [
-    { text: "优秀的软件！我使用 Telegram Geeks 已经一年多了。功能不断扩展，支持团队随时在线帮助解决任何问题。", name: "elot_178" },
-    { text: "我购买了一年的许可证。非常满意。会话复制器和群发消息功能完美运行。反封号系统设计巧妙。", name: "Roman1992" },
-    { text: "我推荐给所有认真从事 Telegram 推广的人。这个程序在使用的第一个月就能回本。", name: "Dr Zoidberg" },
-    { text: "很好的产品，界面方便，功能丰富。我特别喜欢受众收集和数据库管理工具。", name: "ssw024" },
-    { text: "我寻找 Telegram 推广工具很久了。试过几个选择，最终选择了 Telegram Geeks。市场上最好的解决方案。", name: "dyadyauasya" },
-    { text: "与 Telegram Geeks 的合作极大地简化了我们在 Telegram 上的工作。过去需要数小时的自动化流程现在在后台运行。", name: "SMS-Activate" },
-    { text: "物超所值的软件。我购买了许可证，从未后悔。团队定期发布带有新功能的更新。", name: "Bog" },
-    { text: "会话复制器功能简直是金字塔超级兵。我可以跨多台机器克隆完整的Telegram设置，节省数小时的手动配置。", name: "TechExplorer" },
-    { text: "购买了终身许可证，从未后悔。团队定期发布新功能，让工作流程更加高效。", name: "PremiumUser" },
-  ],
-};
+type FAQDict = { q: string; a: string }[];
 
-const t: { [key: string]: { title: string; more: string } } = {
-  en: { title: "Reviews", more: "More reviews" },
-  ru: { title: "Отзывы", more: "Больше отзывов" },
-  cn: { title: "用户评价", more: "更多评价" },
+const faqDict: { [key: string]: { title: string; items: FAQDict } } = {
+  en: {
+    title: "Maybe the answer to your question is here!",
+    items: [
+      { q: "How to buy?", a: "Automated ordering on our website. Add the desired license to your cart, register an account, and complete payment. The license key will be sent to your email and appear in your personal account." },
+      { q: "How to pay?", a: "We accept cryptocurrencies including Bitcoin (BTC), Tether (USDT), and USD Coin (USDC). Card payment is available by prior request. Contact our support team for details." },
+      { q: "How to contact?", a: "You can reach us through the Contacts section on our website, by submitting a request through the online form, via the online operator chat, or through our Sphere.chat encrypted messenger." },
+      { q: "Do you have an Affiliate program?", a: "Yes! We offer an affiliate program where you can earn up to 25% per sale. The system is fully automated — generate your affiliate link in your personal account and start earning commissions." },
+      { q: "If you have bonuses for Partners?", a: "Yes, we have a bonus system for our partners. Depending on your tier, you receive additional modules and features to increase your work efficiency." },
+      { q: "What companies do you cooperate with?", a: "We partner with leading SMS services, proxy providers, and industry giants. Our partners receive dedicated accounts in Sphere.chat and access to exclusive features." },
+      { q: "What is sphere.chat?", a: "Sphere.chat is an encrypted private messenger with over 1,500 users. It's our community hub for professionals in Telegram automation." },
+      { q: "Do you have support after purchase?", a: "Yes, we provide both technical and informational support after purchase. Our team is available through blb.team and sphere.chat to help you with any questions or issues." },
+    ],
+  },
+  ru: {
+    title: "Возможно, ответ на ваш вопрос уже здесь!",
+    items: [
+      { q: "Как купить?", a: "Автоматизированный заказ на нашем сайте. Добавьте нужную лицензию в корзину, зарегистрируйте аккаунт и оплатите. Лицензионный ключ придёт на email и появится в личном кабинете." },
+      { q: "Как оплатить?", a: "Мы принимаем криптовалюты: Bitcoin (BTC), Tether (USDT), USD Coin (USDC). Оплата картой доступна по предварительному запросу. Свяжитесь с нашей службой поддержки." },
+      { q: "Как связаться?", a: "Вы можете связаться с нами через раздел Контакты на сайте, через онлайн-форму, чат с оператором или через наш зашифрованный мессенджер Sphere.chat." },
+      { q: "Есть ли партнёрская программа?", a: "Да! Мы предлагаем партнёрскую программу с доходом до 25% с продажи. Система完全自动化 — создайте партнёрскую ссылку в личном кабинете и зарабатывайте." },
+      { q: "Есть ли бонусы для партнёров?", a: "Да, у нас есть система бонусов для партнёров. В зависимости от вашего уровня вы получаете дополнительные модули и функции." },
+      { q: "С какими компаниями вы сотрудничаете?", a: "Мы сотрудничаем с ведущими SMS-сервисами, прокси-провайдерами и лидерами индустрии. Наши партнёры получают выделенные аккаунты в Sphere.chat." },
+      { q: "Что такое sphere.chat?", a: "Sphere.chat — это зашифрованный приватный мессенджер с более чем 1 500 пользователей. Это центр нашего сообщества профессионалов автоматизации Telegram." },
+      { q: "Есть ли поддержка после покупки?", a: "Да, мы предоставляем техническую и информационную поддержку после покупки. Наша команда доступна через blb.team и sphere.chat." },
+    ],
+  },
+  cn: {
+    title: "也许这里有您问题的答案！",
+    items: [
+      { q: "如何购买？", a: "在我们网站自动下单。将所需许可证加入购物车，注册账户并完成支付。许可证密钥将发送到您的邮箱并显示在个人中心。" },
+      { q: "如何支付？", a: "我们接受加密货币: Bitcoin (BTC)、Tether (USDT) 和 USD Coin (USDC)。银行卡支付需提前申请。请联系我们的支持团队了解详情。" },
+      { q: "如何联系？", a: "您可以通过网站的联系方式页面、在线表单、在线客服聊天或我们的加密通讯软件 Sphere.chat 联系我们。" },
+      { q: "有联盟计划吗？", a: "是的！我们提供联盟计划，每次销售可赚取高达25%的佣金。系统完全自动化 — 在个人中心生成联盟链接即可开始赚取佣金。" },
+      { q: "合作伙伴有奖励吗？", a: "是的，我们为合作伙伴提供奖励系统。根据您的等级，您将获得额外的模块和功能以提高工作效率。" },
+      { q: "你们与哪些公司合作？", a: "我们与领先的短信服务商、代理服务器提供商和行业巨头合作。合作伙伴在 Sphere.chat 中获得专属账户和高级功能。" },
+      { q: "什么是 sphere.chat？", a: "Sphere.chat 是一个加密的私密通讯软件，拥有超过1500名用户。这是我们Telegram自动化专业人士的社区中心。" },
+      { q: "购买后提供支持吗？", a: "是的，我们提供购买后的技术和信息支持。我们的团队通过 blb.team 和 sphere.chat 为您解答任何问题。" },
+    ],
+  },
 };
 
 export function ReviewsSection({ locale = "en" }: { locale?: string }) {
-  const reviews = reviewsDict[locale] || reviewsDict.en;
-  const txt = t[locale] || t.en;
+  const data = faqDict[locale] || faqDict.en;
+  const cols = 4;
+  const rows = Math.ceil(data.items.length / cols);
+
   return (
-    <section className="py-20 lg:py-28 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground text-center mb-14">
-          {txt.title}
-        </h2>
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-5 relative">
-          {reviews.map((review, i) => (
+    <section id="reviews" className="py-16 lg:py-20 border-t border-border">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-4">
+            {data.title}
+          </h2>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-16">
+          {data.items.map((faq, i) => (
             <div
               key={i}
-              className="break-inside-avoid mb-5 rounded-xl border border-border bg-card p-6"
+              className="rounded-xl border bg-gradient-to-b from-[rgba(8,8,8,.98)] to-[rgba(3,3,3,.98)] border-[rgba(255,255,255,.08)] min-h-[164px] p-4 pb-2 flex flex-col"
             >
-              <div className="flex gap-1 mb-3">
-                {Array.from({ length: 5 }).map((_, s) => (
-                  <Star key={s} className="w-4 h-4 fill-primary text-primary" />
-                ))}
+              <div className="flex items-start gap-2 mb-2">
+                <Star className="w-3.5 h-3.5 text-[#2ffcd4] text-[14px] font-bold shrink-0" />
+                <span className="text-[11px] text-[rgba(255,255,255,.42)] opacity-0 shrink-0">Review</span>
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                {review.text}
-              </p>
-              <div className="text-sm font-medium text-foreground/80">{review.name}</div>
+              <div className="flex-1 text-[11px] text-[rgba(255,255,255,.74)] leading-relaxed line-clamp-1">
+                {faq.q}
+              </div>
+              <p className="mt-2 text-[11px] text-[rgba(255,255,255,.42)]">{faq.a}</p>
             </div>
           ))}
-        </div>
-        <div className="text-center mt-10">
-          <Link
-            href="/reviews"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
-          >
-            {txt.more} <ArrowRight className="w-4 h-4" />
-          </Link>
         </div>
       </div>
     </section>

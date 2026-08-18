@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Users, Brain, Zap, MessageSquare, BarChart3,
-  Settings, ShieldCheck, Blocks, Upload, LogOut, CreditCard,
+  Settings, ShieldCheck, Blocks, Upload, LogOut, CreditCard, Newspaper,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
@@ -18,6 +18,7 @@ const navGroups = [
       { href: "/dashboard/modules", label: "Modules", icon: Blocks, badge: "48" },
       { href: "/dashboard/campaigns", label: "Campaigns", icon: Zap },
       { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+      { href: "/dashboard/blog", label: "Blog", icon: Newspaper },
     ],
   },
   {
@@ -33,6 +34,7 @@ const navGroups = [
     items: [
       { href: "/dashboard/settings", label: "Settings", icon: Settings },
       { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
+      { href: "/dashboard/features", label: "Features", icon: Blocks },
     ],
   },
 ];

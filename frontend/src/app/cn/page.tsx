@@ -78,7 +78,7 @@ export default function CNPage() {
                   视频介绍
                 </a>
                 <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter leading-none mb-6 text-foreground">
-                  Telegram Geeks
+                  TelegramGeeks Pro
                 </h1>
                 <p className="text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed mb-8">
                   全面的Telegram推广工具集：从注册、群发、邀请到账户预热、聊天管理和精准会话操作
@@ -98,7 +98,7 @@ export default function CNPage() {
                   <div className="relative rounded-2xl border border-border bg-gradient-to-br from-card to-transparent overflow-hidden">
                     <img
                       src="/assets/hero/screenshot.png"
-                      alt="Telegram Geeks 界面"
+                      alt="TelegramGeeks Pro 界面"
                       className="w-full h-auto object-cover"
                     />
                   </div>
@@ -145,7 +145,7 @@ export default function CNPage() {
                   如今，几乎所有在 <strong className="text-foreground/80">Telegram</strong> 上推广项目或服务的人都听说过我们，许多人已经加入了我们的社区。
                 </p>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  批量消息、刷量、群组邀请以及其他获取流量的方式，都可以通过 <strong className="text-foreground/80">Telegram Geeks</strong> 实现！
+                  批量消息、刷量、群组邀请以及其他获取流量的方式，都可以通过 <strong className="text-foreground/80">TelegramGeeks Pro</strong> 实现！
                 </p>
               </div>
               <div className="rounded-xl border border-border bg-muted p-8 lg:p-10">
@@ -163,7 +163,7 @@ export default function CNPage() {
                   我们提供的不仅仅是软件，而是进入专业人士私密社区、知识库和真实Telegram自动化案例的通道。
                 </p>
                 <p className="text-sm text-muted-foreground leading-relaxed mb-5">
-                  我们的用户可以访问加密通讯软件 <strong className="text-foreground/80">Sphere.chat</strong>，该平台拥有5000+用户，每个人都在使用 <strong className="text-foreground/80">Telegram Geeks</strong>！
+                  我们的用户可以访问加密通讯软件 <strong className="text-foreground/80">Sphere.chat</strong>，该平台拥有5000+用户，每个人都在使用 <strong className="text-foreground/80">TelegramGeeks Pro</strong>！
                 </p>
                 <a href="https://sphere.chat/" target="_blank" rel="nofollow noopener noreferrer"
                   className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors">
@@ -184,7 +184,7 @@ export default function CNPage() {
               <div className="absolute -inset-4 bg-gradient-to-tr from-primary/5 via-primary/[0.02] to-transparent rounded-3xl blur-2xl pointer-events-none" />
               <img
                 src="/assets/landing/modules-showcase.jpg"
-                alt="Telegram Geeks 模块界面"
+                alt="TelegramGeeks Pro 模块界面"
                 className="relative w-full h-auto rounded-2xl border border-border shadow-2xl"
               />
             </div>

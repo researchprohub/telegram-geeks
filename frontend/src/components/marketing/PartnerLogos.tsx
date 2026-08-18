@@ -18,8 +18,8 @@ export function PartnerLogos() {
               </div>
             ))}
           </div>
-          <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-[#07070c] to-transparent pointer-events-none" />
-          <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-[#07070c] to-transparent pointer-events-none" />
+          <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-[#050505] to-transparent pointer-events-none" />
+          <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-[#050505] to-transparent pointer-events-none" />
         </div>
       </div>
     </section>

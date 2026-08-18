@@ -10,12 +10,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.schemas import PersonaCreate, PersonaUpdate, PersonaOut, PaginatedResponse
 from app.db.session import get_db
-from app.models import Persona, Account, User
+from app.models import Persona, Account, TelegramGroup, User
 from app.dependencies import get_current_user_tenant
 
 router = APIRouter(redirect_slashes=False)
 
-UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "../../../uploads/personas")
+UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "../../../..", "uploads", "personas")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
@@ -36,6 +36,7 @@ def _persona_out(p) -> PersonaOut:
         group_prompts=p.group_prompts or {}, version=p.version,
         template_source=p.template_source,
         telegram_account_id=p.telegram_account_id,
+        assigned_group_ids=p.assigned_group_ids or [],
         webhook_url=p.webhook_url, webhook_headers=p.webhook_headers or {},
         sheets_config=p.sheets_config or {}, is_active=p.is_active,
         created_at=p.created_at,
@@ -94,6 +95,7 @@ async def create_persona(
         soul_prompt_data=body.soul_prompt_data or {},
         group_prompts=body.group_prompts or {},
         telegram_account_id=body.telegram_account_id,
+        assigned_group_ids=body.assigned_group_ids or [],
         webhook_url=body.webhook_url,
         webhook_headers=body.webhook_headers or {},
         sheets_config=body.sheets_config or {},
@@ -150,6 +152,7 @@ async def update_persona(
     if body.soul_prompt_data is not None: p.soul_prompt_data = body.soul_prompt_data
     if body.group_prompts is not None: p.group_prompts = body.group_prompts
     if body.telegram_account_id is not None: p.telegram_account_id = body.telegram_account_id
+    if body.assigned_group_ids is not None: p.assigned_group_ids = body.assigned_group_ids
     if body.webhook_url is not None: p.webhook_url = body.webhook_url
     if body.webhook_headers is not None: p.webhook_headers = body.webhook_headers
     if body.sheets_config is not None: p.sheets_config = body.sheets_config
@@ -215,15 +218,14 @@ async def upload_persona_image(
 
     ext = os.path.splitext(file.filename or "image.png")[1] or ".png"
     filename = f"{uuid.uuid4().hex}{ext}"
-    rel_path = f"uploads/personas/{filename}"
-    abs_path = os.path.join(os.path.dirname(__file__), "../../../", rel_path)
+    abs_path = os.path.join(os.path.dirname(__file__), "../../../..", "uploads", "personas", filename)
     os.makedirs(os.path.dirname(abs_path), exist_ok=True)
 
     content = await file.read()
     with open(abs_path, "wb") as f:
         f.write(content)
 
-    p.avatar_url = f"/static/{rel_path}"
+    p.avatar_url = f"/static/personas/{filename}"
     p.updated_at = datetime.utcnow()
     await db.commit()
     await db.refresh(p)
@@ -279,6 +281,67 @@ async def unassign_account(
     p.updated_at = datetime.utcnow()
     await db.commit()
     return {"persona_id": persona_id, "telegram_account_id": None}
+
+
+# ─── Group Assignment ────────────────────────────────
+
+class GroupAssignBody(BaseModel):
+    group_ids: list[int] = []
+
+
+@router.post("/{persona_id}/assign-groups", tags=["Personas"])
+async def assign_groups(
+    persona_id: int,
+    body: GroupAssignBody,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Assign Telegram groups to a persona (tenant-isolated)."""
+    r = await db.execute(select(Persona).where(Persona.id == persona_id))
+    p = r.scalar_one_or_none()
+    if not p:
+        raise HTTPException(status_code=404, detail="Persona not found")
+    await _require_own_persona(db, p, current_user)
+
+    if body.group_ids:
+        gr = await db.execute(select(TelegramGroup).where(TelegramGroup.id.in_(body.group_ids)))
+        groups = gr.scalars().all()
+        if len(groups) != len(set(body.group_ids)):
+            raise HTTPException(status_code=404, detail="One or more groups not found")
+        for g in groups:
+            if current_user.role != "admin" and g.user_id != current_user.id:
+                raise HTTPException(status_code=403, detail=f"Access denied: group {g.id} not yours")
+
+    p.assigned_group_ids = body.group_ids
+    p.updated_at = datetime.utcnow()
+    await db.commit()
+    await db.refresh(p)
+    return {"persona_id": persona_id, "assigned_group_ids": p.assigned_group_ids}
+
+
+@router.get("/{persona_id}/assigned-groups", tags=["Personas"])
+async def get_assigned_groups(
+    persona_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Get the assigned Telegram groups (with titles) for a persona."""
+    r = await db.execute(select(Persona).where(Persona.id == persona_id))
+    p = r.scalar_one_or_none()
+    if not p:
+        raise HTTPException(status_code=404, detail="Persona not found")
+    await _require_own_persona(db, p, current_user)
+    ids = p.assigned_group_ids or []
+    if not ids:
+        return {"persona_id": persona_id, "groups": []}
+    gr = await db.execute(select(TelegramGroup).where(TelegramGroup.id.in_(ids)))
+    return {
+        "persona_id": persona_id,
+        "groups": [
+            {"id": g.id, "chat_id": g.chat_id, "title": g.title, "group_type": g.group_type, "member_count": g.member_count}
+            for g in gr.scalars().all()
+        ],
+    }
 
 
 # ─── Webhook ──────────────────────────────────────────

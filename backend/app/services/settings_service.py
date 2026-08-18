@@ -9,7 +9,7 @@ from app.core.encryption import encrypt, decrypt, is_encrypted
 ENCRYPTED_KEYS = {"nowpayments_api_key", "oxapay_api_key", "telegram_api_hash", "telegram_api_id"}
 
 DEFAULTS = {
-    "platform_name": "TelegramGeeks",
+    "platform_name": "TelegramGeeks Pro",
     "maintenance_mode": "false",
     "registration_enabled": "true",
     "starter_price_monthly": "29.0",

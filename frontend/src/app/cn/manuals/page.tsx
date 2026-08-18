@@ -12,7 +12,7 @@ function IconOf(icon: any, className: string) {
 }
 
 const seoCards = [
-  { title: "阅读手册", desc: "逐步指导，轻松上手 Telegram Geeks", href: "/cn/manuals" },
+  { title: "阅读手册", desc: "逐步指导，轻松上手 TelegramGeeks Pro", href: "/cn/manuals" },
   { title: "查看文章", desc: "关于 Telegram 推广的相关文章和最新资料", href: "/cn/posts" },
   { title: "更新动态", desc: "关注新功能和改进", href: "/cn/upd" },
   { title: "问答", desc: "常见问题解答", href: "/cn/questions" },
@@ -57,7 +57,7 @@ export default function ManualsPage() {
                   使用手册
                 </h1>
                 <p className="text-muted-foreground max-w-2xl">
-                  为了让 Telegram Geeks 的使用更加方便，请阅读我们的手册，它将帮助您快速有效地解决所需的任务
+                  为了让 TelegramGeeks Pro 的使用更加方便，请阅读我们的手册，它将帮助您快速有效地解决所需的任务
                 </p>
               </div>
             </div>

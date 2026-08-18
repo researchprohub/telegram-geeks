@@ -37,6 +37,8 @@ from app.api.v1.endpoints import (
     registrar, spambot_remover, postbot,
     persona_emotions_endpoints, community_roles_endpoints, group_knowledge_endpoints,
     proxies,
+    blog,
+    partners,
 )
 from app.api.v1.endpoints.proxies import init_proxy_system
 from app.core.security import hash_password
@@ -452,3 +454,9 @@ app.include_router(group_knowledge_endpoints.router)
 
 # Proxy Management
 app.include_router(proxies.router)
+
+# Blog (WordPress-style)
+app.include_router(blog.router, prefix="/api/v1/blog", tags=["Blog"])
+
+# Partners (marketing page)
+app.include_router(partners.router, prefix="/api/v1", tags=["Partners"])

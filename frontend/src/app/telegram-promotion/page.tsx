@@ -15,28 +15,28 @@ const benefits = [
     icon: Shield,
     title: "Security",
     description:
-      "Security is built into the logic of every Telegram Geeks module. AntiSafety during registration, a proxy checker with IP overlap analysis, GPT-based text uniqueness, and intelligent parsing focused only on the target audience all work together so accounts do not get banned and promotional campaigns do not stop.",
+      "Security is built into the logic of every TelegramGeeks Pro module. AntiSafety during registration, a proxy checker with IP overlap analysis, GPT-based text uniqueness, and intelligent parsing focused only on the target audience all work together so accounts do not get banned and promotional campaigns do not stop.",
     modules: ["Mass Inspection", "Proxy Checker", "Account Booster", "Universal Registrar"],
   },
   {
     icon: Zap,
     title: "Flexible automation tools",
     description:
-      "Telegram Geeks can collect audiences by geo, language, and activity — exactly the people you need, not random users. Then you can use this base however you want: launch campaigns, invite people to groups, or add them to contacts. No spam to random users, only precise work with those who are most likely to respond.",
+      "TelegramGeeks Pro can collect audiences by geo, language, and activity — exactly the people you need, not random users. Then you can use this base however you want: launch campaigns, invite people to groups, or add them to contacts. No spam to random users, only precise work with those who are most likely to respond.",
     modules: ["Audience Collector", "Global Search", "Gender Detector", "Database Tools"],
   },
   {
     icon: MessageCircle,
     title: "Maximum deliverability and campaign efficiency",
     description:
-      "Telegram Geeks makes messages feel natural: GPT generates unique content for each recipient, the randomizer breaks repetitive patterns, and inserting a first name, last name, or username adds a human touch. Need more? PostBot helps create posts with buttons and interactive elements directly inside the software. All of this works together so your message is not ignored and has a much better chance of generating a response.",
+      "TelegramGeeks Pro makes messages feel natural: GPT generates unique content for each recipient, the randomizer breaks repetitive patterns, and inserting a first name, last name, or username adds a human touch. Need more? PostBot helps create posts with buttons and interactive elements directly inside the software. All of this works together so your message is not ignored and has a much better chance of generating a response.",
     modules: ["Mass Messaging", "PostBot Creator", "Autoposting V2", "Autoresponder"],
   },
   {
     icon: BarChart3,
     title: "Transparent analytics and performance control",
     description:
-      "With Telegram Geeks, you do not guess what worked — you see it in real numbers. Reports collect data across all campaigns and invites: successful deliveries, errors, and overall metrics. You can combine results from different tasks, measure the efficiency of each account, and quickly notice when a proxy or audience segment stops responding. Analytics here is about real actions and clear insights.",
+      "With TelegramGeeks Pro, you do not guess what worked — you see it in real numbers. Reports collect data across all campaigns and invites: successful deliveries, errors, and overall metrics. You can combine results from different tasks, measure the efficiency of each account, and quickly notice when a proxy or audience segment stops responding. Analytics here is about real actions and clear insights.",
     modules: ["Reports", "Mass Inspection", "Console Log"],
   },
   {
@@ -50,7 +50,7 @@ const benefits = [
     icon: Star,
     title: "Free trial and flexible pricing",
     description:
-      "Telegram Geeks offers a free trial for new users so you can evaluate promotion effectiveness without upfront investment. A flexible pricing system makes it easy to choose the right solution for a business of any size.",
+      "TelegramGeeks Pro offers a free trial for new users so you can evaluate promotion effectiveness without upfront investment. A flexible pricing system makes it easy to choose the right solution for a business of any size.",
     modules: ["24h Demo", "1mo / 1yr / 2yr / 3yr Plans"],
   },
 ];
@@ -78,7 +78,7 @@ export default function TelegramPromotionPage() {
                 Benefits
               </h1>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Telegram Geeks provides tools for organic audience growth,
+                TelegramGeeks Pro provides tools for organic audience growth,
                 automation setup, and stronger engagement so your channel or
                 chat helps build brand awareness and trust.
               </p>
@@ -137,7 +137,7 @@ export default function TelegramPromotionPage() {
                 Ready to grow in Telegram?
               </h2>
               <p className="text-muted-foreground mb-8">
-                Telegram Geeks is your reliable partner for real audience
+                TelegramGeeks Pro is your reliable partner for real audience
                 growth and business development in Telegram. Choose safe,
                 effective, and modern promotion tools that have already proven
                 their results.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive test script for TelegramGeeks platform.
+Comprehensive test script for TelegramGeeks Pro platform.
 Creates test accounts for all plan tiers and validates all endpoints.
 
 New Pricing Structure:
@@ -55,7 +55,7 @@ TEST_USERS = [
 ]
 
 print("=" * 70)
-print("TELEGRAMGEeks PLATFORM TEST SUITE")
+print("TELEGRAMGEEKS PRO PLATFORM TEST SUITE")
 print("=" * 70)
 print("\nNEW PRICING STRUCTURE:")
 print("  Starter: $29/mo  (13 modules, 5 accounts, 3 campaigns)")
@@ -63,7 +63,7 @@ print("  Pro:     $79/mo  (29 modules, 25 accounts, 20 campaigns)")
 print("  Agency:  $199/mo (29 modules, unlimited everything)")
 print("\nCOMPETITIVE ADVANTAGE vs Telegram Expert:")
 print("  Telegram Expert: $120/mo base + $200-$1,250 per module")
-print("  TelegramGeeks:   $29/mo base with 13 modules included")
+print("  TelegramGeeks Pro:   $29/mo base with 13 modules included")
 print("=" * 70)
 
 # ── STEP 1: Create/Test User Accounts ──

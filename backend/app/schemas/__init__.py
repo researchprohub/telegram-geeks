@@ -178,6 +178,7 @@ class PersonaCreate(BaseModel):
     soul_prompt_data: Optional[dict] = {}
     group_prompts: Optional[dict] = {}
     telegram_account_id: Optional[int] = None
+    assigned_group_ids: Optional[list[int]] = []
     webhook_url: Optional[str] = None
     webhook_headers: Optional[dict] = {}
     sheets_config: Optional[dict] = {}
@@ -200,6 +201,7 @@ class PersonaUpdate(BaseModel):
     soul_prompt_data: Optional[dict] = None
     group_prompts: Optional[dict] = None
     telegram_account_id: Optional[int] = None
+    assigned_group_ids: Optional[list[int]] = None
     webhook_url: Optional[str] = None
     webhook_headers: Optional[dict] = None
     sheets_config: Optional[dict] = None
@@ -225,6 +227,7 @@ class PersonaOut(BaseModel):
     version: int
     template_source: Optional[str] = None
     telegram_account_id: Optional[int] = None
+    assigned_group_ids: list[int] = []
     webhook_url: Optional[str] = None
     webhook_headers: dict
     sheets_config: dict
@@ -380,3 +383,113 @@ from .subscription import (
     SubscriptionCreate, SubscriptionUpdate, SubscriptionOut,
     PLAN_TIERS, MODULE_CATEGORIES,
 )
+
+
+# ---- Blog (WordPress-style) ----
+
+class BlogCategoryCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    description: Optional[str] = None
+
+
+class BlogCategoryOut(BaseModel):
+    id: int
+    name: str
+    slug: str
+    description: Optional[str] = None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class BlogPostCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=300)
+    slug: Optional[str] = None
+    content: str = ""
+    excerpt: Optional[str] = None
+    cover_image: Optional[str] = None
+    status: str = "draft"
+    category_id: Optional[int] = None
+    tags: Optional[list[str]] = []
+    seo_title: Optional[str] = None
+    seo_description: Optional[str] = None
+    seo_keywords: Optional[str] = None
+    template: Optional[list] = None
+
+
+class BlogPostUpdate(BaseModel):
+    title: Optional[str] = None
+    slug: Optional[str] = None
+    content: Optional[str] = None
+    excerpt: Optional[str] = None
+    cover_image: Optional[str] = None
+    status: Optional[str] = None
+    category_id: Optional[int] = None
+    tags: Optional[list[str]] = None
+    seo_title: Optional[str] = None
+    seo_description: Optional[str] = None
+    seo_keywords: Optional[str] = None
+    template: Optional[list] = None
+
+
+class BlogPostOut(BaseModel):
+    id: int
+    user_id: Optional[int] = None
+    title: str
+    slug: str
+    content: str
+    excerpt: Optional[str] = None
+    cover_image: Optional[str] = None
+    status: str
+    category_id: Optional[int] = None
+    tags: list[str]
+    seo_title: Optional[str] = None
+    seo_description: Optional[str] = None
+    seo_keywords: Optional[str] = None
+    published_at: Optional[datetime] = None
+    view_count: int
+    template: Optional[list] = None
+    created_at: datetime
+    updated_at: datetime
+    author_name: Optional[str] = None
+    category_name: Optional[str] = None
+
+    model_config = {"from_attributes": True}
+
+
+class BlogAIDraftRequest(BaseModel):
+    topic: str = Field(..., min_length=3, max_length=300)
+    tone: str = "professional"
+    target_words: int = 800
+    category: str = "General"
+
+
+# ---- Partners (marketing page) ----
+
+class PartnerCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    img: str = Field(..., min_length=1, max_length=500)
+    href: str = ""
+    category: str = Field(..., pattern="^(proxies|browsers|sms)$")
+    sort_order: int = 0
+
+
+class PartnerUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=200)
+    img: Optional[str] = Field(None, min_length=1, max_length=500)
+    href: Optional[str] = None
+    category: Optional[str] = Field(None, pattern="^(proxies|browsers|sms)$")
+    sort_order: Optional[int] = None
+
+
+class PartnerOut(BaseModel):
+    id: int
+    name: str
+    img: str
+    href: str
+    category: str
+    sort_order: int
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}

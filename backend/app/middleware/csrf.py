@@ -28,6 +28,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
     EXCLUDED_PREFIXES = (
         "/api/v1/auth/",             # JWT cookie auth is CSRF-safe
         "/api/v1/accounts/upload/",  # TData upload uses JWT cookie auth
+        "/api/v1/accounts/login/",   # interactive login (QR / phone) uses JWT bearer auth
         "/api/v1/modules/",          # Module actions use JWT cookie auth
         "/api/v1/orchestration/",    # Orchestration uses JWT cookie auth
         "/api/v1/personas/",         # Persona image uploads use JWT cookie auth

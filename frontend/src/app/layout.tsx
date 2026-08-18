@@ -3,7 +3,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "Telegram Geeks", template: "%s — Telegram Geeks" },
+  title: { default: "TelegramGeeks Pro", template: "%s — TelegramGeeks Pro" },
   description: "Telegram promotion toolkit — registration, messaging, inviting, account warming",
 };
 
@@ -18,7 +18,7 @@ export default function RootLayout({
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
-          enableSystem
+          forcedTheme="dark"
           disableTransitionOnChange
         >
           {children}

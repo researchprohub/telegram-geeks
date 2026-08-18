@@ -29,11 +29,11 @@ const faqs = [
   },
   {
     q: "你们与哪些公司合作？",
-    a: "我们有广泛的合作伙伴，包括短信服务、代理服务和其他行业巨头。如果您拥有Telegram Geeks的密钥，我们公司的优势是快速解决任何问题。我们的合作伙伴拥有sphere.chat账户和专门的用户支持群组，任何问题都能得到实时快速解决。",
+    a: "我们有广泛的合作伙伴，包括短信服务、代理服务和其他行业巨头。如果您拥有TelegramGeeks Pro的密钥，我们公司的优势是快速解决任何问题。我们的合作伙伴拥有sphere.chat账户和专门的用户支持群组，任何问题都能得到实时快速解决。",
   },
   {
     q: "什么是sphere.chat？",
-    a: "sphere.chat是我们的加密私人通讯工具，是社交媒体营销专家交流经验和解决问题的平台。用户群体相当庞大，拥有超过1500名用户，每位用户都拥有Telegram Geeks的密钥！",
+    a: "sphere.chat是我们的加密私人通讯工具，是社交媒体营销专家交流经验和解决问题的平台。用户群体相当庞大，拥有超过1500名用户，每位用户都拥有TelegramGeeks Pro的密钥！",
   },
   {
     q: "购买后还有支持吗？",
@@ -82,14 +82,14 @@ export default function QuestionsPage() {
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-foreground mb-4">
-                  常见问题：通过Telegram Geeks在Telegram中批量发送和邀请的一切
+                  常见问题：通过TelegramGeeks Pro在Telegram中批量发送和邀请的一切
                 </h2>
                 <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
                   <p>
                     欢迎来到我们的FAQ——关于Telegram中批量发送和邀请的常见问题板块。如果您想快速扩大受众并使用现代工具设置Telegram推广，这里将为您提供最重要问题的详细答案。我们将解释如何安全使用批量发送、避免封号、构建邀请策略、跟踪效果以及运行测试活动以增加订阅者。
                   </p>
                   <p>
-                    Telegram Geeks是用于自动化发送、扩展用户基础和便捷管理活动的可靠软件。我们收集了实用建议，使每位用户的工作尽可能简单、高效和透明。
+                    TelegramGeeks Pro是用于自动化发送、扩展用户基础和便捷管理活动的可靠软件。我们收集了实用建议，使每位用户的工作尽可能简单、高效和透明。
                   </p>
                 </div>
                 <div className="mt-6">

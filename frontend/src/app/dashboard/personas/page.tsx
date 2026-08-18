@@ -32,6 +32,10 @@ export default function PersonasPage() {
   const [showModal, setShowModal] = useState(false);
   const [newName, setNewName] = useState("");
   const [newTone, setNewTone] = useState("casual");
+  const [newEnergy, setNewEnergy] = useState(0.5);
+  const [newHumor, setNewHumor] = useState(0.3);
+  const [newFormality, setNewFormality] = useState(0.4);
+  const [newSoulPrompt, setNewSoulPrompt] = useState("");
   const [testingId, setTestingId] = useState<number | null>(null);
   const [testResult, setTestResult] = useState<string>("");
   const [error, setError] = useState("");
@@ -58,13 +62,19 @@ export default function PersonasPage() {
       await api.post("/personas/", {
         name: newName,
         tone: newTone,
-        energy_level: 0.5,
-        humor_level: 0.3,
+        energy_level: newEnergy,
+        humor_level: newHumor,
+        formality_level: newFormality,
+        soul_prompt: newSoulPrompt || null,
       });
       await fetchPersonas();
       setShowModal(false);
       setNewName("");
       setNewTone("casual");
+      setNewEnergy(0.5);
+      setNewHumor(0.3);
+      setNewFormality(0.4);
+      setNewSoulPrompt("");
     } catch (err: any) {
       setError(err.response?.data?.detail || "Failed to create persona");
     }
@@ -224,6 +234,23 @@ export default function PersonasPage() {
               >
                 {TONE_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Energy: {Math.round(newEnergy * 100)}%</label>
+              <input type="range" min="0" max="1" step="0.1" value={newEnergy} onChange={e => setNewEnergy(parseFloat(e.target.value))} className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Humor: {Math.round(newHumor * 100)}%</label>
+              <input type="range" min="0" max="1" step="0.1" value={newHumor} onChange={e => setNewHumor(parseFloat(e.target.value))} className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Formality: {Math.round(newFormality * 100)}%</label>
+              <input type="range" min="0" max="1" step="0.1" value={newFormality} onChange={e => setNewFormality(parseFloat(e.target.value))} className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Soul Prompt</label>
+              <textarea value={newSoulPrompt} onChange={e => setNewSoulPrompt(e.target.value)} rows={3} placeholder="Optional — define the persona's core identity"
+                className="w-full rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm outline-none focus:border-primary resize-y" />
             </div>
           </div>
           <DialogFooter>

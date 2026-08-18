@@ -81,6 +81,9 @@ async def register(request: Request, response: Response, db: AsyncSession = Depe
     email = str(body.get("email", "")).strip().lower()
     password = str(body.get("password", ""))
     full_name = body.get("full_name")
+    role = str(body.get("role", "operator")).lower()
+    if role not in ("operator", "writer"):
+        role = "operator"
 
     if "@" not in email or "." not in email.split("@")[-1]:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email format")
@@ -105,7 +108,7 @@ async def register(request: Request, response: Response, db: AsyncSession = Depe
 
     user = User(
         email=email, hashed_password=hash_password(password), full_name=full_name,
-        role="operator", is_active=True, created_at=datetime.utcnow(),
+        role=role, is_active=True, created_at=datetime.utcnow(),
     )
     db.add(user)
     await db.commit()

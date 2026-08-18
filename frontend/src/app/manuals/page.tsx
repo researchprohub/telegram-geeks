@@ -12,7 +12,7 @@ function IconOf(icon: any, className: string) {
 }
 
 const seoCards = [
-  { title: "Read the manual", desc: "Step-by-step instructions for a confident start with Telegram Geeks", href: "/manuals" },
+  { title: "Read the manual", desc: "Step-by-step instructions for a confident start with TelegramGeeks Pro", href: "/manuals" },
   { title: "View articles", desc: "Relevant articles and fresh materials about Telegram promotion", href: "/posts" },
   { title: "Updates feed", desc: "Stay tuned for new features and improvements", href: "/upd" },
   { title: "Questions — Answers", desc: "Answers to frequently asked questions", href: "/questions" },
@@ -58,7 +58,7 @@ export default function ManualsPage() {
                   Manual
                 </h1>
                 <p className="text-muted-foreground max-w-2xl">
-                  To make using TelegramGeeks easier, read our manual, which will help you quickly and effectively solve the necessary tasks
+                  To make using TelegramGeeks Pro easier, read our manual, which will help you quickly and effectively solve the necessary tasks
                 </p>
               </div>
             </div>

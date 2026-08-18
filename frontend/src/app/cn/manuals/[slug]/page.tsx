@@ -21,7 +21,7 @@ function addHeadingIds(html: string): string {
 }
 
 const seoCards = [
-  { title: "阅读手册", desc: "分步指南，帮助您自信地开始使用 Telegram Geeks", href: "/cn/manuals" },
+  { title: "阅读手册", desc: "分步指南，帮助您自信地开始使用 TelegramGeeks Pro", href: "/cn/manuals" },
   { title: "查看文章", desc: "关于 Telegram 推广的相关文章和最新资料", href: "/cn/posts" },
   { title: "更新动态", desc: "关注新功能和改进", href: "/cn/upd" },
   { title: "问答", desc: "常见问题的解答", href: "/cn/questions" },

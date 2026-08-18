@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { Navbar } from "@/components/marketing/Navbar";
 import { Footer } from "@/components/marketing/Footer";
 import { modules, categories } from "@/data/modules";
@@ -12,7 +12,7 @@ function IconOf(icon: any, className: string) {
 }
 
 const seoCards = [
-  { title: "Читать руководство", desc: "Пошаговые инструкции для уверенного старта с Telegram Geeks", href: "/ru/manuals" },
+  { title: "Читать руководство", desc: "Пошаговые инструкции для уверенного старта с TelegramGeeks Pro", href: "/ru/manuals" },
   { title: "Смотреть статьи", desc: "Актуальные статьи и свежие материалы о продвижении в Telegram", href: "/ru/posts" },
   { title: "Лента обновлений", desc: "Следите за новыми функциями и улучшениями", href: "/ru/upd" },
   { title: "Вопросы — Ответы", desc: "Ответы на часто задаваемые вопросы", href: "/ru/questions" },
@@ -57,7 +57,7 @@ export default function ManualsPage() {
                   Инструкции
                 </h1>
                 <p className="text-muted-foreground max-w-2xl">
-                  Чтобы пользоваться TelegramGeeks было проще, ознакомьтесь с нашими инструкциями, которые помогут вам быстро и эффективно решать необходимые задачи
+                  Чтобы пользоваться TelegramGeeks Pro было проще, ознакомьтесь с нашими инструкциями, которые помогут вам быстро и эффективно решать необходимые задачи
                 </p>
               </div>
             </div>

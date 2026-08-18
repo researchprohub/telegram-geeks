@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { Navbar } from "@/components/marketing/Navbar";
 import { Footer } from "@/components/marketing/Footer";
 import { MessageCircle, HelpCircle, ExternalLink } from "lucide-react";
@@ -119,7 +119,7 @@ export default function ContactsPage() {
                 Профессиональное ПО для быстрого роста канала
               </h2>
               <p className="text-muted-foreground mb-8">
-                Присоединяйтесь к тысячам профессионалов, доверяющих Telegram Geeks продвижение
+                Присоединяйтесь к тысячам профессионалов, доверяющих TelegramGeeks Pro продвижение
               </p>
               <Link
                 href="/#price"

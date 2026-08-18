@@ -11,6 +11,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [role, setRole] = useState("operator");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -19,9 +20,9 @@ export default function RegisterPage() {
     setError("");
     setLoading(true);
     try {
-      await authApi.register(email, password, fullName);
+      await authApi.register(email, password, fullName, role);
       // Auto-login after registration (cookies set by server)
-      router.push("/dashboard");
+      router.push(role === "writer" ? "/dashboard/blog" : "/dashboard");
     } catch (err: any) {
       setError(err.response?.data?.detail || "Registration failed. Please try again.");
     } finally {
@@ -34,7 +35,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary">
-            TelegramGeeks
+            TelegramGeeks Pro
           </h1>
           <p className="text-muted-foreground mt-2 text-sm">Create your account</p>
         </div>
@@ -82,6 +83,35 @@ export default function RegisterPage() {
                 required
                 minLength={12}
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5 text-foreground">Account type</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setRole("operator")}
+                  className={`rounded-lg border px-3 py-2.5 text-sm text-left transition ${
+                    role === "operator"
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-secondary/40 text-foreground hover:border-primary/50"
+                  }`}
+                >
+                  Platform user
+                  <span className="block text-xs text-muted-foreground mt-0.5">Use Telegram modules</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole("writer")}
+                  className={`rounded-lg border px-3 py-2.5 text-sm text-left transition ${
+                    role === "writer"
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-secondary/40 text-foreground hover:border-primary/50"
+                  }`}
+                >
+                  Writer
+                  <span className="block text-xs text-muted-foreground mt-0.5">Publish blog posts</span>
+                </button>
+              </div>
             </div>
             <button
               type="submit"

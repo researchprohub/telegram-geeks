@@ -14,6 +14,7 @@ import {
   BarChart3,
   LogOut,
   ArrowLeft,
+  Handshake,
 } from "lucide-react";
 import { authApi } from "@/lib/api";
 
@@ -28,6 +29,7 @@ const navGroups = [
       { href: "/admin/users", label: "Users", icon: Users },
       { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
       { href: "/admin/deposits", label: "Deposits", icon: Wallet },
+      { href: "/admin/partners", label: "Partners", icon: Handshake },
     ],
   },
   {
@@ -84,7 +86,7 @@ export function AdminSidebar() {
         </div>
         <div>
           <h1 className="text-sm font-bold text-foreground leading-tight">Admin Panel</h1>
-          <p className="text-[11px] text-muted-foreground">TelegramGeeks</p>
+          <p className="text-[11px] text-muted-foreground">TelegramGeeks Pro</p>
         </div>
       </div>
 

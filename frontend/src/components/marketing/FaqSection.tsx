@@ -25,7 +25,7 @@ const faqDict: { [key: string]: { title: string; items: FAQDict } } = {
       { q: "Как купить?", a: "Автоматизированный заказ на нашем сайте. Добавьте нужную лицензию в корзину, зарегистрируйте аккаунт и оплатите. Лицензионный ключ придёт на email и появится в личном кабинете." },
       { q: "Как оплатить?", a: "Мы принимаем криптовалюты: Bitcoin (BTC), Tether (USDT), USD Coin (USDC). Оплата картой доступна по предварительному запросу. Свяжитесь с нашей службой поддержки." },
       { q: "Как связаться?", a: "Вы можете связаться с нами через раздел Контакты на сайте, через онлайн-форму, чат с оператором или через наш зашифрованный мессенджер Sphere.chat." },
-      { q: "Есть ли партнёрская программа?", a: "Да! Мы предлагаем партнёрскую программу с доходом до 25% с продажи. Система полностью автоматизирована — создайте партнёрскую ссылку в личном кабинете и зарабатывайте." },
+      { q: "Есть ли партнёрская программа?", a: "Да! Мы предлагаем партнёрскую программу с доходом до 25% с продажи. Система完全自动化 — создайте партнёрскую ссылку в личном кабинете и зарабатывайте." },
       { q: "Есть ли бонусы для партнёров?", a: "Да, у нас есть система бонусов для партнёров. В зависимости от вашего уровня вы получаете дополнительные модули и функции." },
       { q: "С какими компаниями вы сотрудничаете?", a: "Мы сотрудничаем с ведущими SMS-сервисами, прокси-провайдерами и лидерами индустрии. Наши партнёры получают выделенные аккаунты в Sphere.chat." },
       { q: "Что такое sphere.chat?", a: "Sphere.chat — это зашифрованный приватный мессенджер с более чем 1 500 пользователей. Это центр нашего сообщества профессионалов автоматизации Telegram." },
@@ -36,7 +36,7 @@ const faqDict: { [key: string]: { title: string; items: FAQDict } } = {
     title: "也许这里有您问题的答案！",
     items: [
       { q: "如何购买？", a: "在我们网站自动下单。将所需许可证加入购物车，注册账户并完成支付。许可证密钥将发送到您的邮箱并显示在个人中心。" },
-      { q: "如何支付？", a: "我们接受加密货币包括 Bitcoin (BTC)、Tether (USDT) 和 USD Coin (USDC)。银行卡支付需提前申请。请联系我们的支持团队了解详情。" },
+      { q: "如何支付？", a: "我们接受加密货币: Bitcoin (BTC)、Tether (USDT) 和 USD Coin (USDC)。银行卡支付需提前申请。请联系我们的支持团队了解详情。" },
       { q: "如何联系？", a: "您可以通过网站的联系方式页面、在线表单、在线客服聊天或我们的加密通讯软件 Sphere.chat 联系我们。" },
       { q: "有联盟计划吗？", a: "是的！我们提供联盟计划，每次销售可赚取高达25%的佣金。系统完全自动化 — 在个人中心生成联盟链接即可开始赚取佣金。" },
       { q: "合作伙伴有奖励吗？", a: "是的，我们为合作伙伴提供奖励系统。根据您的等级，您将获得额外的模块和功能以提高工作效率。" },
@@ -55,7 +55,7 @@ export function FaqSection({ locale = "en" }: { locale?: string }) {
     <section id="faq" className="py-16 lg:py-20 border-t border-border">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">
+          <h2 className="text-[28px] font-light font-['Science_Gothic'] text-foreground mb-4">
             {data.title}
           </h2>
         </div>
@@ -67,7 +67,7 @@ export function FaqSection({ locale = "en" }: { locale?: string }) {
             >
               <button
                 onClick={() => setOpen(open === i ? null : i)}
-                className="flex items-center justify-between w-full px-5 py-4 text-left text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-accent transition-colors"
+                className="flex items-center justify-between w-full px-5 py-4 text-left text-[15px] font-light font-['Science_Gothic'] text-foreground/80 hover:text-foreground hover:bg-accent transition-colors"
               >
                 <span>{faq.q}</span>
                 {open === i ? (
@@ -77,7 +77,7 @@ export function FaqSection({ locale = "en" }: { locale?: string }) {
                 )}
               </button>
               {open === i && (
-                <div className="px-5 pb-4 text-sm text-muted-foreground leading-relaxed">
+                <div className="px-5 pb-4 text-[11px] text-[rgba(255,255,255,.74)] leading-relaxed">
                   {faq.a}
                 </div>
               )}

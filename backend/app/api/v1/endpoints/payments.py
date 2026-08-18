@@ -8,11 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.db.session import get_db
-from app.models import User, Order, Deposit, AuditLog, Subscription
+from app.models import User, Order, Deposit, AuditLog, Subscription, ModuleAccess
 from app.dependencies import get_current_user
 from app.services import nowpayments_service, oxapay_service, manual_deposit_service
 from app.services.settings_service import SettingsService
-from datetime import datetime
+from datetime import datetime, timedelta
 
 router = APIRouter(tags=["Payments"])
 
@@ -63,12 +63,44 @@ class PaymentStatusResponse(BaseModel):
     confirmed_at: Optional[str] = None
 
 
+# Module add-on subscriptions — monthly, sold separately from the base plan.
+MODULE_PLANS = {
+    "converter": {"name": "Converter", "price_monthly": 50},
+    "booster": {"name": "Booster", "price_monthly": 80},
+    "registrar": {"name": "Registrar", "price_monthly": 150},
+    "duplicator": {"name": "Duplicator", "price_monthly": 80},
+    "forwarder": {"name": "Forwarder", "price_monthly": 100},
+    "interceptor": {"name": "Interceptor", "price_monthly": 80},
+    "invite_via_admin": {"name": "Invite via Admin", "price_monthly": 80},
+    "channel_cloner": {"name": "Channel Cloner", "price_monthly": 80},
+    "reporter": {"name": "The Reporter", "price_monthly": 80},
+    "chat_cloner": {"name": "Chat Cloner", "price_monthly": 80},
+}
+
+
 async def _upgrade_user_on_payment(db: AsyncSession, user_id: int, plan_tier: str = "pro"):
+    # module add-ons never touch the base role
+    if not plan_tier or plan_tier.startswith("module:"):
+        return None
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if user and user.role == "operator":
         user.role = plan_tier
     return user
+
+
+async def _activate_module(db: AsyncSession, user_id: int, module_id: str, days: int = 30):
+    """Upsert a user's module add-on, extending from now on every confirmed payment."""
+    result = await db.execute(
+        select(ModuleAccess).where(ModuleAccess.user_id == user_id, ModuleAccess.module_id == module_id)
+    )
+    access = result.scalar_one_or_none()
+    now = datetime.utcnow()
+    if not access:
+        access = ModuleAccess(user_id=user_id, module_id=module_id, status="active", starts_at=now)
+        db.add(access)
+    access.status = "active"
+    access.expires_at = now + timedelta(days=days)
 
 
 @router.post("/create", response_model=PaymentResponse)
@@ -176,6 +208,8 @@ async def nowpayments_callback(
         if payment_status in ("confirmed", "finished"):
             order.confirmed_at = datetime.utcnow()
             order.processed = True
+            if order.plan_tier and order.plan_tier.startswith("module:"):
+                await _activate_module(db, order.user_id, order.plan_tier.split(":", 1)[1])
             await _upgrade_user_on_payment(db, order.user_id, order.plan_tier or "pro")
             db.add(AuditLog(
                 user_id=order.user_id, action="payment_completed",
@@ -214,6 +248,8 @@ async def oxapay_callback(payload: dict, db: AsyncSession = Depends(get_db)):
         if status == "Completed":
             order.confirmed_at = datetime.utcnow()
             order.processed = True
+            if order.plan_tier and order.plan_tier.startswith("module:"):
+                await _activate_module(db, order.user_id, order.plan_tier.split(":", 1)[1])
             await _upgrade_user_on_payment(db, order.user_id, order.plan_tier or "pro")
             db.add(AuditLog(
                 user_id=order.user_id, action="payment_completed",
@@ -400,6 +436,79 @@ async def upgrade_plan(
     await db.commit()
     return {
         "status": "payment_required",
+        "payment_url": result.get("payment_url", ""),
+        "pay_address": result.get("pay_address", ""),
+        "pay_amount": result.get("pay_amount", 0),
+        "order_id": order_id,
+    }
+
+
+# ─── Module Add-on Subscriptions ───────────────────────────────
+
+
+class ModulePlanOut(BaseModel):
+    module_id: str
+    name: str
+    price_monthly: float
+
+
+class ModuleAccessOut(BaseModel):
+    module_id: str
+    status: str
+    expires_at: Optional[str] = None
+
+
+class ModuleListOut(BaseModel):
+    plans: list[ModulePlanOut]
+    active: list[str]
+
+
+@router.get("/modules", response_model=ModuleListOut)
+async def list_module_plans(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    plans = [
+        ModulePlanOut(module_id=mid, name=info["name"], price_monthly=info["price_monthly"])
+        for mid, info in MODULE_PLANS.items()
+    ]
+    result = await db.execute(
+        select(ModuleAccess).where(ModuleAccess.user_id == user.id, ModuleAccess.status == "active")
+    )
+    active = [
+        a.module_id for a in result.scalars().all()
+        if a.expires_at is None or a.expires_at > datetime.utcnow()
+    ]
+    return ModuleListOut(plans=plans, active=active)
+
+
+@router.post("/module-subscribe")
+async def subscribe_module(
+    module_id: str = Query(...),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Start a monthly module add-on subscription (payment required)."""
+    plan = MODULE_PLANS.get(module_id)
+    if not plan:
+        raise HTTPException(status_code=404, detail="Module not found")
+    order_id = f"module_{user.id}_{int(datetime.utcnow().timestamp())}"
+    result = await nowpayments_service.create_payment(
+        amount=plan["price_monthly"], currency="USD", pay_currency="USDT",
+        order_id=order_id,
+        ipn_url="https://api.telegramgeeks.com/api/v1/payments/callback/nowpayments",
+        metadata={"plan_tier": f"module:{module_id}", "billing_cycle": "monthly"},
+    )
+    order = Order(
+        user_id=user.id, order_id=order_id,
+        amount=plan["price_monthly"], currency="USD",
+        crypto_currency="USDT", gateway="nowpayments",
+        status="pending",
+        plan_tier=f"module:{module_id}", billing_cycle="monthly",
+        gateway_order_id=str(result.get("payment_id", "")),
+    )
+    db.add(order)
+    await db.commit()
+    return {
+        "status": "payment_required",
+        "module_id": module_id,
         "payment_url": result.get("payment_url", ""),
         "pay_address": result.get("pay_address", ""),
         "pay_amount": result.get("pay_amount", 0),

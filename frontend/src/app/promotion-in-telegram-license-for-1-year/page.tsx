@@ -11,7 +11,7 @@ const features = [
 ];
 
 const reviews = [
-  { name: "mulad", license: "1 year", text: "Пользовался подобным софтом несколько лет назад, но из-за многочисленных багов решил уйти в кастомные решения. В этом году решил попробовать Telegram Geeks и был удивлен стабильности работы. Теперь задачи выполняются в разы быстрее и проще." },
+  { name: "mulad", license: "1 year", text: "Пользовался подобным софтом несколько лет назад, но из-за многочисленных багов решил уйти в кастомные решения. В этом году решил попробовать TelegramGeeks Pro и был удивлен стабильности работы. Теперь задачи выполняются в разы быстрее и проще." },
   { name: "yuri555", license: "1 year", text: "Второй год использую TelegranExpert. Функциональностью, ценами и стабильностью очень доволен. Рекомендую!" },
 ];
 
@@ -130,7 +130,7 @@ export default function License1YearPage() {
                 Professional software for fast channel growth
               </h2>
               <p className="text-muted-foreground mb-8">
-                Join thousands of professionals who trust Telegram Geeks for their promotion needs
+                Join thousands of professionals who trust TelegramGeeks Pro for their promotion needs
               </p>
               <Link
                 href="/#price"

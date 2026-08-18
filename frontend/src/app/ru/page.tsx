@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { Navbar } from "@/components/marketing/Navbar";
 import { Footer } from "@/components/marketing/Footer";
 import { PartnerLogos } from "@/components/marketing/PartnerLogos";
@@ -78,7 +78,7 @@ export default function RUPage() {
                   Видеообзор
                 </a>
                 <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter leading-none mb-6 text-foreground">
-                  Telegram Geeks
+                  TelegramGeeks Pro
                 </h1>
                 <p className="text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed mb-8">
                   Полный набор инструментов для продвижения в Telegram: от регистрации, рассылки и приглашений до прогрева аккаунтов, управления чатами и точной работы с сессиями
@@ -98,7 +98,7 @@ export default function RUPage() {
                   <div className="relative rounded-2xl border border-border bg-gradient-to-br from-card to-transparent overflow-hidden">
                     <img
                       src="/assets/hero/screenshot.png"
-                      alt="Telegram Geeks Интерфейс"
+                      alt="TelegramGeeks Pro Интерфейс"
                       className="w-full h-auto object-cover"
                     />
                   </div>
@@ -145,7 +145,7 @@ export default function RUPage() {
                   Сегодня почти каждый, кто продвигает проекты или услуги в <strong className="text-foreground/80">Telegram</strong>, слышал о нас, и многие уже являются частью нашего сообщества.
                 </p>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Массовая рассылка, накрутка, приглашения в группы и другие способы получения трафика — всё это делается с <strong className="text-foreground/80">Telegram Geeks!</strong>
+                  Массовая рассылка, накрутка, приглашения в группы и другие способы получения трафика — всё это делается с <strong className="text-foreground/80">TelegramGeeks Pro!</strong>
                 </p>
               </div>
               <div className="rounded-xl border border-border bg-muted p-8 lg:p-10">
@@ -163,7 +163,7 @@ export default function RUPage() {
                   Мы предоставляем не просто программное обеспечение, а доступ к закрытому сообществу профессионалов, базе знаний и реальным кейсам автоматизации Telegram.
                 </p>
                 <p className="text-sm text-muted-foreground leading-relaxed mb-5">
-                  Наши пользователи получают доступ к зашифрованному мессенджеру <strong className="text-foreground/80">Sphere.chat</strong> с аудиторией 5000+ человек, каждый из которых использует <strong className="text-foreground/80">Telegram Geeks!</strong>
+                  Наши пользователи получают доступ к зашифрованному мессенджеру <strong className="text-foreground/80">Sphere.chat</strong> с аудиторией 5000+ человек, каждый из которых использует <strong className="text-foreground/80">TelegramGeeks Pro!</strong>
                 </p>
                 <a href="https://sphere.chat/" target="_blank" rel="nofollow noopener noreferrer"
                   className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors">
@@ -184,7 +184,7 @@ export default function RUPage() {
               <div className="absolute -inset-4 bg-gradient-to-tr from-primary/5 via-primary/[0.02] to-transparent rounded-3xl blur-2xl pointer-events-none" />
               <img
                 src="/assets/landing/modules-showcase.jpg"
-                alt="Telegram Geeks модули"
+                alt="TelegramGeeks Pro модули"
                 className="relative w-full h-auto rounded-2xl border border-border shadow-2xl"
               />
             </div>

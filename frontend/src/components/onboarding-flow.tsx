@@ -7,7 +7,7 @@ import { Users, Zap, Bot, ArrowRight, CheckCircle2, Sparkles } from "lucide-reac
 
 const STEPS = [
   {
-    title: "Welcome to TelegramGeeks",
+    title: "Welcome to TelegramGeeks Pro",
     desc: "Your all-in-one Telegram engagement platform. Manage accounts, run campaigns, and automate growth.",
     icon: Sparkles,
     color: "from-blue-500 to-violet-500",

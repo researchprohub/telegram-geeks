@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // output: 'standalone',
+  output: 'standalone',
   skipTrailingSlashRedirect: true,
   async rewrites() {
     return [
@@ -8,6 +8,7 @@ const nextConfig = {
         source: '/api/:path*',
         destination: 'http://127.0.0.1:8002/api/v1/:path*',
       },
+      { source: '/static/:path*', destination: 'http://127.0.0.1:8002/static/:path*' },
     ];
   },
   async headers() {

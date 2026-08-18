@@ -4,32 +4,31 @@
 
 @layer base {
   :root {
-    /* Midnight Blue / Charcoal Glassmorphism Theme */
-    --background: 225 25% 7%;
-    --foreground: 210 40% 98%;
-    --card: 225 25% 9%;
-    --card-foreground: 210 40% 98%;
-    --primary: 187 100% 50%;
-    --primary-foreground: 225 25% 7%;
-    --secondary: 225 20% 14%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 225 15% 12%;
-    --muted-foreground: 215 16% 60%;
-    --accent: 280 70% 60%;
+    /* Midnight Blue / Charcoal Glassmorphism Theme — restyled to telegramexpert.pro design */
+    color-scheme: dark;
+    --background: 0 1% 1%;
+    --foreground: 0 0% 100%;
+    --card: 0 1% 2%;
+    --card-foreground: 0 0% 100%;
+    --primary: 180 92% 73%;
+    --primary-foreground: 0 0% 7%;
+    --secondary: 0 0% 5%;
+    --secondary-foreground: 0 0% 80%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 55%;
+    --accent: 180 92% 73%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     --success: 142 60% 50%;
     --warning: 38 92% 50%;
-    --border: 225 15% 18%;
-    --ring: 187 100% 50%;
-    --radius: 0.75rem;
-    --surface: 225 25% 9%;
-    --input: 225 15% 18%;
+    --border: 0 0% 18%;
+    --ring: 180 92% 73%;
+    --radius: 5px;
+    --surface: 0 1% 3%;
+    --input: 0 0% 18%;
   }
-}
 
-@layer base {
   * {
     @apply border-[hsl(var(--border))];
   }
@@ -42,14 +41,10 @@
 
   body {
     @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))];
+    color-scheme: dark;
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-  }
-
-  h1, h2, h3, h4, h5, h6,
-  button, a, label, [role="button"] {
-    text-rendering: optimizeLegibility;
   }
 
   h1 { @apply text-2xl font-bold tracking-tight; text-wrap: balance; }
@@ -57,11 +52,6 @@
   h3 { @apply text-lg font-semibold; text-wrap: balance; }
   h4 { @apply text-base font-semibold; }
   p { @apply text-sm leading-relaxed; }
-
-  img {
-    max-width: 100%;
-    height: auto;
-  }
 }
 
 @layer components {
@@ -100,19 +90,15 @@
   .mobile-card {
     @apply bg-card text-card-foreground rounded-xl border border-border shadow-sm;
   }
-
   .mobile-header {
     @apply bg-card border-b border-border px-4 py-3;
   }
-
   .mobile-nav-item {
     @apply flex flex-col items-center justify-center px-2 py-1 text-xs font-medium transition-colors cursor-pointer;
   }
-
   .mobile-nav-item-active {
     @apply text-primary;
   }
-
   .mobile-nav-item-inactive {
     @apply text-muted-foreground hover:text-foreground;
   }
@@ -121,19 +107,15 @@
   .badge-status {
     @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
   }
-
   .badge-active {
     @apply badge-status bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300;
   }
-
   .badge-banned {
     @apply badge-status bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300;
   }
-
   .badge-restricted {
     @apply badge-status bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300;
   }
-
   .badge-deleted {
     @apply badge-status bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300;
   }
@@ -157,7 +139,6 @@
   .btn-primary {
     @apply bg-primary hover:opacity-90 text-primary-foreground font-medium py-2 px-4 rounded-lg transition-colors cursor-pointer inline-flex items-center justify-center gap-2;
   }
-
   .btn-secondary {
     @apply bg-secondary hover:bg-secondary/80 text-secondary-foreground font-medium py-2 px-4 rounded-lg transition-colors cursor-pointer inline-flex items-center justify-center gap-2;
   }
@@ -171,9 +152,9 @@
   @keyframes scroll {
   0% { transform: translateX(-50%); }
   100% { transform: translateX(0); }
-}
+  }
 
-@keyframes fadeIn {
+  @keyframes fadeIn {
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
   }

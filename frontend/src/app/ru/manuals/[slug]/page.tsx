@@ -21,7 +21,7 @@ function addHeadingIds(html: string): string {
 }
 
 const seoCards = [
-  { title: "Читать руководство", desc: "Пошаговые инструкции для уверенного старта с Telegram Geeks", href: "/ru/manuals" },
+  { title: "Читать руководство", desc: "Пошаговые инструкции для уверенного старта с TelegramGeeks Pro", href: "/ru/manuals" },
   { title: "Смотреть статьи", desc: "Актуальные статьи и новые материалы о продвижении в Telegram", href: "/ru/posts" },
   { title: "Лента обновлений", desc: "Следите за новыми функциями и улучшениями", href: "/ru/upd" },
   { title: "Вопросы — Ответы", desc: "Ответы на часто задаваемые вопросы", href: "/ru/questions" },

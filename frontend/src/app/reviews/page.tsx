@@ -14,7 +14,7 @@ const reviews = [
     license: "License for 1 month",
   },
   {
-    text: "Пользовался подобным софтом несколько лет назад, но из-за многочисленных багов решил уйти в кастомные решения. В этом году решил попробовать Telegram Geeks и был удивлен стабильности работы. Теперь задачи выполняются в разы быстрее и проще.",
+    text: "Пользовался подобным софтом несколько лет назад, но из-за многочисленных багов решил уйти в кастомные решения. В этом году решил попробовать TelegramGeeks Pro и был удивлен стабильности работы. Теперь задачи выполняются в разы быстрее и проще.",
     name: "mulad",
     license: "License for 1 year",
   },
@@ -29,7 +29,7 @@ const reviews = [
     license: "License for 1 year",
   },
   {
-    text: "I've been working in Telegram automation and traffic management for years, and Telegram Geeks is honestly one of the most stable and well-designed tools I've used so far. The software handles mass messaging, invites, session management, and account farming extremely smoothly without random freezes or crashes. What impressed me the most is the flexibility of the functionality and how intuitive the interface feels even for complex tasks. You can tell the developers actually understand real Telegram workflows. Updates are frequent, support responds quickly, and the overall quality keeps improving over time. If you're serious about scaling Telegram operations while minimizing bans and maintaining account safety, this software is absolutely worth it.",
+    text: "I've been working in Telegram automation and traffic management for years, and TelegramGeeks Pro is honestly one of the most stable and well-designed tools I've used so far. The software handles mass messaging, invites, session management, and account farming extremely smoothly without random freezes or crashes. What impressed me the most is the flexibility of the functionality and how intuitive the interface feels even for complex tasks. You can tell the developers actually understand real Telegram workflows. Updates are frequent, support responds quickly, and the overall quality keeps improving over time. If you're serious about scaling Telegram operations while minimizing bans and maintaining account safety, this software is absolutely worth it.",
     name: "q0659588439",
     license: "License for 1 month",
   },
@@ -51,7 +51,7 @@ export default function ReviewsPage() {
                 Reviews
               </h1>
               <p className="text-muted-foreground text-lg">
-                What our clients say about Telegram Geeks
+                What our clients say about TelegramGeeks Pro
               </p>
             </div>
           </div>

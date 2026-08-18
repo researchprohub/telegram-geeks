@@ -3,6 +3,8 @@
 import uuid
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
+from loguru import logger
 from sqlalchemy import select, func, update as sa_update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -347,3 +349,266 @@ async def resume_flood_accounts(
     from app.services.flood_resume_service import resume_flood_accounts as do_resume
     result = await do_resume(db)
     return result
+
+
+# ─── Interactive Account Login (QR + Phone number) ─────────────────
+# ponytail: pending logins held in-process; move to per-uid store when
+# running multiple uvicorn workers.
+_login_store: dict = {}
+
+
+def _new_client(api_id: int, api_hash: str):
+    from telethon import TelegramClient
+    from telethon.sessions import StringSession
+    return TelegramClient(StringSession(), api_id, api_hash)
+
+
+def _make_svg_data_uri(url: str) -> str:
+    import base64, io
+    import qrcode
+    import qrcode.image.svg
+    img = qrcode.make(url, image_factory=qrcode.image.svg.SvgPathImage)
+    buf = io.BytesIO()
+    img.save(buf)
+    return "data:image/svg+xml;base64," + base64.b64encode(buf.getvalue()).decode()
+
+
+async def _drop_entry(entry_id: str):
+    entry = _login_store.pop(entry_id, None)
+    if entry and entry.get("_client"):
+        try:
+            await entry["_client"].disconnect()
+        except Exception:
+            pass
+
+
+async def _safe_disconnect(client):
+    try:
+        await client.disconnect()
+    except Exception:
+        pass
+
+
+def _get_entry(entry_id: str, current_user_id: int) -> dict:
+    entry = _login_store.get(entry_id)
+    if not entry or entry.get("user_id") != current_user_id:
+        raise HTTPException(status_code=404, detail="Login session not found or expired")
+    return entry
+
+
+async def _finalize_login(db, user_id, client, phone, api_id, api_hash) -> dict:
+    """Persist an authenticated session as an Account row."""
+    session_string = client.session.save()
+    if not phone:
+        try:
+            me = await client.get_me()
+            phone = getattr(me, "phone", "") or ""
+        except Exception:
+            phone = ""
+    if not phone:
+        # phone_number is NOT NULL + unique — reject rather than write a bad row
+        await _safe_disconnect(client)
+        raise HTTPException(status_code=400, detail="Could not determine the account phone number — try the QR method instead")
+    account = Account(
+        user_id=user_id, phone_number=phone,
+        session_string=session_string, status="active",
+        api_id=api_id, api_hash=api_hash,
+    )
+    db.add(account)
+    await db.commit()
+    await db.refresh(account)
+    return {"account_id": account.id, "phone": phone, "status": "authorized"}
+
+
+class LoginApiIn(BaseModel):
+    api_id: int
+    api_hash: str
+
+
+class QRPasswordIn(BaseModel):
+    password: str
+
+
+class PhoneSendCodeIn(BaseModel):
+    api_id: int
+    api_hash: str
+    phone: str
+
+
+class PhoneVerifyIn(BaseModel):
+    code: str
+    password: str | None = None
+
+
+@router.post("/login/qr/start", tags=["Accounts"])
+async def qr_login_start(
+    body: LoginApiIn,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Start a QR login — returns a QR to scan with the Telegram app."""
+    from telethon.errors import ApiIdInvalidError
+    entry_id = uuid.uuid4().hex
+    client = _new_client(body.api_id, body.api_hash)
+    try:
+        await client.connect()
+        qr = await client.qr_login()
+        _login_store[entry_id] = {
+            "_client": client, "qr": qr,
+            "api_id": body.api_id, "api_hash": body.api_hash,
+            "method": "qr", "user_id": current_user.id,
+            "created": datetime.utcnow(),
+        }
+        return {
+            "login_id": entry_id,
+            "qr_data_uri": _make_svg_data_uri(qr.url),
+            "instructions": "Scan with Telegram > Settings > Devices > Link Desktop Device",
+        }
+    except ApiIdInvalidError:
+        await _safe_disconnect(client)
+        raise HTTPException(status_code=400, detail="Invalid API ID / Hash from my.telegram.org")
+    except Exception:
+        await _safe_disconnect(client)
+        logger.exception("QR login start failed")
+        raise HTTPException(status_code=500, detail="QR login failed — check API ID / Hash")
+
+
+@router.get("/login/qr/status/{entry_id}", tags=["Accounts"])
+async def qr_login_status(
+    entry_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Poll QR scan status. Returns authorized once the session is persisted."""
+    from telethon.errors import SessionPasswordNeededError
+    entry = _get_entry(entry_id, current_user.id)
+    client, qr = entry["_client"], entry["qr"]
+    try:
+        await qr.wait(poll_interval=2, timeout=8)
+    except SessionPasswordNeededError:
+        return {"status": "awaiting_password", "login_id": entry_id}
+    except Exception:
+        return {"status": "pending", "login_id": entry_id}
+
+    if await client.is_user_authorized():
+        try:
+            result = await _finalize_login(
+                db, current_user.id, client,
+                entry.get("phone", ""), entry["api_id"], entry["api_hash"],
+            )
+            await _drop_entry(entry_id)
+            return {"status": "authorized", **result}
+        except Exception:
+            logger.exception("QR finalize failed")
+            await _drop_entry(entry_id)
+            raise HTTPException(status_code=500, detail="Failed to save account after login")
+    return {"status": "pending", "login_id": entry_id}
+
+
+@router.post("/login/qr/password/{entry_id}", tags=["Accounts"])
+async def qr_login_password(
+    entry_id: str,
+    body: QRPasswordIn,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Submit 2FA password for a QR login that requires it."""
+    entry = _get_entry(entry_id, current_user.id)
+    client = entry["_client"]
+    try:
+        await client.sign_in(password=body.password)
+    except Exception:
+        logger.exception("2FA password rejected")
+        raise HTTPException(status_code=400, detail="Invalid 2FA password")
+    result = await _finalize_login(
+        db, current_user.id, client,
+        entry.get("phone", ""), entry["api_id"], entry["api_hash"],
+    )
+    await _drop_entry(entry_id)
+    return {"status": "authorized", **result}
+
+
+@router.post("/login/qr/cancel/{entry_id}", tags=["Accounts"])
+async def qr_login_cancel(
+    entry_id: str, current_user: User = Depends(get_current_user_tenant),
+):
+    _get_entry(entry_id, current_user.id)
+    await _drop_entry(entry_id)
+    return {"status": "cancelled"}
+
+
+@router.post("/login/phone/send-code", tags=["Accounts"])
+async def phone_login_send_code(
+    body: PhoneSendCodeIn,
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Request an SMS/call login code for a phone number."""
+    from telethon.errors import ApiIdInvalidError, PhoneNumberInvalidError, PhoneNumberBannedError
+    entry_id = uuid.uuid4().hex
+    client = _new_client(body.api_id, body.api_hash)
+    try:
+        await client.connect()
+        await client.send_code_request(body.phone)
+        _login_store[entry_id] = {
+            "_client": client, "phone": body.phone,
+            "api_id": body.api_id, "api_hash": body.api_hash,
+            "method": "phone", "user_id": current_user.id,
+            "created": datetime.utcnow(),
+        }
+        return {"login_id": entry_id, "status": "code_sent", "phone": body.phone}
+    except (ApiIdInvalidError,):
+        await _safe_disconnect(client)
+        raise HTTPException(status_code=400, detail="Invalid API ID / Hash from my.telegram.org")
+    except PhoneNumberInvalidError:
+        await _safe_disconnect(client)
+        raise HTTPException(status_code=400, detail="Invalid phone number (use international format, e.g. +1234567890)")
+    except PhoneNumberBannedError:
+        await _safe_disconnect(client)
+        raise HTTPException(status_code=400, detail="This phone number is banned on Telegram")
+    except Exception:
+        await _safe_disconnect(client)
+        logger.exception("Phone send-code failed")
+        raise HTTPException(status_code=500, detail="Failed to send login code")
+
+
+@router.post("/login/phone/verify/{entry_id}", tags=["Accounts"])
+async def phone_login_verify(
+    entry_id: str,
+    body: PhoneVerifyIn,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Complete phone login with the received code (and 2FA password if required)."""
+    from telethon.errors import SessionPasswordNeededError, PhoneCodeInvalidError, PhoneCodeExpiredError
+    entry = _get_entry(entry_id, current_user.id)
+    client = entry["_client"]
+    try:
+        await client.sign_in(entry["phone"], code=body.code)
+    except SessionPasswordNeededError:
+        if not body.password:
+            return {"status": "awaiting_password", "login_id": entry_id}
+        try:
+            await client.sign_in(password=body.password)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid 2FA password")
+    except PhoneCodeInvalidError:
+        raise HTTPException(status_code=400, detail="Invalid code — check the code you entered")
+    except PhoneCodeExpiredError:
+        await _drop_entry(entry_id)
+        raise HTTPException(status_code=400, detail="Code expired — request a new one")
+
+    result = await _finalize_login(
+        db, current_user.id, client,
+        entry["phone"], entry["api_id"], entry["api_hash"],
+    )
+    await _drop_entry(entry_id)
+    return {"status": "authorized", **result}
+
+
+@router.post("/login/phone/cancel/{entry_id}", tags=["Accounts"])
+async def phone_login_cancel(
+    entry_id: str, current_user: User = Depends(get_current_user_tenant),
+):
+    _get_entry(entry_id, current_user.id)
+    await _drop_entry(entry_id)
+    return {"status": "cancelled"}

@@ -7,15 +7,42 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ArrowLeft, Save, Loader2, AlertTriangle, Upload, Phone, Globe, Database, CheckCircle2 } from "lucide-react";
-import { personasApi, accountsApi } from "@/lib/api";
+import { ArrowLeft, Save, Loader2, AlertTriangle, Upload, Phone, Globe, Database, CheckCircle2, Users, Sparkles, Plus, Trash2 } from "lucide-react";
+import { personasApi, accountsApi, groupsApi } from "@/lib/api";
 
 const TONE_OPTIONS = ["casual", "professional", "friendly", "excited", "analytical", "humorous"];
+
+const SOUL_DEFAULTS = {
+  age: 25, gender: "neutral", nationality: "US", occupation: "Professional",
+  bio: "", values: [], philosophy: "", priorities: [], pet_peeves: [],
+  humor_style: "dry", openness: 5, conscientiousness: 5, extraversion: 5,
+  agreeableness: 5, neuroticism: 3, vocabulary: [], catchphrases: [], emoji_style: "occasional",
+  expertise: [], opinions: {}, blindspots: [],
+};
 
 interface Account {
   id: number;
   phone_number: string;
   status: string;
+}
+
+interface Group {
+  id: number;
+  title: string;
+  group_type: string;
+  member_count: number;
+}
+
+interface GroupPrompt {
+  group_name: string;
+  purpose: string;
+  member_count: string;
+  language: string;
+  topics: string[];
+  culture_tone: string;
+  active_hours: string;
+  joining_reason: string;
+  participation_style: string;
 }
 
 export default function PersonaEditPage() {
@@ -35,16 +62,24 @@ export default function PersonaEditPage() {
   const [formality, setFormality] = useState(0.4);
   const [isActive, setIsActive] = useState(true);
   const [soulPrompt, setSoulPrompt] = useState("");
-  const [groupPrompts, setGroupPrompts] = useState("");
-
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
 
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [assignedAccountId, setAssignedAccountId] = useState<number | null>(null);
 
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [selectedGroupIds, setSelectedGroupIds] = useState<number[]>([]);
+
+  const [soulForm, setSoulForm] = useState<any>(SOUL_DEFAULTS);
+  const [soulGenerating, setSoulGenerating] = useState(false);
+
+  const [groupPrompts, setGroupPrompts] = useState<Record<string, GroupPrompt>>({});
+  const [newGroupPromptKey, setNewGroupPromptKey] = useState("");
+
   const [webhookUrl, setWebhookUrl] = useState("");
   const [webhookHeaders, setWebhookHeaders] = useState("{}");
+
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const [spreadsheetId, setSpreadsheetId] = useState("");
   const [sheetName, setSheetName] = useState("Sheet1");
@@ -56,8 +91,10 @@ export default function PersonaEditPage() {
     Promise.all([
       personasApi.get(id),
       accountsApi.list(1, 200),
+      groupsApi.list(1, 200),
+      personasApi.getAssignedGroups(id),
     ])
-      .then(([res, accRes]) => {
+      .then(([res, accRes, grpRes, assignedRes]) => {
         const p = res.data;
         setName(p.name);
         setTone(p.tone || "casual");
@@ -77,11 +114,15 @@ export default function PersonaEditPage() {
           setExportColumns(p.sheets_config.export_columns || "");
           setAutoSync(p.sheets_config.auto_sync || false);
         }
-        try {
-          const gp = typeof p.group_prompts === "string" ? JSON.parse(p.group_prompts) : (p.group_prompts ?? {});
-          setGroupPrompts(JSON.stringify(gp, null, 2));
-        } catch { setGroupPrompts("{}"); }
+        const gp = typeof p.group_prompts === "string" ? JSON.parse(p.group_prompts) : (p.group_prompts ?? {});
+        setGroupPrompts(gp);
+        if (p.soul_prompt_data && Object.keys(p.soul_prompt_data).length) {
+          setSoulForm({ ...SOUL_DEFAULTS, ...p.soul_prompt_data });
+        }
         setAccounts((accRes.data.items || accRes.data || []).filter((a: Account) => a.status !== "deleted"));
+        setGroups((grpRes.data.items || grpRes.data || []));
+        const assignedIds = (assignedRes.data.groups || []).map((g: Group) => g.id);
+        setSelectedGroupIds(assignedIds);
       })
       .catch(e => setError(e?.response?.data?.detail || "Failed to load persona"))
       .finally(() => setLoading(false));
@@ -99,7 +140,7 @@ export default function PersonaEditPage() {
         formality_level: formality,
         is_active: isActive,
         soul_prompt: soulPrompt || null,
-        group_prompts: (() => { try { return JSON.parse(groupPrompts); } catch { return {}; } })(),
+        group_prompts: groupPrompts,
       });
       setSuccess("Profile saved");
     } catch (e: any) {
@@ -170,6 +211,57 @@ export default function PersonaEditPage() {
     setSaving(false);
   };
 
+  const handleAssignGroups = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      await personasApi.assignGroups(id, selectedGroupIds);
+      setSuccess("Groups assigned");
+    } catch (e: any) {
+      setError(e?.response?.data?.detail || "Failed to assign groups");
+    }
+    setSaving(false);
+  };
+
+  const toggleGroup = (gid: number) => {
+    setSelectedGroupIds(prev => prev.includes(gid) ? prev.filter(x => x !== gid) : [...prev, gid]);
+  };
+
+  const handleGenerateSoul = async () => {
+    setSoulGenerating(true);
+    setError(null);
+    try {
+      const res = await personasApi.generateSoulPrompt(id, soulForm);
+      setSoulPrompt(res.data.soul_prompt);
+      setSuccess("Soul prompt generated");
+    } catch (e: any) {
+      setError(e?.response?.data?.detail || "Failed to generate soul prompt");
+    }
+    setSoulGenerating(false);
+  };
+
+  const updateGroupPromptField = (key: string, field: string, value: string | string[]) => {
+    setGroupPrompts(prev => ({ ...prev, [key]: { ...(prev[key] || {}), [field]: value } }));
+  };
+
+  const addGroupPrompt = () => {
+    const key = newGroupPromptKey.trim();
+    if (!key) return;
+    setGroupPrompts(prev => ({
+      ...prev,
+      [key]: { group_name: key, purpose: "", member_count: "?", language: "English", topics: [], culture_tone: "friendly", active_hours: "evening", joining_reason: "interest", participation_style: "occasional" },
+    }));
+    setNewGroupPromptKey("");
+  };
+
+  const removeGroupPrompt = (key: string) => {
+    setGroupPrompts(prev => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -214,6 +306,8 @@ export default function PersonaEditPage() {
         <Tabs defaultValue="profile">
           <TabsList>
             <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="soul">Soul Gen</TabsTrigger>
+            <TabsTrigger value="groups">Groups</TabsTrigger>
             <TabsTrigger value="image">Image</TabsTrigger>
             <TabsTrigger value="account">Account</TabsTrigger>
             <TabsTrigger value="webhook">Webhook</TabsTrigger>
@@ -260,13 +354,137 @@ export default function PersonaEditPage() {
                     className="w-full rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm outline-none focus:border-primary resize-y font-mono" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">Group Prompts (JSON)</label>
-                  <textarea value={groupPrompts} onChange={e => setGroupPrompts(e.target.value)} rows={4}
-                    className="w-full rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm outline-none focus:border-primary resize-y font-mono" />
+                  <label className="block text-sm font-medium mb-1.5">Group Prompts</label>
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <Input placeholder="Group name (e.g. TechTalk)" value={newGroupPromptKey} onChange={e => setNewGroupPromptKey(e.target.value)} />
+                      <Button variant="outline" size="sm" onClick={addGroupPrompt}><Plus className="h-4 w-4 mr-1" />Add</Button>
+                    </div>
+                    {Object.keys(groupPrompts).length === 0 && (
+                      <p className="text-xs text-muted-foreground">No per-group prompts yet. Add a group to customize this persona's behavior there.</p>
+                    )}
+                    {Object.entries(groupPrompts).map(([key, gp]) => (
+                      <div key={key} className="rounded-lg border border-border p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold">{gp.group_name || key}</span>
+                          <button onClick={() => removeGroupPrompt(key)} className="text-destructive hover:opacity-70"><Trash2 className="h-4 w-4" /></button>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Purpose</label>
+                          <textarea value={gp.purpose || ""} onChange={e => updateGroupPromptField(key, "purpose", e.target.value)} rows={2}
+                            className="w-full rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm outline-none focus:border-primary resize-y" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-xs font-medium mb-1">Culture / Tone</label>
+                            <input className="w-full rounded-lg border border-border bg-secondary/40 px-2 py-1.5 text-sm outline-none" value={gp.culture_tone || ""} onChange={e => updateGroupPromptField(key, "culture_tone", e.target.value)} />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium mb-1">Active Hours</label>
+                            <input className="w-full rounded-lg border border-border bg-secondary/40 px-2 py-1.5 text-sm outline-none" value={gp.active_hours || ""} onChange={e => updateGroupPromptField(key, "active_hours", e.target.value)} />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Topics (comma separated)</label>
+                          <input className="w-full rounded-lg border border-border bg-secondary/40 px-2 py-1.5 text-sm outline-none" value={(gp.topics || []).join(", ")}
+                            onChange={e => updateGroupPromptField(key, "topics", e.target.value.split(",").map(s => s.trim()).filter(Boolean))} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 <Button onClick={handleSaveProfile} disabled={saving} className="w-full">
                   {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />}
                   Save Profile
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="soul">
+            <Card className="border-border shadow-sm">
+              <CardHeader><CardTitle>Soul Prompt Generator</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">Fill in identity details, then generate the soul prompt from structured data.</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">Age</label>
+                    <Input type="number" value={soulForm.age} onChange={e => setSoulForm({ ...soulForm, age: parseInt(e.target.value) || 0 })} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">Gender</label>
+                    <Input value={soulForm.gender} onChange={e => setSoulForm({ ...soulForm, gender: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">Nationality</label>
+                    <Input value={soulForm.nationality} onChange={e => setSoulForm({ ...soulForm, nationality: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">Occupation</label>
+                    <Input value={soulForm.occupation} onChange={e => setSoulForm({ ...soulForm, occupation: e.target.value })} />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">Bio</label>
+                  <textarea value={soulForm.bio} onChange={e => setSoulForm({ ...soulForm, bio: e.target.value })} rows={3}
+                    className="w-full rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm outline-none focus:border-primary resize-y" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">Values (comma separated)</label>
+                  <Input value={(soulForm.values || []).join(", ")} onChange={e => setSoulForm({ ...soulForm, values: e.target.value.split(",").map(s => s.trim()).filter(Boolean) })} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">Philosophy</label>
+                  <textarea value={soulForm.philosophy} onChange={e => setSoulForm({ ...soulForm, philosophy: e.target.value })} rows={2}
+                    className="w-full rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm outline-none focus:border-primary resize-y" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">Humor Style</label>
+                    <select value={soulForm.humor_style} onChange={e => setSoulForm({ ...soulForm, humor_style: e.target.value })}
+                      className="w-full rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm outline-none focus:border-primary">
+                      {["dry", "playful", "sarcastic", "none", "subtle"].map(o => <option key={o}>{o}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">Emoji Style</label>
+                    <select value={soulForm.emoji_style} onChange={e => setSoulForm({ ...soulForm, emoji_style: e.target.value })}
+                      className="w-full rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm outline-none focus:border-primary">
+                      {["occasional", "frequent", "never"].map(o => <option key={o}>{o}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <Button onClick={handleGenerateSoul} disabled={soulGenerating} className="w-full">
+                  {soulGenerating ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Sparkles className="h-4 w-4 mr-1" />}
+                  {soulGenerating ? "Generating..." : "Generate Soul Prompt"}
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="groups">
+            <Card className="border-border shadow-sm">
+              <CardHeader><CardTitle>Assigned Telegram Groups</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">Select which groups this persona participates in.</p>
+                {groups.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No groups yet. Add groups in the Groups module first.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {groups.map(g => (
+                      <label key={g.id} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedGroupIds.includes(g.id) ? "border-primary bg-primary/10" : "border-border hover:bg-secondary/40"}`}>
+                        <input type="checkbox" checked={selectedGroupIds.includes(g.id)} onChange={() => toggleGroup(g.id)} className="accent-[hsl(var(--primary))]" />
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium flex-1">{g.title}</span>
+                        <Badge variant="outline">{g.group_type}</Badge>
+                        {g.member_count > 0 && <span className="text-xs text-muted-foreground">{g.member_count} members</span>}
+                      </label>
+                    ))}
+                  </div>
+                )}
+                <Button onClick={handleAssignGroups} disabled={saving} className="w-full">
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />}
+                  Save Group Assignment
                 </Button>
               </CardContent>
             </Card>

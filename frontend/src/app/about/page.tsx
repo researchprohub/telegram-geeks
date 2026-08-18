@@ -57,7 +57,7 @@ export default function AboutPage() {
             <AnimatedSection>
             <div className="max-w-3xl mx-auto space-y-6 text-muted-foreground leading-relaxed mb-14">
               <p>
-                Telegram Geeks is an all-in-one Telegram marketing platform, providing automated account registration,
+                TelegramGeeks Pro is an all-in-one Telegram marketing platform, providing automated account registration,
                 advanced audience targeting, bulk messaging, and comprehensive account management tools.
               </p>
               <p>

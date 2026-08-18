@@ -8,7 +8,7 @@ type FooterDict = { title: string; copyright: string; columns: FooterCol[]; soci
 const dict: Record<string, FooterDict> = {
   en: {
     title: "Manage your business professionally",
-    copyright: "All rights reserved. Telegram Geeks 2026.",
+    copyright: "All rights reserved. TelegramGeeks Pro 2026.",
     columns: [
       { title: "Product", links: [
         { label: "Home", href: "/" },
@@ -18,7 +18,7 @@ const dict: Record<string, FooterDict> = {
         { label: "Contacts", href: "/contacts" },
       ]},
       { title: "Resources", links: [
-        { label: "Articles", href: "/posts" },
+        { label: "Articles", href: "/blog" },
         { label: "Reviews", href: "/reviews" },
         { label: "FAQ", href: "/telegram-promotion" },
         { label: "Partners", href: "/partner" },
@@ -36,7 +36,7 @@ const dict: Record<string, FooterDict> = {
   },
   ru: {
     title: "Управляйте своим бизнесом профессионально",
-    copyright: "Все права защищены. Telegram Geeks 2026.",
+    copyright: "Все права защищены. TelegramGeeks Pro 2026.",
     columns: [
       { title: "Продукт", links: [
         { label: "Главная", href: "/" },
@@ -46,7 +46,7 @@ const dict: Record<string, FooterDict> = {
         { label: "Контакты", href: "/contacts" },
       ]},
       { title: "Ресурсы", links: [
-        { label: "Статьи", href: "/posts" },
+        { label: "Статьи", href: "/blog" },
         { label: "Отзывы", href: "/reviews" },
         { label: "FAQ", href: "/telegram-promotion" },
         { label: "Партнёры", href: "/partner" },
@@ -64,7 +64,7 @@ const dict: Record<string, FooterDict> = {
   },
   cn: {
     title: "专业管理您的业务",
-    copyright: "版权所有。Telegram Geeks 2026。",
+    copyright: "版权所有。TelegramGeeks Pro 2026。",
     columns: [
       { title: "产品", links: [
         { label: "首页", href: "/" },
@@ -74,7 +74,7 @@ const dict: Record<string, FooterDict> = {
         { label: "联系", href: "/contacts" },
       ]},
       { title: "资源", links: [
-        { label: "文章", href: "/posts" },
+        { label: "文章", href: "/blog" },
         { label: "评价", href: "/reviews" },
         { label: "FAQ", href: "/telegram-promotion" },
         { label: "合作伙伴", href: "/partner" },

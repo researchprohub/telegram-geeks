@@ -57,7 +57,7 @@ export default function AboutPage() {
             <AnimatedSection>
             <div className="max-w-3xl mx-auto space-y-6 text-muted-foreground leading-relaxed mb-14">
               <p>
-                Telegram Geeks 是一款全方位的 Telegram 营销平台，提供自动化账户注册、高级受众定位、批量消息发送和全面的账户管理工具。
+                TelegramGeeks Pro 是一款全方位的 Telegram 营销平台，提供自动化账户注册、高级受众定位、批量消息发送和全面的账户管理工具。
               </p>
               <p>
                 我们的软件包含 <strong className="text-foreground/80">49个模块</strong>，覆盖8大类别 —

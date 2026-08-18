@@ -24,6 +24,14 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base, TimestampMixin
 import uuid
 import enum as std_enum
+import re
+
+
+def slugify(value: str) -> str:
+    """URL-safe slug from a title (WP-style)."""
+    value = str(value).strip().lower()
+    value = re.sub(r"[^a-z0-9]+", "-", value)
+    return value.strip("-") or "post"
 
 
 class AccountStatus(std_enum.Enum):
@@ -49,6 +57,7 @@ class UserRole(std_enum.Enum):
     ADMIN = "admin"
     OPERATOR = "operator"
     VIEWER = "viewer"
+    WRITER = "writer"
 
 
 class CampaignType(std_enum.Enum):
@@ -130,6 +139,9 @@ class Persona(Base, TimestampMixin):
 
     # Sprint-02: Telegram account assignment
     telegram_account_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("accounts.id", ondelete="SET NULL"), nullable=True)
+
+    # Sprint-02: Assigned Telegram groups (list of group ids)
+    assigned_group_ids: Mapped[list[int]] = mapped_column(JSON, default=list, server_default=text("'[]'"))
 
     # Sprint-02: Webhook posting for generated content
     webhook_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
@@ -341,6 +353,19 @@ class Subscription(Base, TimestampMixin):
     team_seats: Mapped[int] = mapped_column(Integer, default=1, server_default=text("1"))
 
 
+class ModuleAccess(Base, TimestampMixin):
+    """Per-module add-on subscription (separate from the base plan)."""
+    __tablename__ = "module_access"
+    __table_args__ = (UniqueConstraint("user_id", "module_id", name="uq_user_module"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    module_id: Mapped[str] = mapped_column(String(50), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), default="active", server_default="active")
+    starts_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    expires_at: Mapped[datetime | None] = mapped_column(nullable=True)
+
+
 class Order(Base, TimestampMixin):
     """Payment order."""
     __tablename__ = "orders"
@@ -425,6 +450,45 @@ class Deposit(Base, TimestampMixin):
     confirmed_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
 
+# ─── Blog (WordPress-style) ──────────────────────────────────
+
+class BlogCategory(Base, TimestampMixin):
+    """Blog post category (WP-style taxonomy)."""
+    __tablename__ = "blog_categories"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    slug: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    posts: Mapped[list["BlogPost"]] = relationship(back_populates="category")
+
+
+class BlogPost(Base, TimestampMixin):
+    __tablename__ = "blog_posts"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    title: Mapped[str] = mapped_column(String(300), nullable=False)
+    slug: Mapped[str] = mapped_column(String(320), unique=True, nullable=False)
+    content: Mapped[str] = mapped_column(Text, default="")
+    excerpt: Mapped[str | None] = mapped_column(Text, nullable=True)
+    cover_image: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    status: Mapped[str] = mapped_column(String(20), default="draft", server_default="draft")  # draft | publish
+    category_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("blog_categories.id", ondelete="SET NULL"), nullable=True)
+    tags: Mapped[list[str]] = mapped_column(JSON, default=list, server_default=text("'[]'"))
+    # SEO fields
+    seo_title: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    seo_description: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    seo_keywords: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    published_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    view_count: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+    # Elementor-style single-post template: ordered list of enabled sections/widgets.
+    template: Mapped[list | None] = mapped_column(JSON, nullable=True)
+
+    category: Mapped["BlogCategory | None"] = relationship(back_populates="posts")
+
+
 class Proxy(Base, TimestampMixin):
     __tablename__ = "proxies"
 
@@ -447,3 +511,15 @@ class Proxy(Base, TimestampMixin):
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     cost: Mapped[float | None] = mapped_column(Float, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class Partner(Base, TimestampMixin):
+    """Marketing partners page entry (name/logo/link/category)."""
+    __tablename__ = "partners"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    img: Mapped[str] = mapped_column(String(500), nullable=False)
+    href: Mapped[str] = mapped_column(String(500), default="", server_default="")
+    category: Mapped[str] = mapped_column(String(20), nullable=False)  # proxies | browsers | sms
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))

@@ -40,7 +40,7 @@ const steps = [
 ];
 
 const seoCards = [
-  { title: "Read the manual", desc: "Step-by-step instructions for a confident start with Telegram Geeks", href: "/manuals" },
+  { title: "Read the manual", desc: "Step-by-step instructions for a confident start with TelegramGeeks Pro", href: "/manuals" },
   { title: "View articles", desc: "Relevant articles and fresh materials about Telegram promotion", href: "/posts" },
   { title: "Updates feed", desc: "Stay tuned for new features and improvements", href: "/upd" },
   { title: "Questions — Answers", desc: "Answers to frequently asked questions", href: "/questions" },
@@ -84,7 +84,7 @@ export default function InterceptorPage() {
                 <p className="text-muted-foreground text-sm mt-4 max-w-2xl leading-relaxed">
                   The module automates forwarding content from external sources (groups, channels, dialogues)
                   to your channels or chats based on trigger phrases. For example, if the trigger is the word
-                  &quot;Repair,&quot; Telegram Geeks will immediately intercept and forward any message containing that word.
+                  &quot;Repair,&quot; TelegramGeeks Pro will immediately intercept and forward any message containing that word.
                 </p>
               </div>
             </div>

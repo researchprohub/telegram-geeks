@@ -29,11 +29,11 @@ const faqs = [
   },
   {
     q: "What companies do you cooperate with?",
-    a: "We have a fairly wide range of partners, among them there are SMS services, proxy services, and other services that today are industry giants in their field. The advantage of our company is a quick solution to any problems that arise if you are the owner of the Telegram Geeks key. Our partners have sphere.chat accounts, special personal groups to support users, where any issues are resolved quickly and in real time.",
+    a: "We have a fairly wide range of partners, among them there are SMS services, proxy services, and other services that today are industry giants in their field. The advantage of our company is a quick solution to any problems that arise if you are the owner of the TelegramGeeks Pro key. Our partners have sphere.chat accounts, special personal groups to support users, where any issues are resolved quickly and in real time.",
   },
   {
     q: "What is sphere.chat?",
-    a: "sphere.chat is our encrypted private messenger, a place where social media marketing experts exchange experiences and solve problems. The audience is quite large and has more than 1,500 users, and each user owns a key to Telegram Geeks!",
+    a: "sphere.chat is our encrypted private messenger, a place where social media marketing experts exchange experiences and solve problems. The audience is quite large and has more than 1,500 users, and each user owns a key to TelegramGeeks Pro!",
   },
   {
     q: "Do you have support after purchase?",
@@ -86,14 +86,14 @@ export default function QuestionsPage() {
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-foreground mb-4">
-                  FAQ: Everything about mass mailings and invites in Telegram via Telegram Geeks
+                  FAQ: Everything about mass mailings and invites in Telegram via TelegramGeeks Pro
                 </h2>
                 <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
                   <p>
                     Welcome to our FAQ — a section of frequently asked questions about mass mailings and invites in Telegram. If you want to quickly grow your audience and set up Telegram promotion using modern tools, here you will find detailed answers to the most important questions. We explain how to use mass mailings safely, avoid blocks, build an invite strategy, track performance, and run test campaigns for subscriber growth.
                   </p>
                   <p>
-                    Telegram Geeks is reliable software for automating mailings, expanding your base, and conveniently managing campaigns. We have collected practical recommendations to make working with the service as simple, effective, and transparent as possible for every user.
+                    TelegramGeeks Pro is reliable software for automating mailings, expanding your base, and conveniently managing campaigns. We have collected practical recommendations to make working with the service as simple, effective, and transparent as possible for every user.
                   </p>
                 </div>
                 <div className="mt-6">

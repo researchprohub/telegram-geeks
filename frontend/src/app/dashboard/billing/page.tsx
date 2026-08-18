@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
-import { Loader2, CreditCard, CheckCircle, Clock, AlertCircle, ArrowUpRight } from "lucide-react";
+import { Loader2, CreditCard, CheckCircle, Clock, AlertCircle, ArrowUpRight, Puzzle, Lock } from "lucide-react";
 
 interface Plan {
   id: string; name: string; price_monthly: number; price_yearly: number;
@@ -20,6 +20,8 @@ interface Order {
   status: string; created_at: string;
 }
 
+interface ModulePlan { module_id: string; name: string; price_monthly: number; }
+
 const PLAN_LABELS: Record<string, string> = {
   starter: "Base", pro_1mo: "1 Month", pro_1yr: "1 Year", pro_2yr: "2 Years", pro_3yr: "3 Years",
 };
@@ -28,6 +30,8 @@ export default function BillingPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [sub, setSub] = useState<Subscription | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [modules, setModules] = useState<ModulePlan[]>([]);
+  const [activeModules, setActiveModules] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -54,8 +58,23 @@ export default function BillingPage() {
         const ordersRes = await api.get("/payments/orders");
         setOrders(ordersRes.data);
       } catch { /* no orders */ }
+      try {
+        const modRes = await api.get("/payments/modules");
+        setModules(modRes.data.plans);
+        setActiveModules(modRes.data.active);
+      } catch { /* no modules */ }
     }
     setLoading(false);
+  }
+
+  async function subscribeModule(module_id: string) {
+    try {
+      const res = await api.post(`/payments/module-subscribe?module_id=${module_id}`);
+      if (res.data?.payment_url) window.open(res.data.payment_url, "_blank");
+      await fetchData();
+    } catch {
+      setError("Failed to start module subscription");
+    }
   }
 
   if (loading) return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
@@ -120,6 +139,45 @@ export default function BillingPage() {
           ))}
         </div>
       </section>
+
+      {modules.length > 0 && (
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-lg font-semibold text-white">Module Add-ons</h2>
+            <Puzzle className="w-4 h-4 text-primary/50" />
+          </div>
+          <p className="text-sm text-slate-400 mb-4">Monthly subscriptions for individual tools — independent of your base plan.</p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {modules.map(m => {
+              const active = activeModules.includes(m.module_id);
+              return (
+                <div key={m.module_id} className={`bg-white/[0.02] backdrop-blur-md rounded-2xl border p-5 transition-all ${
+                  active ? "border-success/40 bg-success/[0.03]" : "border-white/[0.07] hover:border-primary/30 hover:bg-white/[0.04]"
+                }`}>
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="font-semibold text-white">{m.name}</h3>
+                    {active
+                      ? <span className="text-xs font-medium px-2 py-0.5 rounded-full text-success bg-success/10 border border-success/20">Active</span>
+                      : <Lock className="w-3.5 h-3.5 text-slate-500" />}
+                  </div>
+                  <p className="text-2xl font-bold text-primary mb-4">${m.price_monthly}<span className="text-sm text-slate-400 font-normal">/mo</span></p>
+                  <button
+                    onClick={() => subscribeModule(m.module_id)}
+                    disabled={active}
+                    className={`flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl text-white text-sm font-semibold transition-all ${
+                      active
+                        ? "bg-success/10 text-success cursor-default border border-success/20"
+                        : "bg-gradient-to-r from-primary to-cyan-400 hover:opacity-90 shadow-[0_0_12px_-3px_hsl(var(--primary)/0.3)]"
+                    }`}
+                  >
+                    {active ? <><CheckCircle className="w-3.5 h-3.5" /> Subscribed</> : <>Subscribe <ArrowUpRight className="w-3.5 h-3.5" /></>}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {orders.length > 0 && (
         <section>

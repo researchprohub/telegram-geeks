@@ -6,16 +6,40 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileArchive, CheckCircle, AlertCircle, Loader2, Info, ArrowLeft } from "lucide-react";
+import { Upload, FileArchive, CheckCircle, AlertCircle, Loader2, Info, ArrowLeft, QrCode, Phone, Files } from "lucide-react";
+import api from "@/lib/api";
 
 export default function TDataUploadPage() {
   const router = useRouter();
+  const [tab, setTab] = useState<"qr" | "phone" | "tdata">("tdata");
+
+  // shared API credentials
   const [apiId, setApiId] = useState("");
   const [apiHash, setApiHash] = useState("");
+
+  // TData state
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<null | { uploaded: number; failed: number; errors: string[] }>(null);
   const [dragActive, setDragActive] = useState(false);
+
+  // QR state
+  const [qrBusy, setQrBusy] = useState(false);
+  const [qrDataUri, setQrDataUri] = useState("");
+  const [qrLoginId, setQrLoginId] = useState("");
+  const [qrStatus, setQrStatus] = useState<"idle" | "pending" | "awaiting_password" | "authorized" | "error">("idle");
+  const [qrPassword, setQrPassword] = useState("");
+  const [qrMsg, setQrMsg] = useState("");
+
+  // Phone state
+  const [phone, setPhone] = useState("");
+  const [phoneBusy, setPhoneBusy] = useState(false);
+  const [phoneLoginId, setPhoneLoginId] = useState("");
+  const [phoneStep, setPhoneStep] = useState<"idle" | "code_sent" | "awaiting_password" | "authorized" | "error">("idle");
+  const [phoneCode, setPhoneCode] = useState("");
+  const [phonePassword, setPhonePassword] = useState("");
+  const [phoneMsg, setPhoneMsg] = useState("");
+  const [loginAccount, setLoginAccount] = useState<null | { account_id: number; phone: string }>(null);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -71,6 +95,101 @@ export default function TDataUploadPage() {
     }
   };
 
+  const loginReq = async (url: string, opts?: RequestInit) => {
+    const res = await fetch(url, {
+      headers: { "Content-Type": "application/json" },
+      ...opts,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || "Request failed");
+    return data;
+  };
+
+  const startQr = async () => {
+    if (!apiId || !apiHash) return;
+    setQrBusy(true); setQrMsg(""); setQrDataUri(""); setQrStatus("idle"); setLoginAccount(null);
+    try {
+      const data = await loginReq("/api/accounts/login/qr/start", {
+        method: "POST",
+        body: JSON.stringify({ api_id: Number(apiId), api_hash: apiHash }),
+      });
+      setQrLoginId(data.login_id);
+      setQrDataUri(data.qr_data_uri);
+      setQrStatus("pending");
+      pollQr(data.login_id);
+    } catch (e) {
+      setQrStatus("error");
+      setQrMsg(e instanceof Error ? e.message : "Failed to start QR login");
+    } finally {
+      setQrBusy(false);
+    }
+  };
+
+  const pollQr = async (loginId: string) => {
+    try {
+      const data = await loginReq(`/api/accounts/login/qr/status/${loginId}`);
+      if (data.status === "awaiting_password") { setQrStatus("awaiting_password"); return; }
+      if (data.status === "authorized") {
+        setQrStatus("authorized");
+        setLoginAccount({ account_id: data.account_id, phone: data.phone });
+        return;
+      }
+      setQrStatus("pending");
+      setTimeout(() => pollQr(loginId), 2000);
+    } catch {
+      setQrStatus("error");
+      setQrMsg("QR login failed");
+    }
+  };
+
+  const submitQrPassword = async () => {
+    try {
+      const data = await loginReq(`/api/accounts/login/qr/password/${qrLoginId}`, {
+        method: "POST",
+        body: JSON.stringify({ password: qrPassword }),
+      });
+      setQrStatus("authorized");
+      setLoginAccount({ account_id: data.account_id, phone: data.phone });
+    } catch {
+      setQrStatus("awaiting_password");
+      setQrMsg("Invalid 2FA password");
+    }
+  };
+
+  const sendPhoneCode = async () => {
+    if (!apiId || !apiHash || !phone) return;
+    setPhoneBusy(true); setPhoneMsg(""); setPhoneStep("idle"); setLoginAccount(null);
+    try {
+      const data = await loginReq("/api/accounts/login/phone/send-code", {
+        method: "POST",
+        body: JSON.stringify({ api_id: Number(apiId), api_hash: apiHash, phone }),
+      });
+      setPhoneLoginId(data.login_id);
+      setPhoneStep("code_sent");
+      setPhoneMsg(`Code sent to ${phone}`);
+    } catch (e) {
+      setPhoneStep("error");
+      setPhoneMsg(e instanceof Error ? e.message : "Failed to send code");
+    } finally {
+      setPhoneBusy(false);
+    }
+  };
+
+  const verifyPhoneCode = async () => {
+    try {
+      const data = await loginReq(`/api/accounts/login/phone/verify/${phoneLoginId}`, {
+        method: "POST",
+        body: JSON.stringify({ code: phoneCode, password: phonePassword || undefined }),
+      });
+      if (data.status === "awaiting_password") { setPhoneStep("awaiting_password"); return; }
+      setPhoneStep("authorized");
+      setLoginAccount({ account_id: data.account_id, phone: data.phone });
+    } catch (e) {
+      setPhoneStep("error");
+      setPhoneMsg(e instanceof Error ? e.message : "Verification failed");
+    }
+  };
+
   return (
     <div className="min-h-screen pb-20">
       {/* Header */}
@@ -104,6 +223,31 @@ export default function TDataUploadPage() {
           </CardContent>
         </Card>
 
+        {/* Method Tabs */}
+        <div className="grid grid-cols-3 gap-2">
+          <Button
+            variant={tab === "qr" ? "default" : "outline"}
+            className="justify-center gap-2"
+            onClick={() => setTab("qr")}
+          >
+            <QrCode className="h-4 w-4" /> QR Code
+          </Button>
+          <Button
+            variant={tab === "phone" ? "default" : "outline"}
+            className="justify-center gap-2"
+            onClick={() => setTab("phone")}
+          >
+            <Phone className="h-4 w-4" /> Phone
+          </Button>
+          <Button
+            variant={tab === "tdata" ? "default" : "outline"}
+            className="justify-center gap-2"
+            onClick={() => setTab("tdata")}
+          >
+            <Files className="h-4 w-4" /> TData ZIP
+          </Button>
+        </div>
+
         {/* API Credentials */}
         <Card className="border-border shadow-sm">
           <CardHeader className="pb-2"><CardTitle className="text-sm">API Credentials</CardTitle></CardHeader>
@@ -122,6 +266,109 @@ export default function TDataUploadPage() {
           </CardContent>
         </Card>
 
+        {/* QR Login */}
+        {tab === "qr" && (
+          <Card className="border-border shadow-sm">
+            <CardHeader className="pb-2"><CardTitle className="text-sm">Sign in via QR Code</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-xs text-muted-foreground">
+                Uses the API ID / Hash above. Scan the QR with your Telegram app
+                (<span className="text-primary">Settings {'>'} Devices {'>'} Link Desktop Device</span>).
+              </p>
+
+              {!qrDataUri ? (
+                <Button onClick={startQr} disabled={!apiId || !apiHash || qrBusy} className="w-full">
+                  {qrBusy ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Starting...</> : <><QrCode className="h-4 w-4 mr-2" /> Generate QR Code</>}
+                </Button>
+              ) : (
+                <div className="flex flex-col items-center gap-3">
+                  {qrDataUri && <img src={qrDataUri} alt="Login QR Code" className="w-56 h-56 rounded-lg border border-border bg-white p-2" />}
+                  <p className="text-sm text-foreground">Scan this QR with your Telegram app</p>
+                </div>
+              )}
+
+              {/* 2FA */}
+              {qrStatus === "awaiting_password" && (
+                <div className="space-y-2">
+                  <Input type="password" value={qrPassword} onChange={e => setQrPassword(e.target.value)} placeholder="Two-step verification password" />
+                  <Button onClick={submitQrPassword} className="w-full">Submit Password</Button>
+                </div>
+              )}
+
+              {qrMsg && <p className="text-xs text-destructive">{qrMsg}</p>}
+
+              {qrStatus === "pending" && !qrMsg && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Loader2 className="h-3 w-3 animate-spin" /> Waiting for scan...
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Phone Login */}
+        {tab === "phone" && (
+          <Card className="border-border shadow-sm">
+            <CardHeader className="pb-2"><CardTitle className="text-sm">Sign in via Phone Number</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-xs text-muted-foreground">
+                Enter your phone number in international format, then enter the code Telegram sends you.
+              </p>
+
+              {phoneStep === "idle" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">Phone number</label>
+                    <Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1234567890" />
+                  </div>
+                  <Button onClick={sendPhoneCode} disabled={!apiId || !apiHash || !phone || phoneBusy} className="w-full">
+                    {phoneBusy ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending...</> : <>Send Code</>}
+                  </Button>
+                </>
+              )}
+
+              {(phoneStep === "code_sent" || phoneStep === "awaiting_password") && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">Login code</label>
+                    <Input value={phoneCode} onChange={e => setPhoneCode(e.target.value)} placeholder="12345" />
+                  </div>
+                  {phoneStep === "awaiting_password" && (
+                    <div>
+                      <label className="block text-sm font-medium mb-1.5">Two-step verification password</label>
+                      <Input type="password" value={phonePassword} onChange={e => setPhonePassword(e.target.value)} placeholder="2FA password" />
+                    </div>
+                  )}
+                  <Button onClick={verifyPhoneCode} disabled={!phoneCode || (phoneStep === "awaiting_password" && !phonePassword)} className="w-full">
+                    Verify Code
+                  </Button>
+                  {phoneStep === "awaiting_password" && (
+                    <p className="text-xs text-muted-foreground">This account has two-step verification enabled.</p>
+                  )}
+                </>
+              )}
+
+              {phoneMsg && <p className="text-xs text-destructive">{phoneMsg}</p>}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Logged in account banner */}
+        {loginAccount && (
+          <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20">
+            <CardContent className="pt-4 pb-4 flex items-center gap-3">
+              <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400 shrink-0" />
+              <div className="flex-1">
+                <h4 className="font-semibold text-sm">Account added!</h4>
+                <p className="text-xs text-muted-foreground">{loginAccount.phone} imported as #{loginAccount.account_id}</p>
+              </div>
+              <Button onClick={() => router.push("/dashboard/accounts")} size="sm">View Accounts</Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* TData upload */}
+        {tab === "tdata" && (<>
         {/* File Upload */}
         <Card className="border-border shadow-sm">
           <CardHeader className="pb-2"><CardTitle className="text-sm">Upload TData Files</CardTitle></CardHeader>
@@ -225,6 +472,7 @@ export default function TDataUploadPage() {
             </CardContent>
           </Card>
         )}
+        </>)}
       </div>
     </div>
   );

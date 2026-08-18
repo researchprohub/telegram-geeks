@@ -52,7 +52,7 @@ class DepositConfirmRequest(BaseModel):
 
 
 class SystemSettings(BaseModel):
-    platform_name: str = "TelegramGeeks"
+    platform_name: str = "TelegramGeeks Pro"
     maintenance_mode: bool = False
     registration_enabled: bool = True
     starter_price_monthly: float = 29.0
@@ -476,7 +476,7 @@ async def get_settings(
     svc = SettingsService(db)
     raw = await svc.get_all()
     return SystemSettings(
-        platform_name=raw.get("platform_name", "TelegramGeeks"),
+        platform_name=raw.get("platform_name", "TelegramGeeks Pro"),
         maintenance_mode=raw.get("maintenance_mode", "false") == "true",
         registration_enabled=raw.get("registration_enabled", "true") == "true",
         starter_price_monthly=float(raw.get("starter_price_monthly", 29)),
@@ -650,7 +650,7 @@ async def update_settings(
     logger.info(f"Admin updated system settings")
     raw = await svc.get_all()
     return SystemSettings(
-        platform_name=raw.get("platform_name", "TelegramGeeks"),
+        platform_name=raw.get("platform_name", "TelegramGeeks Pro"),
         maintenance_mode=raw.get("maintenance_mode", "false") == "true",
         registration_enabled=raw.get("registration_enabled", "true") == "true",
         starter_price_monthly=float(raw.get("starter_price_monthly", 29)),

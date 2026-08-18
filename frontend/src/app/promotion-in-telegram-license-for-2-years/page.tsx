@@ -131,7 +131,7 @@ export default function License2YearPage() {
                 Professional software for fast channel growth
               </h2>
               <p className="text-muted-foreground mb-8">
-                Join thousands of professionals who trust Telegram Geeks for their promotion needs
+                Join thousands of professionals who trust TelegramGeeks Pro for their promotion needs
               </p>
               <Link
                 href="/#price"
