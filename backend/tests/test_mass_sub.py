@@ -1,4 +1,4 @@
-"""Debug mass_subscriptions."""
+﻿"""Debug mass_subscriptions."""
 import sys
 sys.path.insert(0, "/app")
 
@@ -8,7 +8,7 @@ import httpx
 async def test():
     async with httpx.AsyncClient() as client:
         # Login
-        resp = await client.post("http://localhost:8000/api/v1/auth/login", json={
+        resp = await client.post("http://localhost:8001/api/v1/auth/login", json={
             "email": "test@example.com",
             "password": "Test123456"
         })
@@ -17,7 +17,7 @@ async def test():
         
         # Test mass_subscriptions
         resp = await client.post(
-            "http://localhost:8000/api/v1/modules/mass_subscriptions/execute",
+            "http://localhost:8001/api/v1/modules/mass_subscriptions/execute",
             headers=headers,
             json={"operation": "subscribe_to_channels", "params": {
                 "account_phones": ["+1234567890"],

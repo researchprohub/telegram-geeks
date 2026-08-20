@@ -1,32 +1,231 @@
 [
   {
     "user": "admin@test.com",
-    "module": "auth_register",
-    "status": "FAIL",
-    "plan": "agency"
+    "module": "auth",
+    "status": "OK",
+    "plan": "agency",
+    "role": "admin"
   },
   {
     "user": "starter@test.com",
-    "module": "auth_register",
-    "status": "FAIL",
+    "module": "auth",
+    "status": "OK",
+    "plan": "starter",
+    "role": "operator"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "auth",
+    "status": "OK",
+    "plan": "pro",
+    "role": "operator"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "auth",
+    "status": "OK",
+    "plan": "agency",
+    "role": "operator"
+  },
+  {
+    "user": "viewer@test.com",
+    "module": "auth",
+    "status": "OK",
+    "plan": "starter",
+    "role": "viewer"
+  },
+  {
+    "module": "pricing_structure",
+    "status": "OK",
+    "tiers": 3
+  },
+  {
+    "user": "starter@test.com",
+    "module": "booster_execute",
+    "status": "OK"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "cloner_blocked",
+    "status": "OK"
+  },
+  {
+    "user": "admin@test.com",
+    "module": "cloner_execute",
+    "status": "OK"
+  },
+  {
+    "module": "admin_users",
+    "status": "OK",
+    "count": 10
+  },
+  {
+    "module": "admin_settings",
+    "status": "OK"
+  },
+  {
+    "module": "admin_analytics",
+    "status": "OK"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "account_create",
+    "status": "OK",
+    "id": 16,
+    "plan": "starter"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "account_health",
+    "status": "OK",
+    "id": 16,
     "plan": "starter"
   },
   {
     "user": "pro@test.com",
-    "module": "auth_register",
-    "status": "FAIL",
+    "module": "account_create",
+    "status": "OK",
+    "id": 17,
+    "plan": "pro"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "account_health",
+    "status": "OK",
+    "id": 17,
     "plan": "pro"
   },
   {
     "user": "agency@test.com",
-    "module": "auth_register",
-    "status": "FAIL",
+    "module": "account_create",
+    "status": "OK",
+    "id": 18,
     "plan": "agency"
   },
   {
-    "user": "viewer@test.com",
-    "module": "auth_register",
-    "status": "FAIL",
+    "user": "agency@test.com",
+    "module": "account_health",
+    "status": "OK",
+    "id": 18,
+    "plan": "agency"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "persona_create",
+    "status": "OK",
+    "id": 19,
     "plan": "starter"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "persona_create",
+    "status": "OK",
+    "id": 20,
+    "plan": "pro"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "persona_create",
+    "status": "OK",
+    "id": 21,
+    "plan": "agency"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "group_create",
+    "status": "OK",
+    "id": 20,
+    "plan": "starter"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "group_create",
+    "status": "OK",
+    "id": 21,
+    "plan": "pro"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "group_create",
+    "status": "OK",
+    "id": 22,
+    "plan": "agency"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "campaign_create",
+    "status": "OK",
+    "id": 20,
+    "plan": "starter"
+  },
+  {
+    "user": "starter@test.com",
+    "module": "campaign_start",
+    "status": "OK",
+    "id": 20,
+    "plan": "starter"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "campaign_create",
+    "status": "OK",
+    "id": 21,
+    "plan": "pro"
+  },
+  {
+    "user": "pro@test.com",
+    "module": "campaign_start",
+    "status": "OK",
+    "id": 21,
+    "plan": "pro"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "campaign_create",
+    "status": "OK",
+    "id": 22,
+    "plan": "agency"
+  },
+  {
+    "user": "agency@test.com",
+    "module": "campaign_start",
+    "status": "OK",
+    "id": 22,
+    "plan": "agency"
+  },
+  {
+    "module": "payment_create",
+    "status": "INFO",
+    "detail": "'\"status\"'"
+  },
+  {
+    "module": "manual_deposit",
+    "status": "OK"
+  },
+  {
+    "module": "modules_list",
+    "status": "OK",
+    "total": 77,
+    "active": 77
+  },
+  {
+    "module": "converter_exists",
+    "status": "OK"
+  },
+  {
+    "module": "mass_messaging_exists",
+    "status": "OK"
+  },
+  {
+    "module": "invite_modules_exists",
+    "status": "OK"
+  },
+  {
+    "module": "cloner_exists",
+    "status": "OK"
+  },
+  {
+    "module": "bot_creator_exists",
+    "status": "OK"
   }
 ]

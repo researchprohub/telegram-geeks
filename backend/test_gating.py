@@ -1,8 +1,8 @@
-"""Test plan-tier gating with the new architecture."""
+﻿"""Test plan-tier gating with the new architecture."""
 import asyncio
 import httpx
 
-BASE_URL = "http://localhost:8000/api/v1"
+BASE_URL = "http://localhost:8001/api/v1"
 
 async def main():
     async with httpx.AsyncClient() as client:

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Comprehensive test script for TelegramGeeks Pro platform.
 Creates test accounts for all plan tiers and validates all endpoints.
@@ -10,7 +10,7 @@ New Pricing Structure:
 """
 import subprocess, json, sys, os
 
-BASE = "http://localhost:8000/api/v1"
+BASE = "http://localhost:8001/api/v1"
 RESULTS = []
 
 def post(path, data, token=None):

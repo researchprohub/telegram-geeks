@@ -1,4 +1,4 @@
-"""Debug API response."""
+﻿"""Debug API response."""
 import sys
 sys.path.insert(0, "/app")
 
@@ -8,7 +8,7 @@ import httpx
 async def test_api():
     async with httpx.AsyncClient() as client:
         # Login
-        resp = await client.post("http://localhost:8000/api/v1/auth/login", json={
+        resp = await client.post("http://localhost:8001/api/v1/auth/login", json={
             "email": "test@example.com",
             "password": "Test123456"
         })
@@ -17,7 +17,7 @@ async def test_api():
         
         # Test mass_inspection
         resp = await client.post(
-            "http://localhost:8000/api/v1/modules/mass_inspection/execute",
+            "http://localhost:8001/api/v1/modules/mass_inspection/execute",
             headers=headers,
             json={"operation": "check_all_accounts", "params": {"folder": "Active", "check_type": "all"}}
         )

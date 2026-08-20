@@ -1,8 +1,8 @@
-"""Comprehensive test for all 44 Telegram Expert modules - Final version."""
+﻿"""Comprehensive test for all 44 Telegram Expert modules - Final version."""
 import asyncio
 import httpx
 
-BASE_URL = "http://localhost:8000/api/v1"
+BASE_URL = "http://localhost:8001/api/v1"
 
 async def test_module(client, headers, module_id, operation, params, expected_success=True):
     """Test a single module operation."""

@@ -287,6 +287,11 @@ async def list_modules(category: Optional[str] = None, user: User = Depends(get_
     }
 
 
+@router.get("/status", tags=["Modules"])
+async def get_dispatcher_status(user: User = Depends(get_current_user)):
+    return dispatcher.get_status()
+
+
 @router.get("/{module_id}", tags=["Modules"])
 async def get_module(module_id: str, user: User = Depends(get_current_user)):
     module = next((m for m in MODULE_REGISTRY if m["id"] == module_id), None)
@@ -294,6 +299,25 @@ async def get_module(module_id: str, user: User = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail=f"Module '{module_id}' not found")
     _check_module_access(user, module_id)
     return {**module, "status": "active"}
+
+
+@router.get("/{module_id}/params", tags=["Modules"])
+async def get_module_params(module_id: str, user: User = Depends(get_current_user)):
+    """Return per-operation param defaults + remap hints so UIs can auto-generate forms."""
+    module = next((m for m in MODULE_REGISTRY if m["id"] == module_id), None)
+    if not module:
+        raise HTTPException(status_code=404, detail=f"Module '{module_id}' not found")
+    _check_module_access(user, module_id)
+    from app.services.module_dispatcher import DEFAULT_PARAMS, PARAM_REMAP
+    defaults = DEFAULT_PARAMS.get(module_id, {})
+    remap = PARAM_REMAP.get(module_id, {})
+    operations = {}
+    for op in module.get("operations", []):
+        operations[op] = {
+            "defaults": defaults.get(op, {}),
+            "remap": remap.get(op, {}),
+        }
+    return {"module_id": module_id, "operations": operations}
 
 
 @router.post("/{module_id}/execute", tags=["Modules"])
@@ -307,8 +331,3 @@ async def execute_module(module_id: str, body: ModuleExecuteRequest, user: User 
     logger.info(f"User {user.id} ({user.role}) executing {module_id}.{body.operation}")
     result = await dispatcher.execute(module_id, body.operation, body.params)
     return result
-
-
-@router.get("/status", tags=["Modules"])
-async def get_dispatcher_status(user: User = Depends(get_current_user)):
-    return dispatcher.get_status()

@@ -73,6 +73,8 @@ class AIEngine:
         logger.info(f"Free providers available: {self.FREE_PROVIDERS}")
 
     def _build_fallback_chain(self) -> list[str]:
+        if self.provider == "none":
+            return []  # ponytail: no AI providers
         chain = [self.provider] if self.provider in self.PROVIDERS else []
         for fp in self.FREE_PROVIDERS:
             if fp not in chain:
@@ -371,7 +373,9 @@ class Infrastructure:
 
         effective_provider = ai_provider
         effective_key = openai_api_key or anthropic_api_key or groq_api_key
-        if not effective_key and effective_provider != "ollama":
+        if effective_provider == "none":
+            pass  # ponytail: no AI, desktop-only mode
+        elif not effective_key and effective_provider != "ollama":
             effective_provider = "ollama"
             logger.info(f"No API key for {effective_provider}; falling back to ollama")
 

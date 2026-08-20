@@ -63,6 +63,11 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         if self._should_skip(request):
             return await call_next(request)
 
+        # Bearer-token requests can't be forged cross-origin (the header isn't
+        # auto-attached like cookies), so CSRF only protects cookie-authed calls.
+        if request.headers.get("authorization", "").lower().startswith("bearer "):
+            return await call_next(request)
+
         cookie_token = request.cookies.get(self.COOKIE_NAME)
         header_token = request.headers.get(self.HEADER_NAME)
         if not cookie_token or not header_token:

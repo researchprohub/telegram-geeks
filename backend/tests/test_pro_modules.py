@@ -1,4 +1,4 @@
-import subprocess
+﻿import subprocess
 import json
 import sys
 
@@ -6,7 +6,7 @@ if sys.platform == "win32":
     import io
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://localhost:8001"
 
 # Fresh login after role update
 resp = subprocess.run(

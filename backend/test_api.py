@@ -1,9 +1,9 @@
-"""Test script to register user and test modules via API."""
+﻿"""Test script to register user and test modules via API."""
 import asyncio
 import httpx
 import json
 
-BASE_URL = "http://localhost:8000/api/v1"
+BASE_URL = "http://localhost:8001/api/v1"
 
 async def main():
     async with httpx.AsyncClient() as client:

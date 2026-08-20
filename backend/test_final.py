@@ -1,9 +1,9 @@
-"""Final comprehensive API test for all module types."""
+﻿"""Final comprehensive API test for all module types."""
 import asyncio
 import httpx
 import json
 
-BASE_URL = "http://localhost:8000/api/v1"
+BASE_URL = "http://localhost:8001/api/v1"
 
 async def test_module(client, headers, module_id, operation, params, expected_success=True):
     """Test a single module operation."""

@@ -1,9 +1,9 @@
-"""Comprehensive API test for all module types."""
+﻿"""Comprehensive API test for all module types."""
 import asyncio
 import httpx
 import json
 
-BASE_URL = "http://localhost:8000/api/v1"
+BASE_URL = "http://localhost:8001/api/v1"
 
 async def main():
     async with httpx.AsyncClient() as client:

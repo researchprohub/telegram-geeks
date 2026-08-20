@@ -10,7 +10,6 @@ class Settings(BaseSettings):
     # Database
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/tep"
     sql_alchemy_echo: bool = False
-
     # Redis
     redis_url: str = "redis://localhost:6379/0"
 

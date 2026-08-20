@@ -1,4 +1,4 @@
-"""Debug parameter_generator."""
+﻿"""Debug parameter_generator."""
 import sys
 sys.path.insert(0, "/app")
 
@@ -8,7 +8,7 @@ import httpx
 async def test():
     async with httpx.AsyncClient() as client:
         # Login
-        resp = await client.post("http://localhost:8000/api/v1/auth/login", json={
+        resp = await client.post("http://localhost:8001/api/v1/auth/login", json={
             "email": "test@example.com",
             "password": "Test123456"
         })
@@ -17,7 +17,7 @@ async def test():
         
         # Test parameter_generator
         resp = await client.post(
-            "http://localhost:8000/api/v1/modules/parameter_generator/execute",
+            "http://localhost:8001/api/v1/modules/parameter_generator/execute",
             headers=headers,
             json={"operation": "generate_beginner", "params": {
                 "app_type": "android",

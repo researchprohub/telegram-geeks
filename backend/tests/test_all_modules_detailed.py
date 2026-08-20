@@ -1,10 +1,10 @@
-"""Detailed module execution test."""
+﻿"""Detailed module execution test."""
 import asyncio
 import httpx
 import json
 
 async def main():
-    async with httpx.AsyncClient(base_url="http://localhost:8000") as client:
+    async with httpx.AsyncClient(base_url="http://localhost:8001") as client:
         resp = await client.post("/api/v1/auth/login", json={
             "email": "admin@telegramgeeks.com",
             "password": "Admin@123456"

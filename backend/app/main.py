@@ -58,34 +58,24 @@ async def init_database():
         else:
             logger.info(f"Database has {len(tables)} tables, skipping auto-create (use alembic)")
 
-    # Seed demo and admin users if not exists
+    # Seed demo and admin users — upsert so existing DBs get the desktop credentials
     from sqlalchemy import select
+    seed_users = [
+        ("demo@test.com", "demo123", "Demo User", "pro"),
+        ("admin@test.com", "admin123", "Super Admin", "admin"),
+    ]
     async with async_session_factory() as session:
-        result = await session.execute(select(User).where(User.email.in_(["demo@test.com", "admin@test.com"])))
-        existing_users = {u.email: u for u in result.scalars().all()}
-        
-        if "demo@test.com" not in existing_users:
-            demo = User(
-                email="demo@test.com",
-                hashed_password=hash_password("Demo123456"),
-                full_name="Demo User",
-                role="pro",
-                is_active=True,
-            )
-            session.add(demo)
-            logger.info("Demo user seeded (demo@test.com / Demo123456)")
-            
-        if "admin@test.com" not in existing_users:
-            admin = User(
-                email="admin@test.com",
-                hashed_password=hash_password("Admin@12345678"),
-                full_name="Super Admin",
-                role="admin",
-                is_active=True,
-            )
-            session.add(admin)
-            logger.info("Admin user seeded (admin@test.com / Admin@12345678)")
-            
+        for email, password, full_name, role in seed_users:
+            result = await session.execute(select(User).where(User.email == email))
+            user = result.scalar_one_or_none()
+            if user is None:
+                user = User(email=email, full_name=full_name, role=role, is_active=True)
+                session.add(user)
+            user.hashed_password = hash_password(password)
+            user.full_name = full_name
+            user.role = role
+            user.is_active = True
+            logger.info(f"Seeded {email} / {password}")
         await session.commit()
 
 
@@ -279,10 +269,14 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, global_exception_handler)
 
 # CORS — allow browser requests from frontend
+_cors = {"allow_origins": settings.cors_origins, "allow_credentials": True}
+if settings.environment == "desktop":
+    # Electron SPA origin differs from the API origin (file:// or 127.0.0.1:5173);
+    # auth is Bearer-only (no cookies), so opening CORS is safe.
+    _cors = {"allow_origins": ["*"], "allow_credentials": False}
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
-    allow_credentials=True,
+    **_cors,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-CSRF-Token"],
 )
@@ -348,8 +342,14 @@ async def health_check():
     if hasattr(app.state, 'infrastructure') and app.state.infrastructure:
         infra = app.state.infrastructure
         try:
-            result = await infra.ai_engine.generate("ping", system="respond with OK only", max_tokens=10)
+            import asyncio
+            result = await asyncio.wait_for(
+                infra.ai_engine.generate("ping", system="respond with OK only", max_tokens=10),
+                timeout=5,
+            )
             live_checks["ai_providers"] = bool(result and "OK" in str(result))
+        except asyncio.TimeoutError:
+            live_checks["ai_providers_error"] = "timeout"
         except Exception as e:
             live_checks["ai_providers_error"] = str(e)
         infra_status = infra.status()

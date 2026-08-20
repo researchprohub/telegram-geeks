@@ -1,4 +1,4 @@
-"""Test login and get tokens for test accounts."""
+﻿"""Test login and get tokens for test accounts."""
 import asyncio
 import httpx
 
@@ -8,7 +8,7 @@ async def test_login():
     async with httpx.AsyncClient() as client:
         # Test admin login
         print("Testing Admin Login...")
-        resp = await client.post("http://localhost:8000/api/v1/auth/login", json={
+        resp = await client.post("http://localhost:8001/api/v1/auth/login", json={
             "email": "admin@test.com",
             "password": "Admin@12345678"
         })
@@ -23,7 +23,7 @@ async def test_login():
         
         # Test user login
         print("\nTesting User Login...")
-        resp = await client.post("http://localhost:8000/api/v1/auth/login", json={
+        resp = await client.post("http://localhost:8001/api/v1/auth/login", json={
             "email": "demo@test.com",
             "password": "Demo123456"
         })
@@ -40,7 +40,7 @@ async def test_login():
         if admin_token:
             print("\nTesting Admin Modules Access...")
             headers = {"Authorization": f"Bearer {admin_token}"}
-            resp = await client.get("http://localhost:8000/api/v1/modules", headers=headers)
+            resp = await client.get("http://localhost:8001/api/v1/modules", headers=headers)
             
             if resp.status_code == 200:
                 modules_data = resp.json()
@@ -52,7 +52,7 @@ async def test_login():
         if user_token:
             print("\nTesting User Modules Access...")
             headers = {"Authorization": f"Bearer {user_token}"}
-            resp = await client.get("http://localhost:8000/api/v1/modules", headers=headers)
+            resp = await client.get("http://localhost:8001/api/v1/modules", headers=headers)
             
             if resp.status_code == 200:
                 modules_data = resp.json()
