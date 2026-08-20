@@ -192,9 +192,9 @@ export default function AutoresponderPage() {
         <LogPanel entries={log} />
 
         <CrossLinkFooter links={[
-          { label: "Interceptor", href: "/modules/interceptor" },
-          { label: "Forwarder", href: "/modules/forwarder" },
-          { label: "Mass Messaging", href: "/modules/mass-messaging" },
+          { label: "Interceptor", href: "/dashboard/modules/interceptor" },
+          { label: "Forwarder", href: "/dashboard/modules/forwarder" },
+          { label: "Mass Messaging", href: "/dashboard/modules/mass-messaging" },
         ]} />
 
         <ModuleFooter manualSlug="avtootvetchik" />

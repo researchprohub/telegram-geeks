@@ -131,8 +131,8 @@ export default function ChannelClonerPage() {
         <LogPanel entries={log} />
 
         <CrossLinkFooter links={[
-          { label: "Chat Cloner", href: "/modules/chat-cloner" },
-          { label: "Autoposting V1", href: "/modules/autoposting-v1" },
+          { label: "Chat Cloner", href: "/dashboard/modules/chat-cloner" },
+          { label: "Autoposting V1", href: "/dashboard/modules/autoposting-v1" },
         ]} />
 
         <ModuleFooter />

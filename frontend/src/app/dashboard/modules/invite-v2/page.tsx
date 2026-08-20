@@ -117,7 +117,7 @@ export default function InviteV2Page() {
         </div>
 
         <LogPanel entries={log} />
-        <CrossLinkFooter links={[{ label: "Invite V1", href: "/modules/invite-v1" }, { label: "Invite by ID", href: "/modules/invite-by-id" }]} />
+        <CrossLinkFooter links={[{ label: "Invite V1", href: "/dashboard/modules/invite-v1" }, { label: "Invite by ID", href: "/dashboard/modules/invite-by-id" }]} />
         <ModuleFooter />
       </div>
     </div>

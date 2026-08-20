@@ -71,14 +71,11 @@ export default function TDataUploadPage() {
     files.forEach(file => formData.append("files", file));
 
     try {
-      const response = await fetch("/api/v1/accounts/upload/bulk", {
-        method: "POST",
-        body: formData,
+      const response = await api.post("/accounts/upload/bulk", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      if (!response.ok) throw new Error("Upload failed");
-
-      const data = await response.json();
+      const data = response.data;
       setResult({
         uploaded: data.total_accounts || 0,
         failed: data.failed || 0,

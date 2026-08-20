@@ -172,9 +172,9 @@ export default function MassMessagingPage() {
         <RecurringCTA />
 
         <CrossLinkFooter links={[
-          { label: "Audience Collector", href: "/modules/audience-collector" },
-          { label: "Mass Subscriptions", href: "/modules/mass-subscriptions" },
-          { label: "Invite Module", href: "/modules/invite-v1" },
+          { label: "Audience Collector", href: "/dashboard/modules/audience-collector" },
+          { label: "Mass Subscriptions", href: "/dashboard/modules/mass-subscriptions" },
+          { label: "Invite Module", href: "/dashboard/modules/invite-v1" },
         ]} />
 
         <ModuleFooter manualSlug="mass-messaging" />

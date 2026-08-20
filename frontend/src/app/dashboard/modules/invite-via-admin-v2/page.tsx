@@ -88,7 +88,7 @@ export default function InviteViaAdminV2Page() {
           </button>
         </div>
         <LogPanel entries={log} />
-        <CrossLinkFooter links={[{ label: "Invite V1", href: "/modules/invite-v1" }, { label: "Invite V2", href: "/modules/invite-v2" }]} />
+        <CrossLinkFooter links={[{ label: "Invite V1", href: "/dashboard/modules/invite-v1" }, { label: "Invite V2", href: "/dashboard/modules/invite-v2" }]} />
         <ModuleFooter />
       </div>
     </div>

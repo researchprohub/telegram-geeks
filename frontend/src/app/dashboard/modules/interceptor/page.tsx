@@ -165,8 +165,8 @@ export default function InterceptorPage() {
         <LogPanel entries={log} title="Intercept Log" />
 
         <CrossLinkFooter links={[
-          { label: "Forwarder", href: "/modules/forwarder" },
-          { label: "Channel Comments", href: "/modules/channel-comments" },
+          { label: "Forwarder", href: "/dashboard/modules/forwarder" },
+          { label: "Channel Comments", href: "/dashboard/modules/channel-comments" },
         ]} />
 
         <ModuleFooter />

@@ -174,9 +174,9 @@ export default function ReactionsBoosterPage() {
         <LogPanel entries={log} />
 
         <CrossLinkFooter links={[
-          { label: "Views Booster", href: "/modules/views-booster" },
-          { label: "Mass Subscriptions", href: "/modules/mass-subscriptions" },
-          { label: "Referrals to Bots", href: "/modules/referrals-to-bots" },
+          { label: "Views Booster", href: "/dashboard/modules/views-booster" },
+          { label: "Mass Subscriptions", href: "/dashboard/modules/mass-subscriptions" },
+          { label: "Referrals to Bots", href: "/dashboard/modules/referrals-to-bots" },
         ]} />
 
         <ModuleFooter manualSlug="nakrutka-reaktsiy" />

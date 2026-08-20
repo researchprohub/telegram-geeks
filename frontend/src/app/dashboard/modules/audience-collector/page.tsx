@@ -175,8 +175,8 @@ export default function AudienceCollectorPage() {
         <LogPanel entries={log} />
 
         <CrossLinkFooter links={[
-          { label: "Mass Messaging", href: "/modules/mass-messaging" },
-          { label: "Invite Module", href: "/modules/invite-v1" },
+          { label: "Mass Messaging", href: "/dashboard/modules/mass-messaging" },
+          { label: "Invite Module", href: "/dashboard/modules/invite-v1" },
         ]} />
 
         <ModuleFooter manualSlug="audience-collector" />

@@ -12,6 +12,7 @@ import { ModuleFooter } from "@/components/modules/ModuleFooter";
 
 export default function ImportSessionPage() {
   const router = useRouter();
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [sessionString, setSessionString] = useState("");
   const [proxyString, setProxyString] = useState("");
   const [threadCount, setThreadCount] = useState(2);
@@ -27,6 +28,10 @@ export default function ImportSessionPage() {
   }
 
   const execute = useCallback(async () => {
+    if (!phoneNumber) {
+      setError("Enter phone number");
+      return;
+    }
     if (!sessionString) {
       setError("Enter session string");
       return;
@@ -37,36 +42,23 @@ export default function ImportSessionPage() {
     addLog("Importing account from session string...");
 
     try {
-      const response = await fetch('/api/v1/accounts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phone_number: sessionString,
-          session_string: sessionString,
-          proxy_config: proxyString || null,
-          thread_count: threadCount,
-          min_delay: minDelay,
-          max_delay: maxDelay,
-        }),
+      const response = await api.post('/accounts/', {
+        phone_number: phoneNumber,
+        session_string: sessionString,
+        proxy_config: proxyString ? { url: proxyString } : {},
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Import failed');
-      }
-
-      const data = await response.json();
       addLog('Account imported successfully', 'success');
-      setResult({ success: true, message: 'Account imported successfully', account: data });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Import failed';
+      setResult({ success: true, message: 'Account imported successfully', account: response.data });
+    } catch (error: any) {
+      const message = error.response?.data?.detail || (error instanceof Error ? error.message : 'Import failed');
       setError(message);
       addLog(message, 'error');
       setResult({ success: false, message });
     } finally {
       setExecuting(false);
     }
-  }, [sessionString, proxyString, threadCount, minDelay, maxDelay]);
+  }, [phoneNumber, sessionString, proxyString]);
 
   return (
     <div className="min-h-screen pb-20">
@@ -98,6 +90,20 @@ export default function ImportSessionPage() {
         <div className="bg-card rounded-xl border border-border p-4">
           <h3 className="text-sm font-semibold text-foreground mb-3">Session String Import</h3>
           <div className="space-y-3">
+            <div>
+              <label className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                <Globe className="h-3 w-3" /> Phone Number
+              </label>
+              <input
+                type="text"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="+1234567890"
+                disabled={executing}
+                className="w-full bg-secondary border-0 rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
             <div>
               <label className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
                 <Key className="h-3 w-3" /> Session String
@@ -143,7 +149,7 @@ export default function ImportSessionPage() {
 
           <button
             onClick={execute}
-            disabled={executing || !sessionString}
+            disabled={executing || !phoneNumber || !sessionString}
             className="mt-3 w-full bg-primary text-primary-foreground text-xs font-medium px-4 py-2 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
           >
             {executing ? (

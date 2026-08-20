@@ -102,7 +102,7 @@ export default function ReporterPage() {
           </button>
         </div>
         <LogPanel entries={log} />
-        <CrossLinkFooter links={[{ label: "Audience Collector", href: "/modules/audience-collector" }]} />
+        <CrossLinkFooter links={[{ label: "Audience Collector", href: "/dashboard/modules/audience-collector" }]} />
         <ModuleFooter />
       </div>
     </div>

@@ -178,9 +178,9 @@ export default function StoriesPage() {
         <LogPanel entries={log} />
 
         <CrossLinkFooter links={[
-          { label: "Mass Messaging", href: "/modules/mass-messaging" },
-          { label: "Channel Comments", href: "/modules/channel-comments" },
-          { label: "Views Booster", href: "/modules/views-booster" },
+          { label: "Mass Messaging", href: "/dashboard/modules/mass-messaging" },
+          { label: "Channel Comments", href: "/dashboard/modules/channel-comments" },
+          { label: "Views Booster", href: "/dashboard/modules/views-booster" },
         ]} />
 
         <ModuleFooter manualSlug="stories" />

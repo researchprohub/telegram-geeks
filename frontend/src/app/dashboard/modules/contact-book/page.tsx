@@ -157,9 +157,9 @@ export default function ContactBookPage() {
         <LogPanel entries={log} />
 
         <CrossLinkFooter links={[
-          { label: "Mass Messaging", href: "/modules/mass-messaging" },
-          { label: "Audience Collector", href: "/modules/audience-collector" },
-          { label: "Invite V1", href: "/modules/invite-v1" },
+          { label: "Mass Messaging", href: "/dashboard/modules/mass-messaging" },
+          { label: "Audience Collector", href: "/dashboard/modules/audience-collector" },
+          { label: "Invite V1", href: "/dashboard/modules/invite-v1" },
         ]} />
 
         <ModuleFooter manualSlug="dobavlenie-kontaktov" />

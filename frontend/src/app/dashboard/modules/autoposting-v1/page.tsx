@@ -185,9 +185,9 @@ export default function AutopostingV1Page() {
         <LogPanel entries={log} />
 
         <CrossLinkFooter links={[
-          { label: "Autoposting V2", href: "/modules/autoposting-v2" },
-          { label: "Mass Subscriptions", href: "/modules/mass-subscriptions" },
-          { label: "Forwarder", href: "/modules/forwarder" },
+          { label: "Autoposting V2", href: "/dashboard/modules/autoposting-v2" },
+          { label: "Mass Subscriptions", href: "/dashboard/modules/mass-subscriptions" },
+          { label: "Forwarder", href: "/dashboard/modules/forwarder" },
         ]} />
 
         <ModuleFooter />

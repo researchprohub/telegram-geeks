@@ -8,10 +8,34 @@ from loguru import logger
 class ForwarderService:
     """Route incoming DMs from multiple accounts into a single working group."""
 
-    def __init__(self, client_manager):
+    def __init__(self, client_manager=None):
         self.client_manager = client_manager
         self.routing: dict[str, dict] = {}  # account_id -> {working_group_id, chat_log: {chat_id: msg_id}}
         self.running: dict[str, bool] = {}
+
+    async def forward_messages(
+        self, account_id: str, from_chat, to_chat, message_ids: list[int]
+    ) -> dict:
+        """Forward specific messages from one chat to another via Telethon."""
+        client = await self.client_manager.get_client(account_id) if self.client_manager else None
+        if not client:
+            return {"status": "error", "message": f"Account '{account_id}' not connected"}
+        from_entity = await client.get_entity(from_chat)
+        to_entity = await client.get_entity(to_chat)
+        result = await client.forward_messages(to_entity, message_ids, from_peer=from_entity)
+        return {"status": "success", "forwarded": len(result) if hasattr(result, "__len__") else 1}
+
+    async def auto_forward(self, account_id: str, from_chat, to_chat, limit: int = 10) -> dict:
+        """Forward the most recent messages from one chat to another via Telethon."""
+        client = await self.client_manager.get_client(account_id) if self.client_manager else None
+        if not client:
+            return {"status": "error", "message": f"Account '{account_id}' not connected"}
+        from_entity = await client.get_entity(from_chat)
+        to_entity = await client.get_entity(to_chat)
+        messages = await client.get_messages(from_entity, limit=limit)
+        msg_ids = [m.id for m in messages if m.id]
+        result = await client.forward_messages(to_entity, msg_ids, from_peer=from_entity)
+        return {"status": "success", "forwarded": len(result) if hasattr(result, "__len__") else 1}
 
     def start_forwarding(self, account_ids: list[str], working_group_id: int) -> dict:
         """Start forwarding messages from accounts to a working group."""

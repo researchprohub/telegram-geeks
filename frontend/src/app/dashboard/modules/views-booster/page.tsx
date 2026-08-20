@@ -163,8 +163,8 @@ export default function ViewsBoosterPage() {
         <LogPanel entries={log} />
 
         <CrossLinkFooter links={[
-          { label: "Mass Subscriptions", href: "/modules/mass-subscriptions" },
-          { label: "Channel Comments", href: "/modules/channel-comments" },
+          { label: "Mass Subscriptions", href: "/dashboard/modules/mass-subscriptions" },
+          { label: "Channel Comments", href: "/dashboard/modules/channel-comments" },
         ]} />
 
         <ModuleFooter />

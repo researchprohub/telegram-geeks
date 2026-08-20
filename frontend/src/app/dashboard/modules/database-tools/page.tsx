@@ -133,7 +133,7 @@ export default function DatabaseToolsPage() {
         </div>
 
         <LogPanel entries={log} />
-        <CrossLinkFooter links={[{ label: "Mass Inspection", href: "/modules/mass-inspection" }, { label: "Session Duplicator", href: "/modules/session-duplicator" }]} />
+        <CrossLinkFooter links={[{ label: "Mass Inspection", href: "/dashboard/modules/mass-inspection" }, { label: "Session Duplicator", href: "/dashboard/modules/session-duplicator" }]} />
         <ModuleFooter />
       </div>
     </div>

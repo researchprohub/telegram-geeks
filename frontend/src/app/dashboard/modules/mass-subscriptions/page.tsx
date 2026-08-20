@@ -135,9 +135,9 @@ export default function MassSubscriptionsPage() {
         <LogPanel entries={log} />
 
         <CrossLinkFooter links={[
-          { label: "Mass Messaging", href: "/modules/mass-messaging" },
-          { label: "Autoposting", href: "/modules/autoposting-v1" },
-          { label: "Views Booster", href: "/modules/views-booster" },
+          { label: "Mass Messaging", href: "/dashboard/modules/mass-messaging" },
+          { label: "Autoposting", href: "/dashboard/modules/autoposting-v1" },
+          { label: "Views Booster", href: "/dashboard/modules/views-booster" },
         ]} />
 
         <ModuleFooter manualSlug="mass-subscriptions" />

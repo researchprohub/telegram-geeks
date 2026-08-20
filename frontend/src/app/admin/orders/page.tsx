@@ -1,36 +1,69 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { CheckCircle, XCircle, Eye, Loader2 } from "lucide-react";
+import { CheckCircle, Eye, Loader2, AlertCircle } from "lucide-react";
+import api from "@/lib/api";
 
 export default function AdminOrdersPage() {
+  const [orders, setOrders] = useState<any[]>([]);
   const [statusFilter, setStatusFilter] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [selectedOrderId, setSelectedOrderId] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [confirming, setConfirming] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const orders = [
-    { id: "ORD-001", user: "john@example.com", amount: "$149.00", gateway: "NowPayments", crypto: "USDT (TRC20)", status: "completed", date: "2026-07-15 14:30", tx: "0xabc123..." },
-    { id: "ORD-002", user: "sarah@example.com", amount: "$49.00", gateway: "Oxapay", crypto: "BTC", status: "pending", date: "2026-07-15 12:15", tx: "" },
-    { id: "ORD-003", user: "lisa@example.com", amount: "$399.00", gateway: "NowPayments", crypto: "ETH", status: "completed", date: "2026-07-14 09:45", tx: "0xdef456..." },
-    { id: "ORD-004", user: "alex@example.com", amount: "$149.00", gateway: "Oxapay", crypto: "USDT (ERC20)", status: "expired", date: "2026-07-13 16:00", tx: "" },
-    { id: "ORD-005", user: "mike@example.com", amount: "$49.00", gateway: "NowPayments", crypto: "LTC", status: "pending", date: "2026-07-15 18:20", tx: "" },
-  ];
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  async function fetchOrders() {
+    try {
+      const res = await api.get("/admin/orders");
+      setOrders(res.data.orders || []);
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "Failed to load orders");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const filtered = statusFilter ? orders.filter(o => o.status === statusFilter) : orders;
 
-  const handleConfirm = () => {
+  const statusColor = (status: string) =>
+    status === "completed" || status === "confirmed"
+      ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
+      : status === "pending"
+        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300"
+        : "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300";
+
+  const handleConfirm = async () => {
+    if (!selectedOrder) return;
     setConfirming(true);
-    setTimeout(() => {
-      setConfirming(false);
+    try {
+      await api.put(`/admin/orders/${selectedOrder.order_id}/status`, { status: "confirmed" });
+      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, status: "confirmed" } : o));
       setShowConfirmModal(false);
-    }, 1500);
+      setSelectedOrder(null);
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "Failed to confirm order");
+    } finally {
+      setConfirming(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -39,12 +72,20 @@ export default function AdminOrdersPage() {
         <p className="text-sm text-muted-foreground">Track crypto payments and confirm pending orders.</p>
       </div>
 
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          {error}
+          <button onClick={() => setError("")} className="ml-auto">✕</button>
+        </div>
+      )}
+
       {/* Summary */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="border-border shadow-sm"><CardContent className="pt-6"><div className="text-3xl font-bold text-yellow-500">{orders.filter(o => o.status === "pending").length}</div><p className="mt-1 text-sm text-muted-foreground">Pending</p></CardContent></Card>
-        <Card className="border-border shadow-sm"><CardContent className="pt-6"><div className="text-3xl font-bold text-green-500">{orders.filter(o => o.status === "completed").length}</div><p className="mt-1 text-sm text-muted-foreground">Completed</p></CardContent></Card>
-        <Card className="border-border shadow-sm"><CardContent className="pt-6"><div className="text-3xl font-bold text-red-500">{orders.filter(o => o.status === "expired").length}</div><p className="mt-1 text-sm text-muted-foreground">Expired</p></CardContent></Card>
-        <Card className="border-border shadow-sm"><CardContent className="pt-6"><div className="text-3xl font-bold">${orders.reduce((s, o) => s + parseFloat(o.amount.replace("$", "")), 0).toFixed(2)}</div><p className="mt-1 text-sm text-muted-foreground">Total Revenue</p></CardContent></Card>
+        <Card className="border-border shadow-sm"><CardContent className="pt-6"><div className="text-3xl font-bold text-green-500">{orders.filter(o => o.status === "completed" || o.status === "confirmed").length}</div><p className="mt-1 text-sm text-muted-foreground">Completed</p></CardContent></Card>
+        <Card className="border-border shadow-sm"><CardContent className="pt-6"><div className="text-3xl font-bold text-red-500">{orders.filter(o => o.status === "expired" || o.status === "failed").length}</div><p className="mt-1 text-sm text-muted-foreground">Expired / Failed</p></CardContent></Card>
+        <Card className="border-border shadow-sm"><CardContent className="pt-6"><div className="text-3xl font-bold">${orders.filter(o => o.status === "completed" || o.status === "confirmed").reduce((s, o) => s + (o.amount || 0), 0).toFixed(2)}</div><p className="mt-1 text-sm text-muted-foreground">Total Revenue</p></CardContent></Card>
       </div>
 
       {/* Orders Table */}
@@ -59,65 +100,68 @@ export default function AdminOrdersPage() {
             <option value="">All Status</option>
             <option value="pending">Pending</option>
             <option value="completed">Completed</option>
+            <option value="confirmed">Confirmed</option>
             <option value="expired">Expired</option>
             <option value="failed">Failed</option>
           </select>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Order ID</TableHead>
-                <TableHead>User</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Gateway</TableHead>
-                <TableHead>Crypto</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>TX Hash</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map(o => (
-                <TableRow key={o.id}>
-                  <TableCell className="font-mono text-sm text-foreground">{o.id}</TableCell>
-                  <TableCell className="text-foreground">{o.user}</TableCell>
-                  <TableCell className="font-medium text-foreground">{o.amount}</TableCell>
-                  <TableCell><Badge variant="outline">{o.gateway}</Badge></TableCell>
-                  <TableCell className="text-sm text-foreground">{o.crypto}</TableCell>
-                  <TableCell>
-                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                      o.status === "completed" ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300" :
-                      o.status === "pending" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300" :
-                      "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300"
-                    }`}>
-                      {o.status}
-                    </span>
-                  </TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">{o.tx || "—"}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{o.date}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
-                      {o.status === "pending" && (
-                        <Button variant="ghost" size="sm" onClick={() => { setSelectedOrderId(o.id); setShowConfirmModal(true); }}>
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
+          {filtered.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">No orders found.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Order ID</TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Plan</TableHead>
+                  <TableHead>Gateway</TableHead>
+                  <TableHead>Crypto</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>TX Hash</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filtered.map(o => (
+                  <TableRow key={o.id}>
+                    <TableCell className="font-mono text-sm text-foreground">{o.order_id}</TableCell>
+                    <TableCell className="text-foreground">#{o.user_id}</TableCell>
+                    <TableCell className="font-medium text-foreground">${Number(o.amount || 0).toFixed(2)} {o.currency}</TableCell>
+                    <TableCell className="text-sm text-foreground">{o.plan_tier || "—"}</TableCell>
+                    <TableCell><Badge variant="outline">{o.gateway || "—"}</Badge></TableCell>
+                    <TableCell className="text-sm text-foreground">{o.crypto_currency || "—"}</TableCell>
+                    <TableCell>
+                      <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${statusColor(o.status)}`}>
+                        {o.status}
+                      </span>
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">{o.tx_hash ? `${String(o.tx_hash).slice(0, 18)}…` : "—"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{o.created_at ? new Date(o.created_at).toLocaleString() : "—"}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
+                        {o.status === "pending" && (
+                          <Button variant="ghost" size="sm" onClick={() => { setSelectedOrder(o); setShowConfirmModal(true); }}>
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
       {/* Confirm Modal */}
       <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Confirm Order {selectedOrderId}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Confirm Order {selectedOrder?.order_id}</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">Are you sure this payment has been received? This will credit the user's account.</p>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setShowConfirmModal(false)}>Cancel</Button>

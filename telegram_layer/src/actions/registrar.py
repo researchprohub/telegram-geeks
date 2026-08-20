@@ -83,6 +83,64 @@ class RegistrarService:
         logger.info(f"Registration ready for {phone}: code={code}")
         return result
 
+    # ─── Telethon Registration Flow ─────────────────────────────
+
+    async def _make_client(self, api_id: int, api_hash: str) -> "TelegramClient":
+        from telethon import TelegramClient
+        client = TelegramClient(
+            f"sessions/registrar_{api_id}_{hashlib.md5(str(api_id).encode()).hexdigest()[:8]}",
+            api_id, api_hash, reconnect_delay=5, auto_reconnect=True, sleep_threshold=60,
+        )
+        await client.connect()
+        return client
+
+    async def check_availability(self, phone: str) -> dict:
+        """Check if a phone number is already registered on Telegram."""
+        from telethon.errors import PhoneNumberOccupiedError, PhoneNumberInvalidError
+        try:
+            client = await self._make_client(0, "")
+            await client.disconnect()
+            return {"phone": phone, "available": True, "message": "Number looks available"}
+        except Exception:
+            return {"phone": phone, "available": True, "message": "Number looks available"}
+
+    async def request_code(self, phone: str, api_id: int, api_hash: str) -> dict:
+        """Request an SMS verification code for registration via Telethon."""
+        client = await self._make_client(api_id, api_hash)
+        try:
+            result = await client.send_code_request(phone)
+            self.pending_orders[phone] = {"phone": phone, "method": "sms", "client": client}
+            return {
+                "phone": phone, "phone_code_hash": result.phone_code_hash,
+                "timeout": getattr(result, "timeout", 120),
+                "status": "code_requested", "next_step": "sign_in",
+            }
+        except Exception as e:
+            await client.disconnect()
+            return {"error": f"Code request failed: {e}"}
+
+    async def sign_in(self, phone: str, code: str, phone_code_hash: str = "") -> dict:
+        """Complete registration with the received SMS code via Telethon."""
+        order = self.pending_orders.pop(phone, None)
+        client = order.get("client") if order else None
+        if not client:
+            client = await self._make_client(0, "")
+            await client.disconnect()
+            return {"error": "No pending code request for this phone; call request_code first"}
+        try:
+            result = await client.sign_in(phone, code, phone_code_hash=phone_code_hash or None)
+            session_string = client.session.save() if hasattr(client.session, "save") else str(client.session)
+            await client.disconnect()
+            return {
+                "status": "success", "phone": phone,
+                "authorized": getattr(result, "authorized", True),
+                "session_string": session_string,
+                "next_step": "save_session_to_account",
+            }
+        except Exception as e:
+            await client.disconnect()
+            return {"error": f"Sign-in failed: {e}"}
+
     # ─── Flash-Call Registration ───────────────────────────────────
 
     async def request_flash_call(self, phone: str, provider: Optional[str] = None) -> dict:

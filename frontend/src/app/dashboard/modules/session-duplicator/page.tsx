@@ -93,7 +93,7 @@ export default function SessionDuplicatorPage() {
           </button>
         </div>
         <LogPanel entries={log} />
-        <CrossLinkFooter links={[{ label: "Manual Registration", href: "/modules/manual-registration" }, { label: "Universal Registrar", href: "/modules/universal-registrar" }]} />
+        <CrossLinkFooter links={[{ label: "Manual Registration", href: "/dashboard/modules/manual-registration" }, { label: "Universal Registrar", href: "/dashboard/modules/universal-registrar" }]} />
         <ModuleFooter />
       </div>
     </div>

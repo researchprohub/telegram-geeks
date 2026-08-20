@@ -268,6 +268,20 @@ class ViewsBoostService:
             "posts_viewed": posts_viewed,
         }
 
+    async def boost_post_views(self, url: str, count: int = 100) -> Dict:
+        """Boost views on a single post URL (dispatcher-compatible single-post entry)."""
+        account_phones = []
+        clients = await self.client_manager.get_all_clients() if self.client_manager else {}
+        if clients:
+            account_phones = list(clients.keys())[:1]
+        result = await self.boost_direct_views(
+            account_phones=account_phones,
+            post_urls=[url],
+            views_per_post=count,
+        )
+        result["post_url"] = url
+        return result
+
     def _extract_channel_id(self, url: str) -> Optional[int]:
         """Extract channel ID from URL."""
         try:

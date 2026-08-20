@@ -3,12 +3,13 @@ const nextConfig = {
   output: 'standalone',
   skipTrailingSlashRedirect: true,
   async rewrites() {
+    const backend = process.env.BACKEND_URL || 'http://127.0.0.1:8002';
     return [
       {
         source: '/api/:path*',
-        destination: 'http://127.0.0.1:8002/api/v1/:path*',
+        destination: `${backend}/api/v1/:path*`,
       },
-      { source: '/static/:path*', destination: 'http://127.0.0.1:8002/static/:path*' },
+      { source: '/static/:path*', destination: `${backend}/static/:path*` },
     ];
   },
   async headers() {

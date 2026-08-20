@@ -146,8 +146,8 @@ export default function ChannelCommentsPage() {
         <LogPanel entries={log} />
 
         <CrossLinkFooter links={[
-          { label: "Views Booster", href: "/modules/views-booster" },
-          { label: "Interceptor", href: "/modules/interceptor" },
+          { label: "Views Booster", href: "/dashboard/modules/views-booster" },
+          { label: "Interceptor", href: "/dashboard/modules/interceptor" },
         ]} />
 
         <ModuleFooter />

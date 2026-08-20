@@ -152,8 +152,8 @@ export default function ForwarderPage() {
         <LogPanel entries={log} />
 
         <CrossLinkFooter links={[
-          { label: "Interceptor", href: "/modules/interceptor" },
-          { label: "Autoposting V1", href: "/modules/autoposting-v1" },
+          { label: "Interceptor", href: "/dashboard/modules/interceptor" },
+          { label: "Autoposting V1", href: "/dashboard/modules/autoposting-v1" },
         ]} />
 
         <ModuleFooter />

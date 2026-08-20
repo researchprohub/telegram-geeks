@@ -135,8 +135,8 @@ export default function ChatClonerPage() {
         <LogPanel entries={log} />
 
         <CrossLinkFooter links={[
-          { label: "Channel Cloner", href: "/modules/channel-cloner" },
-          { label: "Forwarder", href: "/modules/forwarder" },
+          { label: "Channel Cloner", href: "/dashboard/modules/channel-cloner" },
+          { label: "Forwarder", href: "/dashboard/modules/forwarder" },
         ]} />
 
         <ModuleFooter />

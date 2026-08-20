@@ -1,0 +1,2 @@
+{'stdout_is_none': False, 'stderr_is_none': False, 'stdout_type': 'TextIOWrapper', 'stderr_type': 'TextIOWrapper'}
+write_ok

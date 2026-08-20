@@ -178,7 +178,7 @@ export default function UniversalRegistrarPage() {
         </div>
 
         <LogPanel entries={log} />
-        <CrossLinkFooter links={[{ label: "Manual Registration", href: "/modules/manual-registration" }, { label: "Session Duplicator", href: "/modules/session-duplicator" }]} />
+        <CrossLinkFooter links={[{ label: "Manual Registration", href: "/dashboard/modules/manual-registration" }, { label: "Session Duplicator", href: "/dashboard/modules/session-duplicator" }]} />
         <ModuleFooter />
       </div>
     </div>
