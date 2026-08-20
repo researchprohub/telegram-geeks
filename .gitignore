@@ -34,6 +34,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Electron
+desktop/release/
+desktop/src-tauri/target/
+
 # IDE
 .vscode/
 .idea/
@@ -73,7 +77,34 @@ scripts/scratch/
 *.env
 admin_login.json
 cookies.txt
+cookies2.txt
+*cookies*.txt
 register.json
 secrets/
 ACCOUNTS.md
 TEST_CREDENTIALS.md
+
+# Dev scratch — live tokens, one-off queries, debris
+fresh_token.json
+new_token.json
+token2.txt
+token_response.json
+test_login.json
+test_results.json
+test_results_final.json
+final_test_results.json
+data/test_account.json
+check_pw.py
+reset_admin.py
+reset_passwords.py
+set_admin_password.py
+db_query.sh
+list_dbs.sql
+update_pro.sql
+update_role.sql
+upload_*.jpg
+*.db
+$null
+-p/
+mkdir/
+/converted/
