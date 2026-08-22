@@ -9,12 +9,31 @@ from app.models import Partner
 from app.db.session import get_db
 from app.api.v1.endpoints.admin import require_admin
 
+from app.data.default_partners import DEFAULT_PARTNERS
+
 router = APIRouter(tags=["Partners"])
+
+
+async def _ensure_seeded(db: AsyncSession):
+    r = await db.execute(select(Partner))
+    existing = r.scalars().all()
+    if not existing:
+        for item in DEFAULT_PARTNERS:
+            p = Partner(
+                name=item["name"],
+                img=item["img"],
+                href=item.get("href", ""),
+                category=item.get("category", "proxies"),
+                sort_order=item.get("sort_order", 0),
+            )
+            db.add(p)
+        await db.commit()
 
 
 @router.get("/partners", response_model=list[PartnerOut])
 async def list_partners(db: AsyncSession = Depends(get_db)):
     """Public list of partners for the marketing page."""
+    await _ensure_seeded(db)
     r = await db.execute(select(Partner).order_by(Partner.sort_order, Partner.id))
     return r.scalars().all()
 
@@ -24,8 +43,36 @@ async def admin_list_partners(
     _admin: object = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
+    await _ensure_seeded(db)
     r = await db.execute(select(Partner).order_by(Partner.sort_order, Partner.id))
     return r.scalars().all()
+
+
+@router.post("/admin/partners/seed", response_model=list[PartnerOut])
+async def seed_default_partners(
+    _admin: object = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Seed or restore the 124 default verified partners."""
+    r = await db.execute(select(Partner))
+    existing = r.scalars().all()
+    for p in existing:
+        await db.delete(p)
+    await db.flush()
+
+    for item in DEFAULT_PARTNERS:
+        p = Partner(
+            name=item["name"],
+            img=item["img"],
+            href=item.get("href", ""),
+            category=item.get("category", "proxies"),
+            sort_order=item.get("sort_order", 0),
+        )
+        db.add(p)
+    await db.commit()
+
+    res = await db.execute(select(Partner).order_by(Partner.sort_order, Partner.id))
+    return res.scalars().all()
 
 
 @router.post("/admin/partners", response_model=PartnerOut, status_code=201)

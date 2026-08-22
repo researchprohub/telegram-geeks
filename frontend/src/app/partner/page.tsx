@@ -1,34 +1,10 @@
 import Link from "next/link";
 import { Navbar } from "@/components/marketing/Navbar";
 import { Footer } from "@/components/marketing/Footer";
-import {
-  Handshake, Users, ArrowRight, Globe, Smartphone,
-  Monitor, MessageCircle, ExternalLink, Filter
-} from "lucide-react";
+import { Handshake, Users, ArrowRight } from "lucide-react";
 import { partnersApi } from "@/lib/api";
-
-interface Partner {
-  name: string;
-  img?: string;
-  href: string;
-  category: "proxies" | "browsers" | "sms";
-  description?: string;
-}
-
-const DEFAULT_PARTNERS: Partner[] = [
-  { name: "5SIM.net", href: "https://5sim.net", category: "sms", description: "Global virtual phone numbers for instant SMS verification." },
-  { name: "SMS-Activate", href: "https://sms-activate.org", category: "sms", description: "Tier-1 virtual numbers in 150+ countries." },
-  { name: "Grizzly SMS", href: "https://grizzlysms.com", category: "sms", description: "High delivery rates for Telegram registrations." },
-  { name: "SMSPool", href: "https://smspool.net", category: "sms", description: "Fast automated SMS code acquisition API." },
-  { name: "Proxy-Seller", href: "https://proxy-seller.com", category: "proxies", description: "Dedicated IPv4/IPv6 & Mobile 4G/5G proxy rotation." },
-  { name: "MobileProxy.space", href: "https://mobileproxy.space", category: "proxies", description: "High-trust mobile proxies with remote reboot URLs." },
-  { name: "Bright Data", href: "https://brightdata.com", category: "proxies", description: "Residential & ISP proxy network for web scraping." },
-  { name: "Dolphin{anty}", href: "https://dolphin-anty.com", category: "browsers", description: "Anti-detect multi-account browser." },
-  { name: "AdsPower", href: "https://adspower.com", category: "browsers", description: "Multi-profile fingerprint management platform." },
-  { name: "Octo Browser", href: "https://octobrowser.net", category: "browsers", description: "Universal anti-detect browser for teams." },
-  { name: "Sphere.Chat", href: "https://sphere.chat", category: "browsers", description: "Encrypted messenger & community for 5,000+ marketers." },
-  { name: "BLB.team", href: "https://blb.team", category: "browsers", description: "Telegram automation community and knowledge base." },
-];
+import { DEFAULT_PARTNERS, Partner } from "@/data/default-partners";
+import { PartnerGridInteractive } from "@/components/marketing/PartnerGridInteractive";
 
 async function fetchPartners(): Promise<Partner[]> {
   try {
@@ -40,15 +16,9 @@ async function fetchPartners(): Promise<Partner[]> {
 
 export const dynamic = "force-dynamic";
 
-const categories = [
-  { id: "all", label: "All", icon: Filter },
-  { id: "proxies", label: "Proxies", icon: Globe },
-  { id: "browsers", label: "Browsers", icon: Monitor },
-  { id: "sms", label: "SMS services", icon: Smartphone },
-] as const;
-
 export default async function PartnerPage() {
   const partners = await fetchPartners();
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
@@ -75,8 +45,8 @@ export default async function PartnerPage() {
           </div>
         </section>
 
-        {/* ── Partner Grid ── */}
-        <PartnerGrid partners={partners} />
+        {/* ── Interactive Partner Grid with Filters & Search (124 Partners) ── */}
+        <PartnerGridInteractive initialPartners={partners} locale="en" />
 
         {/* ── CTA ── */}
         <section className="py-16 lg:py-20 border-t border-border relative overflow-hidden">
@@ -124,44 +94,5 @@ export default async function PartnerPage() {
       </main>
       <Footer />
     </div>
-  );
-}
-
-function PartnerGrid({ partners }: { partners: Partner[] }) {
-  return (
-    <section className="py-8 lg:py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {partners.map((p) => (
-            <a
-              key={p.name}
-              href={p.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group relative rounded-xl border border-white/[0.08] bg-[#07090a] p-5 flex flex-col justify-between hover:border-[#2ffcd4]/40 hover:bg-white/[0.02] transition-all shadow-sm"
-            >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-sm text-white group-hover:text-[#2ffcd4] transition-colors">{p.name}</span>
-                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-white/[0.06] text-white/50 border border-white/[0.06]">
-                    {p.category}
-                  </span>
-                </div>
-                {p.description && (
-                  <p className="text-xs text-white/60 leading-relaxed line-clamp-2">
-                    {p.description}
-                  </p>
-                )}
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs text-[#2ffcd4] font-medium">
-                <span>Visit Service</span>
-                <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-              </div>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
   );
 }

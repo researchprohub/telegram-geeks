@@ -79,6 +79,23 @@ async def init_database():
             logger.info(f"Seeded {email} / {password}")
         await session.commit()
 
+        # Seed partners if empty
+        from app.models import Partner
+        from app.data.default_partners import DEFAULT_PARTNERS
+        result_partners = await session.execute(select(Partner))
+        existing_partners = result_partners.scalars().all()
+        if not existing_partners:
+            for item in DEFAULT_PARTNERS:
+                session.add(Partner(
+                    name=item["name"],
+                    img=item["img"],
+                    href=item.get("href", ""),
+                    category=item.get("category", "proxies"),
+                    sort_order=item.get("sort_order", 0),
+                ))
+            await session.commit()
+            logger.info(f"Seeded {len(DEFAULT_PARTNERS)} default partners into database.")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

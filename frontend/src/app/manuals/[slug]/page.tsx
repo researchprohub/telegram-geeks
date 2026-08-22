@@ -4,6 +4,7 @@ import { Navbar } from "@/components/marketing/Navbar";
 import { Footer } from "@/components/marketing/Footer";
 import { manualContent } from "@/data/manuals-content";
 import { ManualReader } from "@/components/manuals/ManualReader";
+import { ManualSystemPreview } from "@/components/manuals/ManualSystemPreview";
 import { ArrowLeft, BookOpen } from "lucide-react";
 
 function addHeadingIds(html: string): string {
@@ -35,8 +36,6 @@ export default async function ManualPage({ params }: { params: Promise<{ slug: s
   const content = manualContent[slug];
   if (!content) redirect("/manuals");
 
-  const img = (path: string) => path;
-
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
@@ -64,7 +63,12 @@ export default async function ManualPage({ params }: { params: Promise<{ slug: s
           </div>
         </section>
 
-
+        {/* ── Visual System Interface & Screenshots (Web & Desktop App) ── */}
+        <section className="pb-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <ManualSystemPreview slug={slug} title={content.title} />
+          </div>
+        </section>
 
         {/* ── Article ── */}
         <section className="pb-16 lg:pb-20">

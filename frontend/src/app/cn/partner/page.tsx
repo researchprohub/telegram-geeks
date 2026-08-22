@@ -1,36 +1,20 @@
 import Link from "next/link";
 import { Navbar } from "@/components/marketing/Navbar";
 import { Footer } from "@/components/marketing/Footer";
-import {
-  Handshake, Users, ArrowRight, Globe, Smartphone,
-  Monitor, MessageCircle, ExternalLink, Filter
-} from "lucide-react";
+import { Handshake, Users, ArrowRight } from "lucide-react";
 import { partnersApi } from "@/lib/api";
-
-interface Partner {
-  name: string;
-  img: string;
-  href: string;
-  category: "proxies" | "browsers" | "sms";
-}
+import { DEFAULT_PARTNERS, Partner } from "@/data/default-partners";
+import { PartnerGridInteractive } from "@/components/marketing/PartnerGridInteractive";
 
 async function fetchPartners(): Promise<Partner[]> {
   try {
     const res = await partnersApi.list();
-    return res.data;
-  } catch {
-    return [];
-  }
+    if (res.data && res.data.length > 0) return res.data;
+  } catch {}
+  return DEFAULT_PARTNERS;
 }
 
 export const dynamic = "force-dynamic";
-
-const categories = [
-  { id: "all", label: "全部", icon: Filter },
-  { id: "proxies", label: "代理", icon: Globe },
-  { id: "browsers", label: "浏览器", icon: Monitor },
-  { id: "sms", label: "短信服务", icon: Smartphone },
-] as const;
 
 export default async function PartnerPage() {
   const partners = await fetchPartners();
@@ -60,8 +44,8 @@ export default async function PartnerPage() {
           </div>
         </section>
 
-        {/* ── Partner Grid ── */}
-        <PartnerGrid partners={partners} />
+        {/* ── Interactive Partner Grid with Filters & Search (124 Partners) ── */}
+        <PartnerGridInteractive initialPartners={partners} locale="cn" />
 
         {/* ── CTA ── */}
         <section className="py-16 lg:py-20 border-t border-border relative overflow-hidden">
@@ -72,13 +56,13 @@ export default async function PartnerPage() {
                 <Users className="w-7 h-7 text-primary" />
               </div>
               <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-4">
-                有兴趣合作吗？
+                有意开展合作？
               </h2>
               <p className="text-muted-foreground mb-8">
-                留下您的联系方式，我们将与您取得联系
+                请留下您的联系方式，我们将尽快与您取得联系
               </p>
               <Link
-                href="/cn/contacts"
+                href="/contacts"
                 className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
               >
                 成为合作伙伴 <ArrowRight className="w-4 h-4" />
@@ -92,13 +76,13 @@ export default async function PartnerPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-4">
-                助力频道快速增长的专业软件
+                专业软件助力频道快速增长
               </h2>
               <p className="text-muted-foreground mb-8">
-                加入成千上万信赖 TelegramGeeks Pro 推广方案的专业人士
+                加入成千上万信赖 TelegramGeeks Pro 进行推广的专业人士队伍
               </p>
               <Link
-                href="/cn/#price"
+                href="/#price"
                 className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
               >
                 购买许可证 <ArrowRight className="w-4 h-4" />
@@ -109,52 +93,5 @@ export default async function PartnerPage() {
       </main>
       <Footer locale="cn" />
     </div>
-  );
-}
-
-function PartnerGrid({ partners }: { partners: Partner[] }) {
-  return (
-    <section className="py-8 lg:py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-          {partners.map((p) =>
-            p.href ? (
-              <a
-                key={p.name}
-                href={p.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative rounded-xl border border-border bg-muted p-4 flex items-center justify-center aspect-[5/3] hover:border-primary/20 hover:bg-primary/5 transition-all overflow-hidden"
-              >
-                <img
-                  src={p.img}
-                  alt={p.name}
-                  className="max-w-full max-h-full object-contain opacity-60 group-hover:opacity-100 transition-opacity"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-background/60">
-                  <div className="flex items-center gap-1.5 text-xs text-primary font-medium">
-                    <ExternalLink className="w-3 h-3" />
-                    访问
-                  </div>
-                </div>
-              </a>
-            ) : (
-              <div
-                key={p.name}
-                className="relative rounded-xl border border-border bg-muted p-4 flex items-center justify-center aspect-[5/3] opacity-60 overflow-hidden"
-              >
-                <img
-                  src={p.img}
-                  alt={p.name}
-                  className="max-w-full max-h-full object-contain"
-                  loading="lazy"
-                />
-              </div>
-            )
-          )}
-        </div>
-      </div>
-    </section>
   );
 }

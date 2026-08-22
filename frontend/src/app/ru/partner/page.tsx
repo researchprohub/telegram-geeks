@@ -1,36 +1,20 @@
 import Link from "next/link";
 import { Navbar } from "@/components/marketing/Navbar";
 import { Footer } from "@/components/marketing/Footer";
-import {
-  Handshake, Users, ArrowRight, Globe, Smartphone,
-  Monitor, MessageCircle, ExternalLink, Filter
-} from "lucide-react";
+import { Handshake, Users, ArrowRight } from "lucide-react";
 import { partnersApi } from "@/lib/api";
-
-interface Partner {
-  name: string;
-  img: string;
-  href: string;
-  category: "proxies" | "browsers" | "sms";
-}
+import { DEFAULT_PARTNERS, Partner } from "@/data/default-partners";
+import { PartnerGridInteractive } from "@/components/marketing/PartnerGridInteractive";
 
 async function fetchPartners(): Promise<Partner[]> {
   try {
     const res = await partnersApi.list();
-    return res.data;
-  } catch {
-    return [];
-  }
+    if (res.data && res.data.length > 0) return res.data;
+  } catch {}
+  return DEFAULT_PARTNERS;
 }
 
 export const dynamic = "force-dynamic";
-
-const categories = [
-  { id: "all", label: "Все", icon: Filter },
-  { id: "proxies", label: "Прокси", icon: Globe },
-  { id: "browsers", label: "Браузеры", icon: Monitor },
-  { id: "sms", label: "SMS-сервисы", icon: Smartphone },
-] as const;
 
 export default async function PartnerPage() {
   const partners = await fetchPartners();
@@ -60,8 +44,8 @@ export default async function PartnerPage() {
           </div>
         </section>
 
-        {/* ── Partner Grid ── */}
-        <PartnerGrid partners={partners} />
+        {/* ── Interactive Partner Grid with Filters & Search (124 Partners) ── */}
+        <PartnerGridInteractive initialPartners={partners} locale="ru" />
 
         {/* ── CTA ── */}
         <section className="py-16 lg:py-20 border-t border-border relative overflow-hidden">
@@ -109,52 +93,5 @@ export default async function PartnerPage() {
       </main>
       <Footer locale="ru" />
     </div>
-  );
-}
-
-function PartnerGrid({ partners }: { partners: Partner[] }) {
-  return (
-    <section className="py-8 lg:py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-          {partners.map((p) =>
-            p.href ? (
-              <a
-                key={p.name}
-                href={p.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative rounded-xl border border-border bg-muted p-4 flex items-center justify-center aspect-[5/3] hover:border-primary/20 hover:bg-primary/5 transition-all overflow-hidden"
-              >
-                <img
-                  src={p.img}
-                  alt={p.name}
-                  className="max-w-full max-h-full object-contain opacity-60 group-hover:opacity-100 transition-opacity"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-background/60">
-                  <div className="flex items-center gap-1.5 text-xs text-primary font-medium">
-                    <ExternalLink className="w-3 h-3" />
-                    Перейти
-                  </div>
-                </div>
-              </a>
-            ) : (
-              <div
-                key={p.name}
-                className="relative rounded-xl border border-border bg-muted p-4 flex items-center justify-center aspect-[5/3] opacity-60 overflow-hidden"
-              >
-                <img
-                  src={p.img}
-                  alt={p.name}
-                  className="max-w-full max-h-full object-contain"
-                  loading="lazy"
-                />
-              </div>
-            )
-          )}
-        </div>
-      </div>
-    </section>
   );
 }

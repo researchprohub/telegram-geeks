@@ -4,6 +4,7 @@ import { Navbar } from "@/components/marketing/Navbar";
 import { Footer } from "@/components/marketing/Footer";
 import { manualContentCn as manualContent } from "@/data/manuals-content-cn";
 import { ManualReader } from "@/components/manuals/ManualReader";
+import { ManualSystemPreview } from "@/components/manuals/ManualSystemPreview";
 import { ArrowLeft, BookOpen } from "lucide-react";
 
 function addHeadingIds(html: string): string {
@@ -62,6 +63,13 @@ export default async function ManualPage({ params }: { params: Promise<{ slug: s
         </section>
 
 
+
+        {/* ── Visual System Interface & Screenshots (Web & Desktop App) ── */}
+        <section className="pb-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <ManualSystemPreview slug={slug} title={content.title} />
+          </div>
+        </section>
 
         <section className="pb-16 lg:pb-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
