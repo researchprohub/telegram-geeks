@@ -114,13 +114,24 @@ class SettingsService:
             rows[r.key] = val
         return {**DEFAULTS, **rows}
 
-    async def get(self, key: str) -> str | None:
-        result = await self.db.execute(select(SystemSetting).where(SystemSetting.key == key))
-        r = result.scalar_one_or_none()
-        val = r.value if r else DEFAULTS.get(key)
-        if key in ENCRYPTED_KEYS and val and is_encrypted(val):
-            val = decrypt(val)
-        return val
+    @classmethod
+    async def get(cls, key: str, session: AsyncSession | None = None) -> str | None:
+        if session is not None:
+            result = await session.execute(select(SystemSetting).where(SystemSetting.key == key))
+            r = result.scalar_one_or_none()
+            val = r.value if r else DEFAULTS.get(key)
+            if key in ENCRYPTED_KEYS and val and is_encrypted(val):
+                val = decrypt(val)
+            return val
+
+        from app.db.session import async_session_factory
+        async with async_session_factory() as db:
+            result = await db.execute(select(SystemSetting).where(SystemSetting.key == key))
+            r = result.scalar_one_or_none()
+            val = r.value if r else DEFAULTS.get(key)
+            if key in ENCRYPTED_KEYS and val and is_encrypted(val):
+                val = decrypt(val)
+            return val
 
     async def set(self, key: str, value: str, commit: bool = True):
         if key in ENCRYPTED_KEYS and value:

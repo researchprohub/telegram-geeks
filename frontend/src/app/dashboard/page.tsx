@@ -6,7 +6,7 @@ import {
   Users, Zap, TrendingUp, Brain,
   ArrowUpRight, ArrowDownRight,
   RefreshCw, Search, Bell, CheckCircle2, XCircle, AlertCircle, Eye,
-  Loader2
+  Loader2, Workflow,
 } from "lucide-react";
 import api from "@/lib/api";
 import Link from "next/link";
@@ -193,6 +193,26 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground mt-0.5">{kpi.sub}</p>
           </div>
         ))}
+      </div>
+
+      {/* Master Operational Workflow v2.0 Quick Access Banner */}
+      <div className="bg-gradient-to-r from-card via-secondary/70 to-card border border-primary/30 rounded-2xl p-6 relative overflow-hidden shadow-lg flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-bold text-primary tracking-wide uppercase">
+            🚀 Master Operational Workflow v2.0
+          </div>
+          <h2 className="text-xl font-bold text-foreground">9-Stage Full System Operations Pipeline</h2>
+          <p className="text-xs text-muted-foreground max-w-2xl">
+            Execute the complete automated lifecycle: Provision accounts → Warm up & test proxies → Parse audiences → Launch AI outreach → Auto-invite → Boost engagement & analyze telemetry.
+          </p>
+        </div>
+        <Link
+          href="/dashboard/workflow"
+          className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-bold px-6 py-3 rounded-xl shadow-md shadow-primary/20 hover:opacity-95 transition-all text-sm shrink-0"
+        >
+          <Workflow className="h-4 w-4" />
+          Launch Pipeline Hub →
+        </Link>
       </div>
 
       {/* Quick-Start Onboarding Banner (if no accounts yet) */}

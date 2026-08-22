@@ -38,6 +38,18 @@ class NotFoundError(PlatformError):
         super().__init__(message, code="not_found", status_code=404)
 
 
+class AccountNotFoundError(NotFoundError):
+    """Raised when an account is not found."""
+    def __init__(self, account_id: int | str = ""):
+        super().__init__(f"Account {account_id} not found")
+
+
+class AccountBannedError(PlatformError):
+    """Raised when an account is banned."""
+    def __init__(self, message: str = "Account is banned"):
+        super().__init__(message, code="account_banned", status_code=403)
+
+
 class ConflictError(PlatformError):
     """Raised when a resource conflict occurs."""
     def __init__(self, message: str = "Resource conflict"):

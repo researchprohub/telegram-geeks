@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   RefreshCw, Zap, Bot, Send, Bell, Heart,
@@ -9,10 +9,20 @@ import {
   Flag, Database, Calculator,
   Search, Filter, Eye, MessageSquare, Terminal, ArrowRight,
   Smartphone, Globe, PlusCircle, MousePointerClick, ShieldCheck, Edit3, Phone, Rocket,
-  Cloud, Sparkles, Brain,
+  Cloud, Sparkles, Brain, LayoutGrid, List, Sliders, Layers
 } from "lucide-react";
-
+import { cn } from "@/lib/utils";
 import api from "@/lib/api";
+
+export interface Module {
+  id: string;
+  name: string;
+  category: string;
+  icon: string;
+  description: string;
+  operations: string[];
+  plan_required: string;
+}
 
 const fallbackModules: Module[] = [
   // Account Operations (16)
@@ -107,65 +117,30 @@ const fallbackModules: Module[] = [
   { id: "global_config", name: "Global Config", category: "admin", icon: "Shield", description: "Proxy, delay, thread, GPT, license, and antivirus settings", operations: ["get_all", "set", "update_section", "check_license"], plan_required: "pro" },
 ];
 
-interface Module {
-  id: string;
-  name: string;
-  category: string;
-  icon: string;
-  description: string;
-  operations: string[];
-  plan_required: string;
-}
-
-const planNames: Record<string, string> = {
-  starter: "Base",
-  pro: "Pro",
-};
-
 const moduleIcons: Record<string, any> = {
-  "Search": Search,
-  "Filter": Filter,
-  "Globe": Globe,
-  "ShieldCheck": ShieldCheck,
-  "Phone": Phone,
-  "UserSearch": UserSearch,
-  "Send": Send,
-  "Bot": Bot,
-  "Zap": Zap,
-  "ArrowRightLeft": ArrowRightLeft,
-  "Eye": Eye,
-  "MessageSquare": MessageSquare,
-  "Flag": Flag,
-  "BookUser": BookUser,
-  "Smartphone": Smartphone,
-  "Edit3": Edit3,
-  "Users": Users,
-  "Shield": Shield,
-  "UserMinus": UserMinus,
-  "Rocket": Rocket,
-  "Heart": Heart,
-  "LucideLink2": LucideLink2,
-  "RefreshCw": RefreshCw,
-  "Bell": Bell,
-  "Database": Database,
-  "MousePointerClick": MousePointerClick,
-  "PlusCircle": PlusCircle,
-  "Calculator": Calculator,
-  "Terminal": Terminal,
-  "Brain": Brain,
-  "Sparkles": Sparkles,
+  Search, Filter, Globe, ShieldCheck, Phone, UserSearch, Send, Bot, Zap,
+  ArrowRightLeft, Eye, MessageSquare, Flag, BookUser, Smartphone, Edit3,
+  Users, Shield, UserMinus, Rocket, Heart, LucideLink2, RefreshCw, Bell,
+  Database, MousePointerClick, PlusCircle, Calculator, Terminal, Brain, Sparkles,
 };
 
-const PAGE_SIZE = 12;
+const categoryLabels: Record<string, string> = {
+  all: "All Modules",
+  account: "Account Operations",
+  messaging: "Messaging & Outreach",
+  audience: "Audience & Parsing",
+  content: "Content & Cloner",
+  growth: "Growth & Bots",
+  personas: "AI Personas & Memory",
+  admin: "Infrastructure & Admin",
+};
 
 export default function ModulesPage() {
   const router = useRouter();
   const [modules, setModules] = useState<Module[]>(fallbackModules);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
   useEffect(() => {
     let cancelled = false;
@@ -176,216 +151,268 @@ export default function ModulesPage() {
           const formatted = res.data.modules.map((m: any) => ({
             id: m.id,
             name: m.name,
-            category: m.category || "tools",
+            category: m.category || "account",
             icon: m.icon || "Sparkles",
             description: m.description,
             operations: m.operations || [],
             plan_required: m.tier || "starter",
           }));
           setModules(formatted);
-          return;
         }
       } catch {
-        // use complete fallback
+        // fallback active
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedCategory]);
+  const categories = useMemo(() => {
+    const cats = ["all", "account", "messaging", "audience", "content", "growth", "personas", "admin"];
+    return cats;
+  }, []);
 
-  const categories = ["all", ...Array.from(new Set(modules.map(m => m.category)))];
+  const filteredModules = useMemo(() => {
+    return modules.filter((mod) => {
+      const matchesSearch =
+        searchQuery === "" ||
+        mod.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        mod.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        mod.id.toLowerCase().includes(searchQuery.toLowerCase());
 
-  const filteredModules = modules.filter(module => {
-    const matchesSearch = module.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         module.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         module.id.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || module.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+      const matchesCat =
+        selectedCategory === "all" ||
+        mod.category.toLowerCase() === selectedCategory.toLowerCase();
 
-  const totalPages = Math.ceil(filteredModules.length / PAGE_SIZE);
-  const paginatedModules = filteredModules.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+      return matchesSearch && matchesCat;
+    });
+  }, [modules, searchQuery, selectedCategory]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <RefreshCw className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  const getCategoryCount = (cat: string) => {
+    if (cat === "all") return modules.length;
+    return modules.filter((m) => m.category.toLowerCase() === cat.toLowerCase()).length;
+  };
 
   return (
-    <div className="min-h-screen pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border px-8 py-5">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Modules</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">{filteredModules.length} of {modules.length} modules available</p>
-          </div>
+    <div className="p-6 max-w-7xl mx-auto space-y-6">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
+        <div>
+          <h1 className="text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
+            <Sliders className="h-6 w-6 text-primary" />
+            Telegram Expert Automation Suite (77 Modules)
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Enterprise MTProto automation modules, AI persona engines, scrapers, and account boosters
+          </p>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative mb-3.5">
-          <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 bg-secondary p-1 rounded-xl border border-border">
+            <button
+              onClick={() => setViewMode("grid")}
+              className={cn(
+                "p-1.5 rounded-lg text-xs font-bold transition-all",
+                viewMode === "grid"
+                  ? "bg-card text-primary shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              title="Grid View"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setViewMode("table")}
+              className={cn(
+                "p-1.5 rounded-lg text-xs font-bold transition-all",
+                viewMode === "table"
+                  ? "bg-card text-primary shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              title="Table View"
+            >
+              <List className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Search & Category Filter Chips */}
+      <div className="space-y-3">
+        <div className="relative">
+          <Search className="absolute left-3.5 top-3 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search automation modules by name, description, or id..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-xl bg-card border border-border text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/40 focus:border-primary/40 outline-none transition-all pl-10"
+            placeholder="Search all 77 modules by name, keyword, or operation..."
+            className="w-full bg-card border border-border rounded-2xl pl-10 pr-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/40 shadow-xs"
           />
         </div>
 
-        {/* Category Tabs */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-          {categories.map(category => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`flex-shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
-                selectedCategory === category
-                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                  : "bg-card text-muted-foreground hover:text-foreground hover:bg-secondary border border-border"
-              }`}
-            >
-              {category.charAt(0).toUpperCase() + category.slice(1)}
-            </button>
-          ))}
+        {/* Category Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          {categories.map((cat) => {
+            const count = getCategoryCount(cat);
+            const active = selectedCategory === cat;
+            return (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={cn(
+                  "px-3.5 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1.5",
+                  active
+                    ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+                    : "bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary"
+                )}
+              >
+                <span>{categoryLabels[cat] || cat}</span>
+                <span
+                  className={cn(
+                    "px-1.5 py-0.2 rounded-full text-[10px] font-mono",
+                    active ? "bg-primary-foreground/20 text-primary-foreground" : "bg-secondary text-muted-foreground"
+                  )}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Module Grid */}
-      <div className="px-8 py-6">
-
-        {filteredModules.length === 0 ? (
-          <div className="bg-card rounded-2xl border border-border p-12 text-center">
-            <Zap className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-sm font-semibold text-foreground mb-1">No modules found</p>
-            <p className="text-xs text-muted-foreground">Try a different search keyword or category filter</p>
-          </div>
-        ) : (
-          <>
-            {/* Cards: mobile */}
-            <div className="grid grid-cols-2 gap-3 md:hidden">
-              {paginatedModules.map(module => {
-                const IconComponent = moduleIcons[module.icon] || moduleIcons[module.id] || Sparkles;
-                return (
-                  <div key={module.id} onClick={() => router.push(`/dashboard/modules/${module.id}`)}
-                    className="bg-card rounded-2xl border border-border p-4 hover:border-primary/30 transition-all cursor-pointer">
-                    <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center mb-2 border border-primary/20">
-                      <IconComponent className="h-4 w-4 text-primary" />
+      {/* Modules List / Grid */}
+      {filteredModules.length === 0 ? (
+        <div className="py-20 text-center bg-card rounded-2xl border border-dashed border-border p-8 space-y-2">
+          <Zap className="h-8 w-8 text-muted-foreground mx-auto" />
+          <h3 className="text-sm font-bold text-foreground">No modules found</h3>
+          <p className="text-xs text-muted-foreground">Try refining your search keyword or clearing category filters.</p>
+        </div>
+      ) : viewMode === "grid" ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredModules.map((mod) => {
+            const IconComp = moduleIcons[mod.icon] || moduleIcons[mod.id] || Sparkles;
+            return (
+              <div
+                key={mod.id}
+                onClick={() => router.push(`/dashboard/modules/${mod.id}`)}
+                className="bg-card border border-border rounded-2xl p-5 hover:border-primary/50 hover:shadow-md hover:shadow-primary/5 transition-all cursor-pointer flex flex-col justify-between space-y-4 group"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="h-11 w-11 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+                      <IconComp className="h-5 w-5" />
                     </div>
-                    <h3 className="text-sm font-medium text-foreground mb-1 line-clamp-2">{module.name}</h3>
-                    <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{module.description}</p>
-                    <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                      module.plan_required === "starter"
-                        ? "bg-primary/10 text-primary border border-primary/20"
-                        : "bg-purple-500/10 text-purple-400 border border-purple-500/20"
-                    }`}>
-                      {module.plan_required === "starter" ? <Cloud className="w-2.5 h-2.5" /> : <Sparkles className="w-2.5 h-2.5" />}
-                      {planNames[module.plan_required] || module.plan_required}
-                    </span>
+
+                    <div className="flex items-center gap-1.5">
+                      <span className="px-2 py-0.5 rounded-md bg-secondary text-[10px] font-bold text-muted-foreground uppercase border border-border">
+                        {mod.category}
+                      </span>
+                      {mod.plan_required === "pro" && (
+                        <span className="px-1.5 py-0.5 rounded-md bg-primary/15 text-primary text-[9px] font-black uppercase border border-primary/30 flex items-center gap-0.5">
+                          <Sparkles className="h-2.5 w-2.5" /> PRO
+                        </span>
+                      )}
+                    </div>
                   </div>
+
+                  <div>
+                    <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors flex items-center justify-between">
+                      <span>{mod.name}</span>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                    </h3>
+                    <p className="text-xs text-muted-foreground line-clamp-2 mt-1 leading-relaxed">
+                      {mod.description}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-border/60 flex items-center justify-between text-[11px]">
+                  <span className="text-muted-foreground font-mono">
+                    {mod.operations.length} {mod.operations.length === 1 ? "operation" : "operations"}
+                  </span>
+                  <span className="font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                    Open Engine →
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        /* Table View */
+        <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-secondary/60 text-muted-foreground uppercase text-[10px] font-bold border-b border-border">
+              <tr>
+                <th className="py-3 px-4">Module Name</th>
+                <th className="py-3 px-4 hidden md:table-cell">Description</th>
+                <th className="py-3 px-4">Category</th>
+                <th className="py-3 px-4">Operations</th>
+                <th className="py-3 px-4">Tier</th>
+                <th className="py-3 px-4 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {filteredModules.map((mod) => {
+                const IconComp = moduleIcons[mod.icon] || moduleIcons[mod.id] || Sparkles;
+                return (
+                  <tr
+                    key={mod.id}
+                    onClick={() => router.push(`/dashboard/modules/${mod.id}`)}
+                    className="hover:bg-secondary/40 cursor-pointer transition-colors group"
+                  >
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                          <IconComp className="h-4 w-4" />
+                        </div>
+                        <span className="font-bold text-foreground group-hover:text-primary transition-colors">
+                          {mod.name}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 text-muted-foreground max-w-sm truncate hidden md:table-cell">
+                      {mod.description}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className="px-2 py-0.5 rounded-md bg-secondary text-muted-foreground uppercase text-[10px] font-bold border border-border">
+                        {mod.category}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-foreground font-bold">
+                      {mod.operations.length}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      {mod.plan_required === "pro" ? (
+                        <span className="px-1.5 py-0.5 rounded bg-primary/15 text-primary text-[10px] font-black uppercase border border-primary/30">
+                          PRO
+                        </span>
+                      ) : (
+                        <span className="px-1.5 py-0.5 rounded bg-secondary text-muted-foreground text-[10px] font-bold uppercase">
+                          BASE
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-4 text-right">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/dashboard/modules/${mod.id}`);
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-primary text-primary-foreground font-bold text-[11px] hover:bg-primary/90 transition-all shadow-xs"
+                      >
+                        Launch
+                      </button>
+                    </td>
+                  </tr>
                 );
               })}
-            </div>
-
-            {/* Table: desktop */}
-            <div className="hidden md:block">
-              <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-secondary/50">
-                      <th className="text-left px-5 py-3.5 font-semibold text-muted-foreground text-xs uppercase tracking-wider">Module</th>
-                      <th className="text-left px-5 py-3.5 font-semibold text-muted-foreground text-xs uppercase tracking-wider hidden lg:table-cell">Description</th>
-                      <th className="text-left px-5 py-3.5 font-semibold text-muted-foreground text-xs uppercase tracking-wider">Category</th>
-                      <th className="text-left px-5 py-3.5 font-semibold text-muted-foreground text-xs uppercase tracking-wider">Plan</th>
-                      <th className="w-10 px-5 py-3.5" />
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {paginatedModules.map(module => {
-                      const IconComponent = moduleIcons[module.icon] || moduleIcons[module.id] || Sparkles;
-                      return (
-                        <tr key={module.id} onClick={() => router.push(`/dashboard/modules/${module.id}`)}
-                          className="hover:bg-secondary/40 cursor-pointer transition-all group">
-                          <td className="px-5 py-3.5">
-                            <div className="flex items-center gap-3">
-                              <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
-                                <IconComponent className="h-4 w-4 text-primary" />
-                              </div>
-                              <span className="font-medium text-foreground group-hover:text-primary transition-colors">{module.name}</span>
-                            </div>
-                          </td>
-                          <td className="px-5 py-3.5 text-muted-foreground text-xs hidden lg:table-cell max-w-xs truncate">
-                            {module.description}
-                          </td>
-                          <td className="px-5 py-3.5">
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-secondary text-muted-foreground border border-border capitalize">{module.category}</span>
-                          </td>
-                          <td className="px-5 py-3.5">
-                            <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                              module.plan_required === "starter"
-                                ? "bg-primary/10 text-primary border border-primary/20"
-                                : "bg-purple-500/10 text-purple-400 border border-purple-500/20"
-                            }`}>
-                              {module.plan_required === "starter" ? <Cloud className="w-2.5 h-2.5" /> : <Sparkles className="w-2.5 h-2.5" />}
-                              {planNames[module.plan_required] || module.plan_required}
-                            </span>
-                          </td>
-                          <td className="px-5 py-3.5 text-muted-foreground">
-                            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-primary" />
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </>
-        )}
-
-        {totalPages > 1 && (
-          <div className="relative flex items-center justify-center mt-8">
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-40 h-10 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-            <div className="flex items-center gap-2 relative">
-            <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium bg-white/[0.03] border border-white/[0.07] text-slate-400 hover:text-white hover:bg-white/[0.06] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-            >
-              Prev
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-              <button
-                key={p}
-                onClick={() => setCurrentPage(p)}
-                className={`w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  currentPage === p
-                    ? "bg-primary text-white shadow-[0_0_14px_-3px_hsl(var(--primary)/0.6)] border border-primary/30"
-                    : "bg-white/[0.03] border border-white/[0.07] text-slate-400 hover:text-white hover:bg-white/[0.06]"
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-            <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium bg-white/[0.03] border border-white/[0.07] text-slate-400 hover:text-white hover:bg-white/[0.06] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-            >
-              Next
-            </button>
-            </div>
-            <Sparkles className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/20 pointer-events-none" />
-          </div>
-        )}
-      </div>
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Users, Brain, Zap, MessageSquare, BarChart3,
   Settings, ShieldCheck, Blocks, Upload, LogOut, CreditCard, Newspaper,
-  Network, Cpu,
+  Network, Cpu, Workflow, Sliders,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
@@ -17,6 +17,7 @@ const navGroups = [
     label: "Workspace",
     items: [
       { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+      { href: "/dashboard/workflow", label: "Master Pipeline", icon: Workflow, badge: "v2.0" },
       { href: "/dashboard/modules", label: "Modules", icon: Blocks, badge: "77" },
       { href: "/dashboard/campaigns", label: "Campaigns", icon: Zap },
       { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
@@ -29,7 +30,8 @@ const navGroups = [
       { href: "/dashboard/accounts", label: "Accounts", icon: Users },
       { href: "/dashboard/personas", label: "Personas", icon: Brain },
       { href: "/dashboard/groups", label: "Groups", icon: MessageSquare },
-      { href: "/dashboard/proxies", label: "Proxies & Hub", icon: Network, badge: "14" },
+      { href: "/dashboard/generator", label: "Param Generator", icon: Sliders, badge: "1M" },
+      { href: "/dashboard/proxies", label: "Proxies & Hub", icon: Network, badge: "Live" },
     ],
   },
   {
@@ -47,10 +49,23 @@ export function Sidebar({ collapsed = false, onToggle }: { collapsed?: boolean; 
   const pathname = usePathname();
   const [userPlan, setUserPlan] = useState<string>("starter");
   const [userName, setUserName] = useState<string>("");
+  const [telemetry, setTelemetry] = useState<any>(null);
 
   useEffect(() => {
     fetchUserInfo();
+    fetchTelemetry();
+    const interval = setInterval(fetchTelemetry, 30000);
+    return () => clearInterval(interval);
   }, []);
+
+  async function fetchTelemetry() {
+    try {
+      const res = await api.get("/workflow/overview");
+      setTelemetry(res.data.telemetry || null);
+    } catch {
+      // ignore
+    }
+  }
 
   async function fetchUserInfo() {
     try {
@@ -113,6 +128,15 @@ export function Sidebar({ collapsed = false, onToggle }: { collapsed?: boolean; 
             <div className="space-y-0.5">
               {group.items.map((item) => {
                 const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname?.startsWith(item.href));
+                let displayBadge = item.badge;
+                if (item.href === "/dashboard/workflow" && telemetry?.active_pipelines) {
+                  displayBadge = `${telemetry.active_pipelines} live`;
+                } else if (item.href === "/dashboard/campaigns" && telemetry?.running_campaigns) {
+                  displayBadge = `${telemetry.running_campaigns}`;
+                } else if (item.href === "/dashboard/accounts" && telemetry?.active_accounts) {
+                  displayBadge = `${telemetry.active_accounts}`;
+                }
+
                 return (
                   <Link
                     key={item.href}
@@ -133,9 +157,9 @@ export function Sidebar({ collapsed = false, onToggle }: { collapsed?: boolean; 
                       isActive ? "text-primary drop-shadow-[0_0_6px_hsl(var(--primary)/0.6)]" : "text-slate-400"
                     )} />
                     {!collapsed && <span className="flex-1">{item.label}</span>}
-                    {!collapsed && item.badge && (
+                    {!collapsed && displayBadge && (
                       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary/[0.15] text-primary border border-primary/20 shadow-[0_0_6px_-1px_hsl(var(--primary)/0.3)]">
-                        {item.badge}
+                        {displayBadge}
                       </span>
                     )}
                   </Link>

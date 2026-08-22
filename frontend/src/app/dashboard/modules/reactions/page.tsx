@@ -1,186 +1,258 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ThumbsUp, ArrowLeft, Play, Loader2, Users, Globe } from "lucide-react";
+import { Heart, Play, Loader2, Users, Globe, Sparkles, Flame, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
+import { ModuleHeader } from "@/components/modules/ModuleHeader";
+import { AccountPicker, AccountItem } from "@/components/modules/AccountPicker";
 import { ThreadProxyPanel } from "@/components/modules/ThreadProxyPanel";
 import { FloodControlPanel } from "@/components/modules/FloodControlPanel";
-import { LogPanel } from "@/components/modules/LogPanel";
-import { ModuleFooter } from "@/components/modules/ModuleFooter";
+import { LogPanel, LogEntry } from "@/components/modules/LogPanel";
+import { ModuleExecutionCard } from "@/components/modules/ModuleExecutionCard";
 import { CrossLinkFooter } from "@/components/modules/CrossLinkFooter";
+import { ModuleFooter } from "@/components/modules/ModuleFooter";
+import { cn } from "@/lib/utils";
 
 const REACTION_OPTIONS = [
   { value: "👍", label: "Thumbs Up" },
   { value: "❤️", label: "Heart" },
   { value: "🔥", label: "Fire" },
-  { value: "😁", label: "Grin" },
-  { value: "😢", label: "Cry" },
-  { value: "😡", label: "Angry" },
+  { value: "🎉", label: "Party" },
+  { value: "🤩", label: "Star Eyes" },
+  { value: "⚡️", label: "Lightning" },
+  { value: "👏", label: "Applause" },
+  { value: "🚀", label: "Rocket" },
 ];
 
 export default function ReactionsBoosterPage() {
   const router = useRouter();
-  const [accounts, setAccounts] = useState<any[]>([]);
-  const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
+  const [accounts, setAccounts] = useState<AccountItem[]>([]);
+  const [selectedAccounts, setSelectedAccounts] = useState<(string | number)[]>([]);
   const [postUrl, setPostUrl] = useState("");
-  const [reactionType, setReactionType] = useState("👍");
-  const [targetCount, setTargetCount] = useState(50);
+  const [reactionType, setReactionType] = useState("🔥");
+  const [targetCount, setTargetCount] = useState(25);
   const [mode, setMode] = useState<"accounts" | "proxy">("accounts");
   const [proxyList, setProxyList] = useState("");
-  const [threadCount, setThreadCount] = useState(2);
+
+  // Concurrency & delays
+  const [threadCount, setThreadCount] = useState(5);
   const [proxyMode, setProxyMode] = useState("account");
-  const [minDelay, setMinDelay] = useState(5);
-  const [maxDelay, setMaxDelay] = useState(15);
+  const [proxyStr, setProxyStr] = useState("");
+  const [minDelay, setMinDelay] = useState(2);
+  const [maxDelay, setMaxDelay] = useState(6);
+
   const [executing, setExecuting] = useState(false);
-  const [log, setLog] = useState<any[]>([]);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
     api.get("/accounts/", { params: { pageSize: 100 } })
-      .then(r => setAccounts(r.data?.items || r.data || []))
+      .then((r) => {
+        const items = r.data?.items || r.data || [];
+        setAccounts(items);
+        if (items.length > 0) {
+          setSelectedAccounts(items.slice(0, 5).map((a: any) => a.id));
+        }
+      })
       .catch(() => {});
   }, []);
 
-  function addLog(text: string, level = "info") {
-    setLog(prev => [...prev, { time: new Date().toLocaleTimeString(), text, level }]);
-  }
-
-  function toggleAccount(phone: string) {
-    setSelectedAccounts(prev => prev.includes(phone) ? prev.filter(p => p !== phone) : [...prev, phone]);
+  function addLog(text: string, level: "info" | "success" | "warn" | "error" | "flood" = "info") {
+    setLogs((prev) => [...prev, { time: new Date().toLocaleTimeString(), text, level }]);
   }
 
   async function handleExecute() {
-    if (!postUrl) { setError("Enter post URL"); return; }
-    if (mode === "accounts" && selectedAccounts.length === 0) { setError("Select at least one account"); return; }
-    setExecuting(true); setError("");
+    if (!postUrl.trim()) {
+      setError("Please specify a valid Telegram post URL");
+      return;
+    }
+    if (mode === "accounts" && selectedAccounts.length === 0) {
+      setError("Please select at least one account to place reactions");
+      return;
+    }
+
+    setExecuting(true);
+    setError("");
+    addLog(`Initiating ${reactionType} reaction booster on ${postUrl}...`, "info");
+
     try {
-      addLog(`Boosting ${reactionType} reactions for ${postUrl}...`);
       const r = await api.post("/modules/reactions/execute", {
         operation: mode === "accounts" ? "boost_account_reactions" : "boost_proxy_reactions",
         params: {
           post_url: postUrl,
           reaction: reactionType,
           count: targetCount,
-          account_phones: mode === "accounts" ? selectedAccounts : undefined,
-          proxy_list: mode === "proxy" ? proxyList.split("\n").map(s => s.trim()).filter(Boolean) : undefined,
+          account_ids: mode === "accounts" ? selectedAccounts : undefined,
+          account_id: selectedAccounts[0],
+          proxy_list: mode === "proxy" ? proxyList.split("\n").map((s) => s.trim()).filter(Boolean) : undefined,
           thread_count: threadCount,
           delay_before_action: `${minDelay}-${maxDelay}`,
         },
       });
+
       const res = r.data?.result || r.data;
-      addLog(res.message || `Boosted ${targetCount} reactions`, "success");
+      addLog(`Reactions operation complete: ${res.message || `Boosted ${targetCount} reactions`}`, "success");
     } catch (e: any) {
       const msg = e.response?.data?.detail || e.message;
-      setError(msg); addLog(msg, "error");
-    } finally { setExecuting(false); }
+      setError(msg);
+      addLog(`Reactions error: ${msg}`, "error");
+    } finally {
+      setExecuting(false);
+    }
   }
 
   return (
-    <div className="min-h-screen pb-20">
-      <div className="sticky top-0 z-40 bg-card border-b border-border px-4 py-3">
-        <div className="flex items-center gap-3">
-          <button onClick={() => router.push("/dashboard/modules")} className="p-1 rounded-lg hover:bg-secondary transition-colors">
-            <ArrowLeft className="h-5 w-5 text-foreground" />
-          </button>
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <ThumbsUp className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-foreground">Reactions Booster</h1>
-            <p className="text-xs text-muted-foreground">Boost reactions on Telegram posts</p>
-          </div>
+    <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <ModuleHeader
+        title="Reactions & Engagement Booster"
+        description="Boost emoji reactions on Telegram channel broadcasts, chat messages, and discussion threads"
+        icon={<Heart className="h-6 w-6" />}
+        category="Messaging & Outreach"
+        planRequired="starter"
+        accountCount={accounts.length}
+        status={executing ? "running" : "ready"}
+      />
+
+      {error && (
+        <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/30 text-xs font-semibold text-destructive">
+          {error}
         </div>
-      </div>
+      )}
 
-      <div className="px-4 py-4 space-y-4">
-        {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3 text-sm text-red-700 dark:text-red-300">{error}</div>
-        )}
-
-        <div className="bg-card rounded-xl border border-border p-4">
-          <div className="flex items-center gap-2 mb-3">
-            {[
-              { id: "accounts", label: "Accounts", icon: Users },
-              { id: "proxy", label: "Proxy", icon: Globe },
-            ].map(m => (
-              <button key={m.id} onClick={() => setMode(m.id as any)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${mode === m.id ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}>
-                <m.icon className="h-3.5 w-3.5" /> {m.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs text-muted-foreground mb-1">Post URL</label>
-              <input type="text" value={postUrl} onChange={e => setPostUrl(e.target.value)} placeholder="https://t.me/channel/123"
-                className="w-full bg-secondary border-0 rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary" />
+      {/* Split Workstation Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Column: Configuration */}
+        <div className="lg:col-span-7 space-y-5">
+          {/* Reaction Emoji Palette */}
+          <div className="bg-card rounded-2xl border border-border p-5 space-y-3 shadow-sm">
+            <div className="flex items-center justify-between pb-2 border-b border-border/60">
+              <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                Select Reaction Emoji
+              </h3>
+              <span className="text-xl font-bold">{reactionType}</span>
             </div>
-            <div>
-              <label className="block text-xs text-muted-foreground mb-1">Reaction Type</label>
-              <select value={reactionType} onChange={e => setReactionType(e.target.value)}
-                className="w-full bg-secondary border-0 rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary">
-                <option value="all">All Reactions</option>
-                {REACTION_OPTIONS.map(r => (
-                  <option key={r.value} value={r.value}>{r.label} {r.value}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs text-muted-foreground mb-1">Target Count</label>
-              <input type="number" min={1} max={10000} value={targetCount} onChange={e => setTargetCount(parseInt(e.target.value) || 50)}
-                className="w-full bg-secondary border-0 rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary" />
+
+            <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+              {REACTION_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setReactionType(opt.value)}
+                  className={cn(
+                    "p-3 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all text-xl",
+                    reactionType === opt.value
+                      ? "bg-primary/10 border-primary shadow-xs scale-105"
+                      : "bg-secondary/40 border-border hover:bg-secondary"
+                  )}
+                  title={opt.label}
+                >
+                  <span>{opt.value}</span>
+                  <span className="text-[9px] font-bold text-muted-foreground truncate w-full text-center">
+                    {opt.label}
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
 
+          {/* Account Picker */}
           {mode === "accounts" && (
-            <div className="mt-3">
-              <label className="block text-xs text-muted-foreground mb-1">Select Accounts</label>
-              <div className="max-h-32 overflow-y-auto space-y-1">
-                {accounts.map((a: any) => {
-                  const phone = a.phone_number || a.phone;
-                  return (
-                    <label key={a.id} className="flex items-center gap-2 cursor-pointer p-1.5 rounded-lg hover:bg-secondary/50">
-                      <input type="checkbox" checked={selectedAccounts.includes(phone)} onChange={() => toggleAccount(phone)}
-                        className="rounded border-border bg-secondary accent-primary" />
-                      <span className="text-sm text-foreground">{phone || `#${a.id}`}</span>
-                    </label>
-                  );
-                })}
+            <AccountPicker
+              accounts={accounts}
+              selectedIds={selectedAccounts}
+              onSelectionChange={setSelectedAccounts}
+              label="Reaction Sender Accounts"
+            />
+          )}
+
+          {/* Target Post & Limits */}
+          <div className="bg-card rounded-2xl border border-border p-5 space-y-4 shadow-sm">
+            <div className="flex items-center justify-between pb-2 border-b border-border/60">
+              <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <Flame className="h-4 w-4 text-warning" />
+                Target Post & Quantity
+              </h3>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-foreground mb-1.5">
+                Telegram Post URL <span className="text-destructive">*</span>
+              </label>
+              <input
+                type="text"
+                value={postUrl}
+                onChange={(e) => setPostUrl(e.target.value)}
+                placeholder="https://t.me/channel_name/12345"
+                className="w-full bg-secondary border border-border rounded-xl px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/40"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold text-foreground">Target Reactions Count</label>
+                <span className="font-mono font-bold text-xs text-primary">{targetCount} reactions</span>
               </div>
+              <input
+                type="range"
+                min={5}
+                max={500}
+                value={targetCount}
+                onChange={(e) => setTargetCount(parseInt(e.target.value) || 25)}
+                className="w-full accent-primary h-2 bg-secondary rounded-lg cursor-pointer"
+              />
             </div>
-          )}
+          </div>
 
-          {mode === "proxy" && (
-            <div className="mt-3">
-              <label className="block text-xs text-muted-foreground mb-1">Proxy List (one per line)</label>
-              <textarea value={proxyList} onChange={e => setProxyList(e.target.value)} rows={3}
-                placeholder="socks5://user:pass@ip:port&#10;socks5://user2:pass2@ip2:port2"
-                className="w-full bg-secondary border-0 rounded-lg p-3 text-xs text-foreground resize-y outline-none focus:ring-2 focus:ring-primary font-mono" />
-            </div>
-          )}
+          {/* Concurrency & Delays */}
+          <ThreadProxyPanel
+            threadCount={threadCount}
+            onThreadChange={setThreadCount}
+            proxyMode={proxyMode}
+            onProxyChange={setProxyMode}
+            proxyStr={proxyStr}
+            onProxyStrChange={setProxyStr}
+          />
 
-          <button onClick={handleExecute} disabled={executing || !postUrl}
-            className="mt-3 bg-primary text-primary-foreground text-xs font-medium px-4 py-2 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 inline-flex items-center gap-1.5">
-            {executing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
-            {executing ? "Boosting..." : "Boost Reactions"}
-          </button>
+          <FloodControlPanel
+            minDelay={minDelay}
+            maxDelay={maxDelay}
+            onMinDelayChange={setMinDelay}
+            onMaxDelayChange={setMaxDelay}
+          />
         </div>
 
-        <ThreadProxyPanel threadCount={threadCount} onThreadChange={setThreadCount} proxyMode={proxyMode} onProxyChange={setProxyMode} />
-        <FloodControlPanel minDelay={minDelay} maxDelay={maxDelay} onMinDelayChange={setMinDelay} onMaxDelayChange={setMaxDelay} />
+        {/* Right Column: Execution & Terminal */}
+        <div className="lg:col-span-5 space-y-5">
+          <ModuleExecutionCard
+            onExecute={handleExecute}
+            isExecuting={executing}
+            buttonText={`Deploy ${targetCount} ${reactionType} Reactions`}
+            stats={{
+              total: targetCount,
+              rate: executing ? "15 reactions/min" : undefined,
+            }}
+          />
 
-        <LogPanel entries={log} />
-
-        <CrossLinkFooter links={[
-          { label: "Views Booster", href: "/dashboard/modules/views-booster" },
-          { label: "Mass Subscriptions", href: "/dashboard/modules/mass-subscriptions" },
-          { label: "Referrals to Bots", href: "/dashboard/modules/referrals-to-bots" },
-        ]} />
-
-        <ModuleFooter manualSlug="nakrutka-reaktsiy" />
+          <LogPanel
+            entries={logs}
+            title="Reactions Terminal Log"
+            maxHeight="320px"
+            onClear={() => setLogs([])}
+          />
+        </div>
       </div>
+
+      <CrossLinkFooter
+        links={[
+          { label: "Views Booster", href: "/dashboard/modules/views-booster" },
+          { label: "Channel Comments Booster", href: "/dashboard/modules/channel-comments" },
+          { label: "Stories Booster", href: "/dashboard/modules/stories" },
+        ]}
+      />
+
+      <ModuleFooter manualSlug="reactions" />
     </div>
   );
 }

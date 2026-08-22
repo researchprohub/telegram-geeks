@@ -222,3 +222,67 @@ async def export_analytics(campaign_id: str, fmt: str = Query(default="csv", ali
             "message": e.message, "error": e.error,
             "created_at": e.created_at.isoformat() if e.created_at else None,
         } for e in logs.scalars().all()]
+
+
+# ─── SPRINT 7: UNIFIED REAL-TIME ANALYTICS ───────────────────────────────────
+from app.services.analytics_service import AnalyticsService
+
+
+@router.get("/overview", tags=["Analytics"])
+async def get_overview(current_user: User = Depends(get_current_user)):
+    """Returns global platform KPIs across accounts, campaigns, invites, and proxies."""
+    return await AnalyticsService.get_overview_stats()
+
+
+@router.get("/accounts/distribution", tags=["Analytics"])
+async def get_accounts_distribution(current_user: User = Depends(get_current_user)):
+    """Returns account breakdown across 7 smart folders."""
+    return await AnalyticsService.get_accounts_folder_distribution()
+
+
+@router.get("/campaigns/timeseries", tags=["Analytics"])
+async def get_campaign_timeseries(
+    days: int = Query(default=14, ge=1, le=90),
+    current_user: User = Depends(get_current_user),
+):
+    """Returns timeseries data for message delivery volume over the past N days."""
+    return await AnalyticsService.get_campaign_timeseries(days=days)
+
+
+@router.get("/invites/breakdown", tags=["Analytics"])
+async def get_invites_breakdown(current_user: User = Depends(get_current_user)):
+    """Returns invite engine delivery statistics and failure classification."""
+    return await AnalyticsService.get_invite_breakdown()
+
+
+@router.get("/floodwait", tags=["Analytics"])
+async def get_floodwait(current_user: User = Depends(get_current_user)):
+    """Returns live accounts in FloodWait and expiration timestamps."""
+    return await AnalyticsService.get_floodwait_summary()
+
+
+@router.get("/warming", tags=["Analytics"])
+async def get_warming(current_user: User = Depends(get_current_user)):
+    """Returns warming engine status and trust score progression."""
+    return await AnalyticsService.get_warming_summary()
+
+
+@router.get("/proxies/health", tags=["Analytics"])
+async def get_proxy_health(current_user: User = Depends(get_current_user)):
+    """Returns proxy latency distribution and health status."""
+    return await AnalyticsService.get_proxy_health()
+
+
+@router.get("/revenue", tags=["Analytics"])
+async def get_revenue(current_user: User = Depends(get_current_user)):
+    """Returns order and revenue metrics."""
+    return await AnalyticsService.get_revenue_stats()
+
+
+@router.get("/campaigns/top", tags=["Analytics"])
+async def get_top_campaigns(
+    limit: int = Query(default=5, ge=1, le=50),
+    current_user: User = Depends(get_current_user),
+):
+    """Returns top performing campaigns by sent volume."""
+    return await AnalyticsService.get_top_campaigns(limit=limit)

@@ -24,7 +24,7 @@ from app.models.base import Base
 from app.models import (
     User, Account, Campaign, CampaignTarget, TelegramGroup,
     Persona, SpintaxTemplate, Subscription, Order, Deposit,
-    CampaignLogEntry, AuditLog, Alert, Proxy,
+    CampaignLogEntry, AuditLog, Alert, Proxy, PipelineRun, TargetDatabase,
 )
 from app.db.session import engine, async_session_factory
 
@@ -38,26 +38,105 @@ from app.api.v1.endpoints import (
     registrar, spambot_remover, postbot,
     persona_emotions_endpoints, community_roles_endpoints, group_knowledge_endpoints,
     proxies,
+    generator,
     blog,
     partners,
+    workflow,
+    warmup,
+    inviter,
 )
 from app.api.v1.endpoints.proxies import init_proxy_system
 from app.core.security import hash_password
 
 
 async def init_database():
-    """Create tables and seed initial data."""
+    """Create tables and seed initial data with schema sync."""
     async with engine.begin() as conn:
-        from sqlalchemy import inspect
         import app.models  # Ensure all models are registered
-        def get_tables(connection):
-            return inspect(connection).get_table_names()
-        tables = await conn.run_sync(get_tables)
-        if not tables:
-            await conn.run_sync(Base.metadata.create_all)
-            logger.info("Empty database detected — created all tables (dev bootstrap)")
-        else:
-            logger.info(f"Database has {len(tables)} tables, skipping auto-create (use alembic)")
+        await conn.run_sync(Base.metadata.create_all)
+
+        # Ensure newly added columns exist in existing SQLite databases
+        def sync_columns(connection):
+            from sqlalchemy import inspect, text
+            inspector = inspect(connection)
+            tables = inspector.get_table_names()
+
+            if "accounts" in tables:
+                acc_cols = [c["name"] for c in inspector.get_columns("accounts")]
+                col_defs = [
+                    ("folder", "VARCHAR(30) DEFAULT 'active'"),
+                    ("username", "VARCHAR(100)"),
+                    ("first_name", "VARCHAR(100)"),
+                    ("is_premium", "BOOLEAN DEFAULT 0"),
+                    ("device_model", "VARCHAR(100)"),
+                    ("os_version", "VARCHAR(100)"),
+                    ("app_version", "VARCHAR(50)"),
+                    ("lang_code", "VARCHAR(20)"),
+                    ("system_lang_code", "VARCHAR(20)"),
+                    ("proxy_id", "INTEGER"),
+                    ("country", "VARCHAR(4)"),
+                    ("last_check_at", "DATETIME"),
+                ]
+                for col_name, col_type in col_defs:
+                    if col_name not in acc_cols:
+                        try:
+                            connection.execute(text(f"ALTER TABLE accounts ADD COLUMN {col_name} {col_type}"))
+                        except Exception:
+                            pass
+
+            if "proxies" in tables:
+                proxy_cols = [c["name"] for c in inspector.get_columns("proxies")]
+                proxy_defs = [
+                    ("latency_ms", "INTEGER"),
+                    ("fail_count", "INTEGER DEFAULT 0"),
+                    ("added_at", "DATETIME"),
+                ]
+                for col_name, col_type in proxy_defs:
+                    if col_name not in proxy_cols:
+                        try:
+                            connection.execute(text(f"ALTER TABLE proxies ADD COLUMN {col_name} {col_type}"))
+                        except Exception:
+                            pass
+
+            if "campaigns" in tables:
+                camp_cols = [c["name"] for c in inspector.get_columns("campaigns")]
+                camp_defs = [
+                    ("target_db_id", "INTEGER"),
+                    ("message_template", "TEXT"),
+                    ("gpt_spin", "BOOLEAN DEFAULT 0"),
+                    ("delay_min", "INTEGER DEFAULT 30"),
+                    ("delay_max", "INTEGER DEFAULT 120"),
+                    ("max_per_day", "INTEGER DEFAULT 50"),
+                    ("media_path", "VARCHAR(512)"),
+                    ("tone", "VARCHAR(64) DEFAULT 'natural'"),
+                    ("sent", "INTEGER DEFAULT 0"),
+                    ("failed", "INTEGER DEFAULT 0"),
+                    ("completed_at", "DATETIME"),
+                ]
+                for col_name, col_type in camp_defs:
+                    if col_name not in camp_cols:
+                        try:
+                            connection.execute(text(f"ALTER TABLE campaigns ADD COLUMN {col_name} {col_type}"))
+                        except Exception:
+                            pass
+
+            if "campaign_targets" in tables:
+                ct_cols = [c["name"] for c in inspector.get_columns("campaign_targets")]
+                ct_defs = [
+                    ("user_id", "BIGINT"),
+                    ("username", "VARCHAR(255)"),
+                    ("status", "VARCHAR(64)"),
+                    ("attempted_at", "DATETIME"),
+                ]
+                for col_name, col_type in ct_defs:
+                    if col_name not in ct_cols:
+                        try:
+                            connection.execute(text(f"ALTER TABLE campaign_targets ADD COLUMN {col_name} {col_type}"))
+                        except Exception:
+                            pass
+
+        await conn.run_sync(sync_columns)
+        logger.info("Database initialized (all tables and columns synchronized)")
 
     # Seed demo and admin users — upsert so existing DBs get the desktop credentials
     from sqlalchemy import select
@@ -491,12 +570,22 @@ app.include_router(community_roles_endpoints.router)
 app.include_router(group_knowledge_endpoints.router)
 
 # Proxy Management
-app.include_router(proxies.router)
+app.include_router(proxies.router, prefix="/api/v1", tags=["Proxies"])
 from app.api.v1.endpoints import proxy_providers
 app.include_router(proxy_providers.router)
+
+# Parameter Generator Engine
+app.include_router(generator.router, prefix="/api/v1", tags=["Parameter Generator"])
 
 # Blog (WordPress-style)
 app.include_router(blog.router, prefix="/api/v1/blog", tags=["Blog"])
 
 # Partners (marketing page)
 app.include_router(partners.router, prefix="/api/v1", tags=["Partners"])
+
+# Master Operational Workflow v2.0
+app.include_router(workflow.router, prefix="/api/v1", tags=["Master Operational Workflow v2.0"])
+
+# Sprint 5: Warmup & Inviter Engines
+app.include_router(warmup.router, prefix="/api/v1", tags=["Warmup Engine"])
+app.include_router(inviter.router, prefix="/api/v1", tags=["Inviter Engine"])

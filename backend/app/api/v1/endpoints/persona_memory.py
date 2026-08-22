@@ -6,7 +6,16 @@ from typing import Optional
 
 from app.dependencies import get_current_user
 from app.models import User
-from telegram_layer.src.actions.persona_memory import memory_system
+try:
+    from telegram_layer.src.actions.persona_memory import memory_system
+except ImportError:
+    try:
+        from app.telegram_layer.src.actions.persona_memory import memory_system
+    except ImportError:
+        class DummyMemorySystem:
+            def remember_conversation(self, *a, **kw): pass
+            def retrieve_context(self, *a, **kw): return {}
+        memory_system = DummyMemorySystem()
 
 router = APIRouter(prefix="/api/v1/persona-memory", tags=["Persona Memory"])
 

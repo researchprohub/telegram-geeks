@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     DateTime,
     Enum,
@@ -46,11 +47,55 @@ class AccountStatus(std_enum.Enum):
     WARMING = "warming"
 
 
+class AccountFolder(std_enum.Enum):
+    ACTIVE = "active"
+    TEMP_SPAM = "temp_spam"
+    PERM_BAN = "perm_ban"
+    FROZEN = "frozen"
+    PREMIUM = "premium"
+    ARCHIVE = "archive"
+    DELETED = "deleted"
+
+
+class PipelineRunStatus(std_enum.Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    PAUSED = "paused"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
 class CampaignStatus(std_enum.Enum):
     DRAFT = "draft"
+    PENDING = "pending"
     RUNNING = "running"
     PAUSED = "paused"
     STOPPED = "stopped"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
+class WarmupJobStatus(std_enum.Enum):
+    RUNNING = "running"
+    STOPPED = "stopped"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class InviteJobStatus(std_enum.Enum):
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
+class ProxyStatus(std_enum.Enum):
+    UNTESTED = "untested"
+    ALIVE = "alive"
+    DEAD = "dead"
+    SUSPECT = "suspect"
 
 
 class UserRole(std_enum.Enum):
@@ -88,6 +133,15 @@ class Account(Base, TimestampMixin):
     deleted_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
     # Sprint-01: Account Status Folder System
+    folder: Mapped[str] = mapped_column(String(30), default="active", server_default="active")
+    username: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    first_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    is_premium: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
+    device_model: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    os_version: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    app_version: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    lang_code: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    system_lang_code: Mapped[str | None] = mapped_column(String(20), nullable=True)
     spamblock_until: Mapped[datetime | None] = mapped_column(nullable=True)
     health_check_at: Mapped[datetime | None] = mapped_column(nullable=True)
     health_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -99,8 +153,14 @@ class Account(Base, TimestampMixin):
     last_proxy: Mapped[str | None] = mapped_column(String(200), nullable=True)
     ip_country: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
+    # Sprint-06: Proxy assignment & Geo-matching
+    proxy_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("proxies.id", ondelete="SET NULL"), nullable=True)
+    country: Mapped[str | None] = mapped_column(String(4), nullable=True)
+    last_check_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
     conversations: Mapped[list["Conversation"]] = relationship(back_populates="account")
     campaign_accounts: Mapped[list["CampaignAccount"]] = relationship(back_populates="account")
+    proxy: Mapped["Proxy | None"] = relationship(foreign_keys=[proxy_id])
 
     __table_args__ = (
         UniqueConstraint("phone_number"),
@@ -217,6 +277,20 @@ class Campaign(Base, TimestampMixin):
     allowed_hours: Mapped[list[int]] = mapped_column(JSON, default=list, server_default=text("'[]'"))
     timezone: Mapped[str] = mapped_column(String(50), default="UTC", server_default="UTC")
     persona_ids: Mapped[list[int]] = mapped_column(JSON, default=list, server_default=text("'[]'"))
+
+    # Sprint 3 Mass Outreach Fields
+    target_db_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("target_databases.id", ondelete="SET NULL"), nullable=True)
+    message_template: Mapped[str | None] = mapped_column(Text, nullable=True)
+    gpt_spin: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
+    delay_min: Mapped[int] = mapped_column(Integer, default=30, server_default=text("30"))
+    delay_max: Mapped[int] = mapped_column(Integer, default=120, server_default=text("120"))
+    max_per_day: Mapped[int] = mapped_column(Integer, default=50, server_default=text("50"))
+    media_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    tone: Mapped[str] = mapped_column(String(64), default="natural", server_default="natural")
+    sent: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+    failed: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+    completed_at: Mapped[datetime | None] = mapped_column(nullable=True)
+
     # created_by is the FK for the User.campaigns relationship
     created_by: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     created_by_user: Mapped["User"] = relationship(
@@ -248,16 +322,20 @@ class CampaignAccount(Base):
 
 
 class CampaignTarget(Base):
-    """Association table: Campaign <-> Group"""
+    """Association table: Campaign <-> Group or User Target Log"""
     __tablename__ = "campaign_targets"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     campaign_id: Mapped[int] = mapped_column(Integer, ForeignKey("campaigns.id", ondelete="CASCADE"), nullable=False)
-    group_id: Mapped[int] = mapped_column(Integer, ForeignKey("groups.id", ondelete="CASCADE"), nullable=False)
+    group_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("groups.id", ondelete="CASCADE"), nullable=True)
+    user_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    username: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    status: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    attempted_at: Mapped[datetime | None] = mapped_column(nullable=True)
     added_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     campaign: Mapped["Campaign"] = relationship(back_populates="targets")
-    group: Mapped["TelegramGroup"] = relationship(back_populates="campaign_targets")
+    group: Mapped["TelegramGroup | None"] = relationship(back_populates="campaign_targets")
 
 
 # ─── Conversation ───────────────────────────────────────────
@@ -492,25 +570,43 @@ class BlogPost(Base, TimestampMixin):
 class Proxy(Base, TimestampMixin):
     __tablename__ = "proxies"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    provider: Mapped[str] = mapped_column(String(50), default="manual", server_default="manual")
-    proxy_type: Mapped[str] = mapped_column(String(10), default="socks5", server_default="socks5")
-    host: Mapped[str] = mapped_column(String(100))
-    port: Mapped[int] = mapped_column(Integer)
-    username: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    password: Mapped[str | None] = mapped_column(String(200), nullable=True)
-    country: Mapped[str | None] = mapped_column(String(4), nullable=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    host: Mapped[str] = mapped_column(String(255), nullable=False)
+    port: Mapped[int] = mapped_column(Integer, nullable=False)
+    username: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    password: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    proxy_type: Mapped[str] = mapped_column(String(16), default="socks5", server_default="socks5")
     status: Mapped[str] = mapped_column(String(20), default="untested", server_default="untested")
-    last_checked: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    latency_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     response_time_ms: Mapped[float | None] = mapped_column(Float, nullable=True)
-    success_count: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
     fail_count: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+    success_count: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+    country: Mapped[str | None] = mapped_column(String(4), nullable=True)
+    last_checked: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    added_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, server_default=func.now())
+    provider: Mapped[str] = mapped_column(String(50), default="manual", server_default="manual")
     allocated_to_account_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("accounts.id", ondelete="SET NULL"), nullable=True)
     allocated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     source: Mapped[str] = mapped_column(String(30), default="user_added", server_default="user_added")
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     cost: Mapped[float | None] = mapped_column(Float, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    def to_telethon_tuple(self) -> tuple:
+        import socks as _socks
+        type_map = {
+            "socks5": _socks.SOCKS5,
+            "socks4": _socks.SOCKS4,
+            "http":   _socks.HTTP,
+        }
+        return (
+            type_map.get((self.proxy_type or "socks5").lower(), _socks.SOCKS5),
+            self.host,
+            self.port,
+            True,
+            self.username or None,
+            self.password or None,
+        )
 
 
 class Partner(Base, TimestampMixin):
@@ -523,3 +619,85 @@ class Partner(Base, TimestampMixin):
     href: Mapped[str] = mapped_column(String(500), default="", server_default="")
     category: Mapped[str] = mapped_column(String(20), nullable=False)  # proxies | browsers | sms
     sort_order: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+
+
+class PipelineRun(Base):
+    """Execution run record for Master Operational Workflow v2.0 pipelines."""
+    __tablename__ = "pipeline_runs"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    stages: Mapped[list] = mapped_column(JSON, default=list, server_default=text("'[]'"))
+    triggered_by: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    status: Mapped[str] = mapped_column(String(20), default="pending", server_default="pending")
+    progress: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+    logs: Mapped[list] = mapped_column(JSON, default=list, server_default=text("'[]'"))
+    current_step: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class TargetDatabase(Base):
+    """Stores parsed audience target databases from the scraper modules."""
+    __tablename__ = "target_databases"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(150), nullable=False)
+    source: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    method: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    count: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+    filters: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    data: Mapped[list] = mapped_column(JSON, default=list, server_default=text("'[]'"))
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    owner_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
+
+class WarmupJob(Base):
+    """Account warming job running in background loop."""
+    __tablename__ = "warmup_jobs"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    account_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(20), default="running", server_default="running")
+    duration_days: Mapped[int] = mapped_column(Integer, default=7, server_default=text("7"))
+    interval_min: Mapped[int] = mapped_column(Integer, default=30, server_default=text("30"))
+    interval_max: Mapped[int] = mapped_column(Integer, default=120, server_default=text("120"))
+    actions: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    partner_accounts: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    actions_completed: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+    logs: Mapped[list] = mapped_column(JSON, default=list, server_default=text("'[]'"))
+    failure_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    last_action_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    ends_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    stopped_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class InviteJob(Base):
+    """Group & Channel invite job."""
+    __tablename__ = "invite_jobs"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    target_group: Mapped[str] = mapped_column(String(255), nullable=False)
+    total_targets: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+    method: Mapped[str] = mapped_column(String(32), default="standard", server_default="standard")
+    status: Mapped[str] = mapped_column(String(20), default="running", server_default="running")
+    invited: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+    failed: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+    started_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class InviteLog(Base):
+    """Per-invitee delivery logs."""
+    __tablename__ = "invite_logs"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    job_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    user_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    account_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    status: Mapped[str] = mapped_column(String(64), nullable=False)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    attempted_at: Mapped[datetime | None] = mapped_column(DateTime, server_default=func.now())
+

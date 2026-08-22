@@ -43,40 +43,84 @@ def _account_out(a) -> AccountOut:
     )
 
 
-@router.get("", response_model=PaginatedResponse, tags=["Accounts"])
-@router.get("/", response_model=PaginatedResponse, tags=["Accounts"])
+@router.get("", tags=["Accounts"])
+@router.get("/", tags=["Accounts"])
 async def list_accounts(
     page: int = 1,
-    page_size: int = 20,
+    page_size: int = 50,
     status_filter: str = None,
+    folder: str = None,
+    search: str = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_tenant),
 ):
-    """List accounts. Admins see all; regular users see only their own."""
-    q = select(func.count(Account.id))
+    """List accounts with support for 7-folder filtering, search, and counts."""
+    from sqlalchemy import or_
+    q = select(Account).where(Account.deleted_at.is_(None))
     if current_user.role != "admin":
         q = q.where(Account.user_id == current_user.id)
+    if folder:
+        q = q.where(Account.folder == folder)
     if status_filter:
         q = q.where(Account.status == status_filter)
+    if search:
+        search_like = f"%{search}%"
+        q = q.where(
+            or_(
+                Account.phone_number.ilike(search_like),
+                Account.username.ilike(search_like),
+                Account.first_name.ilike(search_like),
+            )
+        )
+
+    q = q.order_by(Account.id.desc())
     result = await db.execute(q)
-    total = result.scalar() or 0
+    items = result.scalars().all()
+    total = len(items)
 
-    q2 = select(Account).order_by(Account.id.desc())
+    # Compute folder counts
+    cq = select(Account.folder, func.count(Account.id)).where(Account.deleted_at.is_(None))
     if current_user.role != "admin":
-        q2 = q2.where(Account.user_id == current_user.id)
-    if status_filter:
-        q2 = q2.where(Account.status == status_filter)
-    q2 = q2.offset((page - 1) * page_size).limit(page_size)
-    result2 = await db.execute(q2)
-    items = result2.scalars().all()
+        cq = cq.where(Account.user_id == current_user.id)
+    cq = cq.group_by(Account.folder)
+    c_res = await db.execute(cq)
+    counts_map = dict(c_res.all())
+    counts = {
+        "active": counts_map.get("active", 0),
+        "temp_spam": counts_map.get("temp_spam", 0),
+        "perm_ban": counts_map.get("perm_ban", 0),
+        "frozen": counts_map.get("frozen", 0),
+        "premium": counts_map.get("premium", 0),
+        "archive": counts_map.get("archive", 0),
+        "deleted": counts_map.get("deleted", 0),
+    }
 
-    return PaginatedResponse(
-        items=[_account_out(i) for i in items],
-        total=total,
-        page=page,
-        page_size=page_size,
-        total_pages=max(1, (total + page_size - 1) // page_size),
-    )
+    formatted_accounts = [
+        {
+            "id": str(a.id),
+            "phone": a.phone_number,
+            "username": a.username,
+            "first_name": a.first_name or f"User #{a.id}",
+            "folder": getattr(a, "folder", "active") or "active",
+            "premium": bool(getattr(a, "is_premium", False)),
+            "has_proxy": bool(a.proxy_config and len(a.proxy_config) > 0),
+            "last_check": a.health_check_at.isoformat() if a.health_check_at else None,
+            "flood_until": a.flood_wait_until.isoformat() if a.flood_wait_until else None,
+            "trust_score": int(a.trust_score or 0),
+            "session_format": "session+json" if a.session_string else "tdata",
+        }
+        for a in items
+    ]
+
+    return {
+        "accounts": formatted_accounts,
+        "counts": counts,
+        "items": [_account_out(i) for i in items],
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": max(1, (total + page_size - 1) // page_size),
+    }
 
 
 @router.get("/status-counts", tags=["Accounts"])

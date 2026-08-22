@@ -27,9 +27,44 @@ def main():
 
     echo ""
     echo "=== REBUILDING AND RESTARTING DOCKER CONTAINERS ==="
-    docker compose -f docker-compose.prod.yml build
+    docker compose -f docker-compose.prod.yml build telegramgeeks-frontend
     docker compose -f docker-compose.prod.yml up -d
+    docker compose -f docker-compose.prod.yml restart telegramgeeks-backend
     sleep 6
+
+    echo ""
+    echo "=== SEEDING PARTNERS IN POSTGRESQL ==="
+    docker compose -f docker-compose.prod.yml exec -T telegramgeeks-backend python -c "
+import asyncio
+from app.db.session import async_session_factory
+from app.models import Partner
+from app.data.default_partners import DEFAULT_PARTNERS
+from sqlalchemy import select
+
+async def main():
+    async with async_session_factory() as session:
+        r = await session.execute(select(Partner))
+        existing = r.scalars().all()
+        print(\"Current partners in DB:\", len(existing))
+        if len(existing) < 100:
+            for p in existing:
+                await session.delete(p)
+            await session.flush()
+            for item in DEFAULT_PARTNERS:
+                session.add(Partner(
+                    name=item['name'],
+                    img=item['img'],
+                    href=item.get('href', ''),
+                    category=item.get('category', 'proxies'),
+                    sort_order=item.get('sort_order', 0),
+                ))
+            await session.commit()
+            print(\"Successfully seeded default partners into production DB!\")
+        else:
+            print(\"Partners table is already fully seeded with 124 partners.\")
+
+asyncio.run(main())
+"
 
     echo ""
     echo "=== RUNNING CONTAINERS ==="
@@ -37,22 +72,22 @@ def main():
 
     echo ""
     echo "=== NGINX CONFIG RELOAD ==="
-    cp {REMOTE_DIR}/nginx/telegramgeekspro.conf /etc/nginx/sites-available/telegramgeekspro
+    cp /opt/telegramgeeks/nginx/telegramgeekspro.conf /etc/nginx/sites-available/telegramgeekspro
     ln -sf /etc/nginx/sites-available/telegramgeekspro /etc/nginx/sites-enabled/telegramgeekspro
     nginx -t && systemctl reload nginx
 
     echo ""
-    echo "=== BACKEND HEALTH CHECK (Port 8002) ==="
-    curl -s -i http://127.0.0.1:8002/api/v1/health || true
+    echo "=== BACKEND HEALTH & PARTNERS CHECK ==="
+    curl -s http://127.0.0.1:8002/api/v1/partners | python3 -c "import json, sys; data=json.load(sys.stdin); print('Live partners API returns count:', len(data))"
 
     echo ""
     echo "=== FRONTEND HEALTH CHECK (Port 3001) ==="
-    curl -s -I http://127.0.0.1:3001/ || true
+    curl -s -I http://127.0.0.1:3001/partner | head -n 5 || true
 
     echo ""
     echo "=== HOST NGINX PUBLIC ENDPOINT CHECK ==="
-    curl -s -I -k https://127.0.0.1/dashboard/proxies -H "Host: telegramgeekspro.com" || true
-    curl -s -I -k https://127.0.0.1/dashboard/ai-models -H "Host: telegramgeekspro.com" || true
+    curl -s -I -k https://127.0.0.1/partner -H "Host: telegramgeekspro.com" | head -n 5 || true
+    curl -s -I -k https://127.0.0.1/manuals/invayt-v2 -H "Host: telegramgeekspro.com" | head -n 5 || true
     """
 
     stdin, stdout, stderr = ssh.exec_command(cmd, timeout=600)

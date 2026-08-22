@@ -1,173 +1,259 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Rocket, ArrowLeft, Loader2, Users, Zap, Target, Activity } from "lucide-react";
+import { Rocket, ArrowLeft, Loader2, Users, Zap, Target, Activity, Flame, Eye, Heart, Sparkles, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
+import { ModuleHeader } from "@/components/modules/ModuleHeader";
+import { AccountPicker, AccountItem } from "@/components/modules/AccountPicker";
 import { ThreadProxyPanel } from "@/components/modules/ThreadProxyPanel";
-import { LogPanel } from "@/components/modules/LogPanel";
-import { ModuleFooter } from "@/components/modules/ModuleFooter";
+import { FloodControlPanel } from "@/components/modules/FloodControlPanel";
+import { LogPanel, LogEntry } from "@/components/modules/LogPanel";
+import { ModuleExecutionCard } from "@/components/modules/ModuleExecutionCard";
 import { CrossLinkFooter } from "@/components/modules/CrossLinkFooter";
+import { ModuleFooter } from "@/components/modules/ModuleFooter";
+import { cn } from "@/lib/utils";
 
 const boosterModes = [
-  { id: "members", label: "Members", icon: Users, desc: "Boost member count" },
-  { id: "views", label: "Views", icon: Activity, desc: "Boost post views" },
-  { id: "reactions", label: "Reactions", icon: Zap, desc: "Boost post reactions" },
-];
-
-const boostSources = [
-  { id: "accounts", label: "My Accounts" },
-  { id: "bots", label: "Bot Network" },
+  { id: "members", label: "Mass Subscriptions", icon: Users, desc: "Join channels & groups" },
+  { id: "views", label: "Views Booster", icon: Eye, desc: "Simulate organic post views" },
+  { id: "reactions", label: "Reactions Wave", icon: Heart, desc: "Deploy emoji reactions" },
+  { id: "warmup", label: "7-Day Warm-up", icon: Flame, desc: "Autonomous maturation cycle" },
 ];
 
 export default function AccountBoosterPage() {
   const router = useRouter();
-  const [accounts, setAccounts] = useState<any[]>([]);
-  const [accountId, setAccountId] = useState("");
+  const [accounts, setAccounts] = useState<AccountItem[]>([]);
+  const [selectedAccounts, setSelectedAccounts] = useState<(string | number)[]>([]);
   const [mode, setMode] = useState("members");
-  const [source, setSource] = useState("accounts");
   const [target, setTarget] = useState("");
   const [quantity, setQuantity] = useState(100);
-  const [speed, setSpeed] = useState(50);
+  const [speed, setSpeed] = useState(25);
+
+  // Concurrency & delays
   const [threadCount, setThreadCount] = useState(5);
   const [proxyMode, setProxyMode] = useState("account");
+  const [proxyStr, setProxyStr] = useState("");
+  const [minDelay, setMinDelay] = useState(3);
+  const [maxDelay, setMaxDelay] = useState(8);
+
   const [executing, setExecuting] = useState(false);
-  const [log, setLog] = useState<any[]>([]);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
     api.get("/accounts/", { params: { pageSize: 100 } })
-      .then(r => setAccounts(r.data?.items || r.data || []))
+      .then((r) => {
+        const items = r.data?.items || r.data || [];
+        setAccounts(items);
+        if (items.length > 0) {
+          setSelectedAccounts(items.slice(0, 5).map((a: any) => a.id));
+        }
+      })
       .catch(() => {});
   }, []);
 
-  function addLog(text: string, level = "info") {
-    setLog(prev => [...prev, { time: new Date().toLocaleTimeString(), text, level }]);
+  function addLog(text: string, level: "info" | "success" | "warn" | "error" | "flood" = "info") {
+    setLogs((prev) => [...prev, { time: new Date().toLocaleTimeString(), text, level }]);
   }
 
   async function handleExecute() {
-    if (!target.trim()) { setError("Enter target"); return; }
-    setExecuting(true); setError(""); setLog([]);
+    if (!target.trim() && mode !== "warmup") {
+      setError("Please specify a target Telegram link or channel username");
+      return;
+    }
+    if (selectedAccounts.length === 0) {
+      setError("Please select at least one account to execute boost tasks");
+      return;
+    }
+
+    setExecuting(true);
+    setError("");
+    addLog(`Initiating ${mode.toUpperCase()} booster on ${target || "account pool"}...`, "info");
+
     try {
-      addLog(`Starting ${mode} boost on ${target} (${quantity}, speed ${speed})...`);
       const r = await api.post("/modules/account_booster/execute", {
         params: {
           mode,
-          source,
           target: target.trim(),
           quantity,
           speed,
-          account_id: accountId || undefined,
+          account_ids: selectedAccounts,
+          account_id: selectedAccounts[0],
           thread_count: threadCount,
           proxy_mode: proxyMode,
+          delay_before_action: `${minDelay}-${maxDelay}`,
         },
       });
-      addLog("Boost started", "success");
+
+      addLog(`Account booster operation running: Task dispatched across ${selectedAccounts.length} accounts`, "success");
     } catch (e: any) {
       const msg = e.response?.data?.detail || e.message;
       setError(msg);
-      addLog(msg, "error");
-    } finally { setExecuting(false); }
+      addLog(`Booster error: ${msg}`, "error");
+    } finally {
+      setExecuting(false);
+    }
   }
 
   return (
-    <div className="min-h-screen pb-20">
-      <div className="sticky top-0 z-40 bg-card border-b border-border px-4 py-3">
-        <div className="flex items-center gap-3">
-          <button onClick={() => router.push("/dashboard/modules")} className="p-1 rounded-lg hover:bg-secondary transition-colors">
-            <ArrowLeft className="h-5 w-5 text-foreground" />
-          </button>
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Rocket className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-foreground">Account Booster</h1>
-            <p className="text-xs text-muted-foreground">Boost members, views, and reactions using your accounts</p>
-          </div>
+    <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <ModuleHeader
+        title="TelegramBooster Account Engine"
+        description="Comprehensive account maturation, view amplification, channel subscription waves, and reaction booster"
+        icon={<Rocket className="h-6 w-6" />}
+        category="Account Operations"
+        planRequired="starter"
+        accountCount={accounts.length}
+        status={executing ? "running" : "ready"}
+      />
+
+      {error && (
+        <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/30 text-xs font-semibold text-destructive">
+          {error}
         </div>
-      </div>
+      )}
 
-      <div className="px-4 py-4 space-y-4">
-        {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3 text-sm text-red-700 dark:text-red-300">{error}</div>
-        )}
-
-        <div className="bg-card rounded-xl border border-border p-4">
-          <div className="flex items-center gap-2 mb-3">
-            {boosterModes.map(m => (
-              <button key={m.id} onClick={() => setMode(m.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${mode === m.id ? "bg-primary text-primary-foreground shadow-sm" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}
-                title={m.desc}>
-                <m.icon className="h-3.5 w-3.5" /> {m.label}
+      {/* Split Workstation */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Column: Configuration */}
+        <div className="lg:col-span-7 space-y-5">
+          {/* Booster Mode Selector */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {boosterModes.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setMode(m.id)}
+                className={cn(
+                  "p-3 rounded-xl border text-left transition-all",
+                  mode === m.id
+                    ? "bg-primary/10 border-primary shadow-xs"
+                    : "bg-secondary/40 border-border hover:bg-secondary"
+                )}
+              >
+                <div className="flex items-center gap-1.5 font-bold text-xs">
+                  <m.icon className={cn("h-4 w-4", mode === m.id ? "text-primary" : "text-muted-foreground")} />
+                  <span className={mode === m.id ? "text-primary" : "text-foreground"}>{m.label}</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1 line-clamp-1">{m.desc}</p>
               </button>
             ))}
           </div>
 
-          <div className="flex items-center gap-2 mb-4">
-            {boostSources.map(s => (
-              <button key={s.id} onClick={() => setSource(s.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${source === s.id ? "bg-primary text-primary-foreground shadow-sm" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}>
-                {s.label}
-              </button>
-            ))}
-          </div>
+          {/* Account Picker */}
+          <AccountPicker
+            accounts={accounts}
+            selectedIds={selectedAccounts}
+            onSelectionChange={setSelectedAccounts}
+            label="Assigned Worker Accounts"
+          />
 
-          <div className="space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* Target & Quantity Settings */}
+          <div className="bg-card rounded-2xl border border-border p-5 space-y-4 shadow-sm">
+            <div className="flex items-center justify-between pb-2 border-b border-border/60">
+              <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <Target className="h-4 w-4 text-primary" />
+                Target & Volume Configuration
+              </h3>
+            </div>
+
+            {mode !== "warmup" && (
               <div>
-                <label className="block text-xs text-muted-foreground mb-1">
-                  {mode === "members" ? "Chat Username" : "Post Link"}
+                <label className="block text-xs font-bold text-foreground mb-1.5">
+                  Target Channel / Post Link <span className="text-destructive">*</span>
                 </label>
-                <input type="text" value={target} onChange={e => setTarget(e.target.value)}
-                  placeholder={mode === "members" ? "@channel or @group" : "https://t.me/chat/1234"}
-                  className="w-full bg-secondary border-0 rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary" />
+                <input
+                  type="text"
+                  value={target}
+                  onChange={(e) => setTarget(e.target.value)}
+                  placeholder="https://t.me/target_channel or https://t.me/channel/123"
+                  className="w-full bg-secondary border border-border rounded-xl px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/40"
+                />
               </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-muted-foreground mb-1">Account</label>
-                <select value={accountId} onChange={e => setAccountId(e.target.value)}
-                  className="w-full bg-secondary border-0 rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary">
-                  <option value="">All active accounts</option>
-                  {accounts.map((a: any) => (
-                    <option key={a.id} value={a.phone_number || a.phone}>{a.phone_number || a.phone || `#${a.id}`}</option>
-                  ))}
-                </select>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold text-foreground">Target Volume</label>
+                  <span className="font-mono font-bold text-xs text-primary">{quantity} actions</span>
+                </div>
+                <input
+                  type="range"
+                  min={10}
+                  max={2000}
+                  value={quantity}
+                  onChange={(e) => setQuantity(parseInt(e.target.value) || 100)}
+                  className="w-full accent-primary h-2 bg-secondary rounded-lg cursor-pointer"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold text-foreground">Pacing Velocity</label>
+                  <span className="font-mono font-bold text-xs text-warning">{speed} actions/hour</span>
+                </div>
+                <input
+                  type="range"
+                  min={5}
+                  max={200}
+                  value={speed}
+                  onChange={(e) => setSpeed(parseInt(e.target.value) || 25)}
+                  className="w-full accent-warning h-2 bg-secondary rounded-lg cursor-pointer"
+                />
               </div>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs text-muted-foreground mb-1">Quantity: {quantity}</label>
-                <input type="range" min={10} max={1000} step={10} value={quantity} onChange={e => setQuantity(Number(e.target.value))}
-                  className="w-full accent-primary" />
-                <div className="flex justify-between text-[10px] text-muted-foreground"><span>10</span><span>1000</span></div>
-              </div>
-              <div>
-                <label className="block text-xs text-muted-foreground mb-1">Speed: {speed}%</label>
-                <input type="range" min={10} max={100} step={10} value={speed} onChange={e => setSpeed(Number(e.target.value))}
-                  className="w-full accent-primary" />
-                <div className="flex justify-between text-[10px] text-muted-foreground"><span>Slow</span><span>Fast</span></div>
-              </div>
-            </div>
-
-            <button onClick={handleExecute} disabled={executing || !target.trim()}
-              className="bg-primary text-primary-foreground text-xs font-medium px-4 py-2 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 inline-flex items-center gap-1.5">
-              {executing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Rocket className="h-3.5 w-3.5" />}
-              {executing ? "Running..." : "Start Boost"}
-            </button>
           </div>
+
+          {/* Concurrency & Delays */}
+          <ThreadProxyPanel
+            threadCount={threadCount}
+            onThreadChange={setThreadCount}
+            proxyMode={proxyMode}
+            onProxyChange={setProxyMode}
+            proxyStr={proxyStr}
+            onProxyStrChange={setProxyStr}
+          />
+
+          <FloodControlPanel
+            minDelay={minDelay}
+            maxDelay={maxDelay}
+            onMinDelayChange={setMinDelay}
+            onMaxDelayChange={setMaxDelay}
+          />
         </div>
 
-        <ThreadProxyPanel threadCount={threadCount} onThreadChange={setThreadCount} proxyMode={proxyMode} onProxyChange={setProxyMode} />
-        <LogPanel entries={log} />
+        {/* Right Column: Execution & Stream */}
+        <div className="lg:col-span-5 space-y-5">
+          <ModuleExecutionCard
+            onExecute={handleExecute}
+            isExecuting={executing}
+            buttonText={`Start ${mode.toUpperCase()} Booster`}
+            stats={{
+              total: quantity,
+              rate: `${speed} /hr`,
+            }}
+          />
 
-        <CrossLinkFooter links={[
-          { label: "Collect Audience", href: "/dashboard/modules/sbor-auditorii" },
-          { label: "Mass Messaging", href: "/dashboard/modules/mass-messaging" },
-          { label: "Chat Creator", href: "/dashboard/modules/chat-creator" },
-        ]} />
-
-        <ModuleFooter manualSlug="akkount-buster" />
+          <LogPanel
+            entries={logs}
+            title="Booster Execution Terminal"
+            maxHeight="320px"
+            onClear={() => setLogs([])}
+          />
+        </div>
       </div>
+
+      <CrossLinkFooter
+        links={[
+          { label: "Account Folders", href: "/dashboard/modules/account-folders" },
+          { label: "Reactions Booster", href: "/dashboard/modules/reactions" },
+          { label: "Views Booster", href: "/dashboard/modules/views-booster" },
+        ]}
+      />
+
+      <ModuleFooter manualSlug="account-booster" />
     </div>
   );
 }
