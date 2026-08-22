@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Plus, Wallet, Settings, Loader2, CheckCircle2, AlertCircle, Brain, Key, Mail, Send, Eye, EyeOff, RefreshCw, Shield, Sparkles, Server, Globe, Zap, Sliders, Cpu, ExternalLink, Layers, Bot, Check, ArrowRight } from "lucide-react";
 import api from "@/lib/api";
 
