@@ -817,6 +817,78 @@ async def reject_deposit(
     return {"message": f"Deposit {deposit_id} rejected: {reason}"}
 
 
+def safe_parse_json_list(val, default=None):
+    if default is None:
+        default = ["BTC", "ETH", "USDT", "USDC", "LTC", "DOGE", "BNB", "SOL", "XMR", "TRX", "TON"]
+    if isinstance(val, list):
+        return val
+    if not val:
+        return default
+    try:
+        parsed = json.loads(val)
+        if isinstance(parsed, list):
+            return parsed
+    except Exception:
+        pass
+    try:
+        import ast
+        parsed = ast.literal_eval(val)
+        if isinstance(parsed, list):
+            return parsed
+    except Exception:
+        pass
+    return default
+
+
+def _build_system_settings_obj(raw: dict) -> SystemSettings:
+    return SystemSettings(
+        platform_name=raw.get("platform_name") or "TelegramGeeks Pro",
+        maintenance_mode=str(raw.get("maintenance_mode", "false")).lower() in ("true", "1", "yes"),
+        registration_enabled=str(raw.get("registration_enabled", "true")).lower() in ("true", "1", "yes"),
+        starter_price_monthly=float(raw.get("starter_price_monthly") or 29.0),
+        starter_price_yearly=float(raw.get("starter_price_yearly") or 290.0),
+        pro_price_monthly=float(raw.get("pro_price_monthly") or 79.0),
+        pro_price_yearly=float(raw.get("pro_price_yearly") or 790.0),
+        agency_price_monthly=float(raw.get("agency_price_monthly") or 199.0),
+        agency_price_yearly=float(raw.get("agency_price_yearly") or 1990.0),
+        supported_cryptos=safe_parse_json_list(raw.get("supported_cryptos")),
+        # Configured Deposit Wallet Addresses
+        wallet_sol=raw.get("wallet_sol") or "9HWxxL9duEamX7xPbmdAEc26frc3RzMGewfzwqEe5duN",
+        wallet_xmr=raw.get("wallet_xmr") or "428fAZEbHjvQ4eUGzhUKbDhhF43zyDPSqYrvdmn4jasgd1iLPfX3mAfcGq6L1bW6esNxda3ntBGfaZ2uLDXeAohoE8u3u4d",
+        wallet_eth=raw.get("wallet_eth") or "0x96d294E27D4Bb2959897aC11FFCE03606324380B",
+        wallet_btc=raw.get("wallet_btc") or "bc1qjy9v9jnq3cdupghzlc29m3wpft7pnxjpurda23",
+        wallet_trx=raw.get("wallet_trx") or "TQQcN4KhNKc6c4BPWzCDjhNm4YPGSWLrqi",
+        wallet_usdt_trc20=raw.get("wallet_usdt_trc20") or "TQQcN4KhNKc6c4BPWzCDjhNm4YPGSWLrqi",
+        wallet_usdt_erc20=raw.get("wallet_usdt_erc20") or "0x96d294E27D4Bb2959897aC11FFCE03606324380B",
+        wallet_ton=raw.get("wallet_ton") or "EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N",
+        nowpayments_api_key=raw.get("nowpayments_api_key") or None,
+        oxapay_api_key=raw.get("oxapay_api_key") or None,
+        polling_interval=int(raw.get("polling_interval") or 30),
+        telegram_api_id=int(raw.get("telegram_api_id") or 12345678),
+        telegram_api_hash=raw.get("telegram_api_hash") or "your_api_hash",
+        session_storage_path=raw.get("session_storage_path") or "./sessions",
+        openai_api_key=raw.get("openai_api_key") or None,
+        anthropic_api_key=raw.get("anthropic_api_key") or None,
+        groq_api_key=raw.get("groq_api_key") or None,
+        # Email settings
+        email_provider=raw.get("email_provider") or "disabled",
+        email_from_name=raw.get("email_from_name") or "TelegramGeeks Pro",
+        email_from_address=raw.get("email_from_address") or "notifications@telegramgeekspro.com",
+        smtp_host=raw.get("smtp_host") or "smtp.mailtrap.io",
+        smtp_port=int(raw.get("smtp_port") or 587),
+        smtp_user=raw.get("smtp_user") or None,
+        smtp_password=raw.get("smtp_password") or None,
+        smtp_tls=str(raw.get("smtp_tls", "true")).lower() in ("true", "1", "yes"),
+        smtp_ssl=str(raw.get("smtp_ssl", "false")).lower() in ("true", "1", "yes"),
+        resend_api_key=raw.get("resend_api_key") or None,
+        resend_from_email=raw.get("resend_from_email") or "notifications@telegramgeekspro.com",
+        mailtrap_api_token=raw.get("mailtrap_api_token") or None,
+        mailtrap_inbox_id=raw.get("mailtrap_inbox_id") or None,
+        mailtrap_is_sandbox=str(raw.get("mailtrap_is_sandbox", "true")).lower() in ("true", "1", "yes"),
+        email_notifications_enabled=str(raw.get("email_notifications_enabled", "true")).lower() in ("true", "1", "yes"),
+    )
+
+
 # ---- System Settings ----
 
 @router.get("/settings", response_model=SystemSettings, tags=["Admin"])
@@ -827,50 +899,7 @@ async def get_settings(
     """Get system settings from DB with defaults."""
     svc = SettingsService(db)
     raw = await svc.get_all()
-    return SystemSettings(
-        platform_name=raw.get("platform_name", "TelegramGeeks Pro"),
-        maintenance_mode=raw.get("maintenance_mode", "false") == "true",
-        registration_enabled=raw.get("registration_enabled", "true") == "true",
-        starter_price_monthly=float(raw.get("starter_price_monthly", 29)),
-        starter_price_yearly=float(raw.get("starter_price_yearly", 290)),
-        pro_price_monthly=float(raw.get("pro_price_monthly", 79)),
-        pro_price_yearly=float(raw.get("pro_price_yearly", 790)),
-        agency_price_monthly=float(raw.get("agency_price_monthly", 199)),
-        agency_price_yearly=float(raw.get("agency_price_yearly", 1990)),
-        supported_cryptos=json.loads(raw.get("supported_cryptos", '["BTC","ETH","USDT","USDC","LTC","DOGE","BNB","SOL","XMR","TRX","TON"]')),
-        # Configured Deposit Wallet Addresses
-        wallet_sol=raw.get("wallet_sol", "9HWxxL9duEamX7xPbmdAEc26frc3RzMGewfzwqEe5duN"),
-        wallet_xmr=raw.get("wallet_xmr", "428fAZEbHjvQ4eUGzhUKbDhhF43zyDPSqYrvdmn4jasgd1iLPfX3mAfcGq6L1bW6esNxda3ntBGfaZ2uLDXeAohoE8u3u4d"),
-        wallet_eth=raw.get("wallet_eth", "0x96d294E27D4Bb2959897aC11FFCE03606324380B"),
-        wallet_btc=raw.get("wallet_btc", "bc1qjy9v9jnq3cdupghzlc29m3wpft7pnxjpurda23"),
-        wallet_trx=raw.get("wallet_trx", "TQQcN4KhNKc6c4BPWzCDjhNm4YPGSWLrqi"),
-        wallet_usdt_trc20=raw.get("wallet_usdt_trc20", "TQQcN4KhNKc6c4BPWzCDjhNm4YPGSWLrqi"),
-        wallet_usdt_erc20=raw.get("wallet_usdt_erc20", "0x96d294E27D4Bb2959897aC11FFCE03606324380B"),
-        wallet_ton=raw.get("wallet_ton", "EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N"),
-        polling_interval=int(raw.get("polling_interval", 30)),
-        telegram_api_id=int(raw.get("telegram_api_id", 12345678)),
-        telegram_api_hash=raw.get("telegram_api_hash", "your_api_hash"),
-        session_storage_path=raw.get("session_storage_path", "./sessions"),
-        openai_api_key=raw.get("openai_api_key"),
-        anthropic_api_key=raw.get("anthropic_api_key"),
-        groq_api_key=raw.get("groq_api_key"),
-        # Email settings
-        email_provider=raw.get("email_provider", "disabled"),
-        email_from_name=raw.get("email_from_name", "TelegramGeeks Pro"),
-        email_from_address=raw.get("email_from_address", "notifications@telegramgeekspro.com"),
-        smtp_host=raw.get("smtp_host", "smtp.mailtrap.io"),
-        smtp_port=int(raw.get("smtp_port", 587)),
-        smtp_user=raw.get("smtp_user"),
-        smtp_password=raw.get("smtp_password"),
-        smtp_tls=raw.get("smtp_tls", "true") == "true",
-        smtp_ssl=raw.get("smtp_ssl", "false") == "true",
-        resend_api_key=raw.get("resend_api_key"),
-        resend_from_email=raw.get("resend_from_email"),
-        mailtrap_api_token=raw.get("mailtrap_api_token"),
-        mailtrap_inbox_id=raw.get("mailtrap_inbox_id"),
-        mailtrap_is_sandbox=raw.get("mailtrap_is_sandbox", "true") == "true",
-        email_notifications_enabled=raw.get("email_notifications_enabled", "true") == "true",
-    )
+    return _build_system_settings_obj(raw)
 
 
 @router.post("/reload-infrastructure", tags=["Admin"])
@@ -1026,50 +1055,7 @@ async def update_settings(
     await svc.update_all(body.model_dump())
     logger.info(f"Admin updated system settings")
     raw = await svc.get_all()
-    return SystemSettings(
-        platform_name=raw.get("platform_name", "TelegramGeeks Pro"),
-        maintenance_mode=raw.get("maintenance_mode", "false") == "true",
-        registration_enabled=raw.get("registration_enabled", "true") == "true",
-        starter_price_monthly=float(raw.get("starter_price_monthly", 29)),
-        starter_price_yearly=float(raw.get("starter_price_yearly", 290)),
-        pro_price_monthly=float(raw.get("pro_price_monthly", 79)),
-        pro_price_yearly=float(raw.get("pro_price_yearly", 790)),
-        agency_price_monthly=float(raw.get("agency_price_monthly", 199)),
-        agency_price_yearly=float(raw.get("agency_price_yearly", 1990)),
-        supported_cryptos=json.loads(raw.get("supported_cryptos", '["BTC","ETH","USDT","USDC","LTC","DOGE","BNB","SOL","XMR","TRX","TON"]')),
-        # Configured Deposit Wallet Addresses
-        wallet_sol=raw.get("wallet_sol", "9HWxxL9duEamX7xPbmdAEc26frc3RzMGewfzwqEe5duN"),
-        wallet_xmr=raw.get("wallet_xmr", "428fAZEbHjvQ4eUGzhUKbDhhF43zyDPSqYrvdmn4jasgd1iLPfX3mAfcGq6L1bW6esNxda3ntBGfaZ2uLDXeAohoE8u3u4d"),
-        wallet_eth=raw.get("wallet_eth", "0x96d294E27D4Bb2959897aC11FFCE03606324380B"),
-        wallet_btc=raw.get("wallet_btc", "bc1qjy9v9jnq3cdupghzlc29m3wpft7pnxjpurda23"),
-        wallet_trx=raw.get("wallet_trx", "TQQcN4KhNKc6c4BPWzCDjhNm4YPGSWLrqi"),
-        wallet_usdt_trc20=raw.get("wallet_usdt_trc20", "TQQcN4KhNKc6c4BPWzCDjhNm4YPGSWLrqi"),
-        wallet_usdt_erc20=raw.get("wallet_usdt_erc20", "0x96d294E27D4Bb2959897aC11FFCE03606324380B"),
-        wallet_ton=raw.get("wallet_ton", "EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N"),
-        polling_interval=int(raw.get("polling_interval", 30)),
-        telegram_api_id=int(raw.get("telegram_api_id", 12345678)),
-        telegram_api_hash=raw.get("telegram_api_hash", "your_api_hash"),
-        session_storage_path=raw.get("session_storage_path", "./sessions"),
-        openai_api_key=raw.get("openai_api_key"),
-        anthropic_api_key=raw.get("anthropic_api_key"),
-        groq_api_key=raw.get("groq_api_key"),
-        # Email settings
-        email_provider=raw.get("email_provider", "disabled"),
-        email_from_name=raw.get("email_from_name", "TelegramGeeks Pro"),
-        email_from_address=raw.get("email_from_address", "notifications@telegramgeekspro.com"),
-        smtp_host=raw.get("smtp_host", "smtp.mailtrap.io"),
-        smtp_port=int(raw.get("smtp_port", 587)),
-        smtp_user=raw.get("smtp_user"),
-        smtp_password=raw.get("smtp_password"),
-        smtp_tls=raw.get("smtp_tls", "true") == "true",
-        smtp_ssl=raw.get("smtp_ssl", "false") == "true",
-        resend_api_key=raw.get("resend_api_key"),
-        resend_from_email=raw.get("resend_from_email"),
-        mailtrap_api_token=raw.get("mailtrap_api_token"),
-        mailtrap_inbox_id=raw.get("mailtrap_inbox_id"),
-        mailtrap_is_sandbox=raw.get("mailtrap_is_sandbox", "true") == "true",
-        email_notifications_enabled=raw.get("email_notifications_enabled", "true") == "true",
-    )
+    return _build_system_settings_obj(raw)
 
 
 # ---- Email Administration & Template Hub ----

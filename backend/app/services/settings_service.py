@@ -28,6 +28,15 @@ DEFAULTS = {
     "agency_price_yearly": "1990.0",
     "supported_cryptos": '["BTC","ETH","USDT","USDC","LTC","DOGE","BNB","SOL","XMR","TRX","TON"]',
     "polling_interval": "30",
+    "telegram_api_id": "12345678",
+    "telegram_api_hash": "your_api_hash",
+    "session_storage_path": "./sessions",
+    # Gateway & AI Keys
+    "nowpayments_api_key": "",
+    "oxapay_api_key": "",
+    "openai_api_key": "",
+    "anthropic_api_key": "",
+    "groq_api_key": "",
     # Wallet Addresses
     "wallet_sol": "9HWxxL9duEamX7xPbmdAEc26frc3RzMGewfzwqEe5duN",
     "wallet_xmr": "428fAZEbHjvQ4eUGzhUKbDhhF43zyDPSqYrvdmn4jasgd1iLPfX3mAfcGq6L1bW6esNxda3ntBGfaZ2uLDXeAohoE8u3u4d",
@@ -78,7 +87,7 @@ class SettingsService:
             val = decrypt(val)
         return val
 
-    async def set(self, key: str, value: str):
+    async def set(self, key: str, value: str, commit: bool = True):
         if key in ENCRYPTED_KEYS and value:
             value = encrypt(value)
         result = await self.db.execute(select(SystemSetting).where(SystemSetting.key == key))
@@ -87,10 +96,18 @@ class SettingsService:
             r.value = value
         else:
             self.db.add(SystemSetting(key=key, value=value))
-        await self.db.commit()
+        if commit:
+            await self.db.commit()
 
     async def update_all(self, settings: dict):
         for key, value in settings.items():
-            if key in DEFAULTS:
-                str_val = str(value).lower() if isinstance(value, bool) else str(value)
-                await self.set(key, str_val)
+            if isinstance(value, bool):
+                str_val = "true" if value else "false"
+            elif isinstance(value, (list, dict)):
+                str_val = json.dumps(value)
+            elif value is None:
+                str_val = ""
+            else:
+                str_val = str(value)
+            await self.set(key, str_val, commit=False)
+        await self.db.commit()
