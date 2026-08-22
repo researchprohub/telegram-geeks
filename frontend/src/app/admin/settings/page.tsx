@@ -20,7 +20,7 @@ export default function AdminSettingsPage() {
   const [saveMessage, setSaveMessage] = useState("");
 
   // Email System States
-  const [testEmail, setTestEmail] = useState("discordmasters@atomicmail.io");
+  const [testEmail, setTestEmail] = useState("telegramgeekspro@atomicmail.io");
   const [testSending, setTestSending] = useState(false);
   const [testResult, setTestResult] = useState<{ status: string; message: string; details?: any } | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState("welcome");

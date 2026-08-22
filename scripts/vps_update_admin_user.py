@@ -28,30 +28,32 @@ from sqlalchemy import select
 
 async def update_admin():
     async with async_session_factory() as session:
-        # Check if new admin exists
-        new_email = "discordmasters@atomicmail.io"
+        new_email = "telegramgeekspro@atomicmail.io"
         new_pass = "Blackhat2020@@@"
         
-        result = await session.execute(select(User).where(User.email == new_email))
-        user = result.scalar_one_or_none()
-        if user is None:
-            user = User(email=new_email, full_name="Super Admin", role="admin", is_active=True)
-            session.add(user)
-            print(f"Created new admin user: {new_email}")
+        # Check if discordmasters user exists and update email or create new
+        res_dm = await session.execute(select(User).where(User.email == "discordmasters@atomicmail.io"))
+        dm_user = res_dm.scalar_one_or_none()
+        if dm_user:
+            dm_user.email = new_email
+            dm_user.hashed_password = hash_password(new_pass)
+            dm_user.full_name = "Super Admin"
+            dm_user.role = "admin"
+            dm_user.is_active = True
+            print(f"Updated existing discordmasters user to {new_email}")
         else:
-            print(f"Found existing user: {new_email}, updating...")
-            
-        user.hashed_password = hash_password(new_pass)
-        user.full_name = "Super Admin"
-        user.role = "admin"
-        user.is_active = True
-        
-        # Remove or update old admin@test.com
-        res_old = await session.execute(select(User).where(User.email == "admin@test.com"))
-        old_user = res_old.scalar_one_or_none()
-        if old_user:
-            await session.delete(old_user)
-            print("Removed deprecated admin@test.com user.")
+            result = await session.execute(select(User).where(User.email == new_email))
+            user = result.scalar_one_or_none()
+            if user is None:
+                user = User(email=new_email, full_name="Super Admin", role="admin", is_active=True)
+                session.add(user)
+                print(f"Created new admin user: {new_email}")
+            else:
+                print(f"Found existing user: {new_email}, updating...")
+            user.hashed_password = hash_password(new_pass)
+            user.full_name = "Super Admin"
+            user.role = "admin"
+            user.is_active = True
             
         await session.commit()
         print("Admin user update committed successfully!")

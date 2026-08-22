@@ -63,7 +63,7 @@ async def init_database():
     from sqlalchemy import select
     seed_users = [
         ("demo@test.com", "demo123", "Demo User", "pro"),
-        ("discordmasters@atomicmail.io", "Blackhat2020@@@", "Super Admin", "admin"),
+        ("telegramgeekspro@atomicmail.io", "Blackhat2020@@@", "Super Admin", "admin"),
     ]
     async with async_session_factory() as session:
         for email, password, full_name, role in seed_users:
