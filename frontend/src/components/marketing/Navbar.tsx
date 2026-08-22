@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ChevronDown, ShoppingCart, User, Menu, X } from "lucide-react";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 
 const navItems = [
   { label: "Download", href: "/download" },
@@ -65,16 +66,7 @@ export function Navbar({ locale = "en" }: { locale?: string }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-            <div className="w-8 h-8 rounded-md bg-[#2ffcd4] flex items-center justify-center shadow-[0_0_15px_rgba(47,252,212,0.3)] transition-transform group-hover:scale-105">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#071412" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 2L11 13" /><path d="M22 2L15 22L11 13L2 9L22 2Z" />
-              </svg>
-            </div>
-            <span className="font-bold text-lg tracking-tight text-white font-['Science_Gothic',sans-serif]">
-              Telegram<span className="text-[#2ffcd4]">Geeks</span>
-            </span>
-          </Link>
+          <BrandLogo size="md" href="/" />
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-1 lg:gap-2">

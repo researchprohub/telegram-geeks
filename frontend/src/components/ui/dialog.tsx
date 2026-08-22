@@ -14,6 +14,7 @@ export function Dialog({ children, open, onOpenChange }: Props & { open: boolean
 export function DialogContent({ children, className = "" }: Props) { return <div className={`p-6 ${className}`}>{children}</div>; }
 export function DialogHeader({ children, className = "" }: Props) { return <div className={`mb-4 ${className}`}>{children}</div>; }
 export function DialogTitle({ children, className = "" }: Props) { return <h2 className={`text-lg font-semibold ${className}`}>{children}</h2>; }
+export function DialogDescription({ children, className = "" }: Props) { return <p className={`text-sm text-muted-foreground ${className}`}>{children}</p>; }
 export function DialogFooter({ children, className = "" }: Props) {
   return <div className={`flex justify-end gap-2 mt-6 ${className}`}>{children}</div>;
 }

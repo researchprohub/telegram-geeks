@@ -9,18 +9,33 @@ import { partnersApi } from "@/lib/api";
 
 interface Partner {
   name: string;
-  img: string;
+  img?: string;
   href: string;
   category: "proxies" | "browsers" | "sms";
+  description?: string;
 }
+
+const DEFAULT_PARTNERS: Partner[] = [
+  { name: "5SIM.net", href: "https://5sim.net", category: "sms", description: "Global virtual phone numbers for instant SMS verification." },
+  { name: "SMS-Activate", href: "https://sms-activate.org", category: "sms", description: "Tier-1 virtual numbers in 150+ countries." },
+  { name: "Grizzly SMS", href: "https://grizzlysms.com", category: "sms", description: "High delivery rates for Telegram registrations." },
+  { name: "SMSPool", href: "https://smspool.net", category: "sms", description: "Fast automated SMS code acquisition API." },
+  { name: "Proxy-Seller", href: "https://proxy-seller.com", category: "proxies", description: "Dedicated IPv4/IPv6 & Mobile 4G/5G proxy rotation." },
+  { name: "MobileProxy.space", href: "https://mobileproxy.space", category: "proxies", description: "High-trust mobile proxies with remote reboot URLs." },
+  { name: "Bright Data", href: "https://brightdata.com", category: "proxies", description: "Residential & ISP proxy network for web scraping." },
+  { name: "Dolphin{anty}", href: "https://dolphin-anty.com", category: "browsers", description: "Anti-detect multi-account browser." },
+  { name: "AdsPower", href: "https://adspower.com", category: "browsers", description: "Multi-profile fingerprint management platform." },
+  { name: "Octo Browser", href: "https://octobrowser.net", category: "browsers", description: "Universal anti-detect browser for teams." },
+  { name: "Sphere.Chat", href: "https://sphere.chat", category: "browsers", description: "Encrypted messenger & community for 5,000+ marketers." },
+  { name: "BLB.team", href: "https://blb.team", category: "browsers", description: "Telegram automation community and knowledge base." },
+];
 
 async function fetchPartners(): Promise<Partner[]> {
   try {
     const res = await partnersApi.list();
-    return res.data;
-  } catch {
-    return [];
-  }
+    if (res.data && res.data.length > 0) return res.data;
+  } catch {}
+  return DEFAULT_PARTNERS;
 }
 
 export const dynamic = "force-dynamic";
@@ -116,43 +131,35 @@ function PartnerGrid({ partners }: { partners: Partner[] }) {
   return (
     <section className="py-8 lg:py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-          {partners.map((p) =>
-            p.href ? (
-              <a
-                key={p.name}
-                href={p.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative rounded-xl border border-border bg-muted p-4 flex items-center justify-center aspect-[5/3] hover:border-primary/20 hover:bg-primary/5 transition-all overflow-hidden"
-              >
-                <img
-                  src={p.img}
-                  alt={p.name}
-                  className="max-w-full max-h-full object-contain opacity-60 group-hover:opacity-100 transition-opacity"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-background/60">
-                  <div className="flex items-center gap-1.5 text-xs text-primary font-medium">
-                    <ExternalLink className="w-3 h-3" />
-                    Visit
-                  </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {partners.map((p) => (
+            <a
+              key={p.name}
+              href={p.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative rounded-xl border border-white/[0.08] bg-[#07090a] p-5 flex flex-col justify-between hover:border-[#2ffcd4]/40 hover:bg-white/[0.02] transition-all shadow-sm"
+            >
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-sm text-white group-hover:text-[#2ffcd4] transition-colors">{p.name}</span>
+                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-white/[0.06] text-white/50 border border-white/[0.06]">
+                    {p.category}
+                  </span>
                 </div>
-              </a>
-            ) : (
-              <div
-                key={p.name}
-                className="relative rounded-xl border border-border bg-muted p-4 flex items-center justify-center aspect-[5/3] opacity-60 overflow-hidden"
-              >
-                <img
-                  src={p.img}
-                  alt={p.name}
-                  className="max-w-full max-h-full object-contain"
-                  loading="lazy"
-                />
+                {p.description && (
+                  <p className="text-xs text-white/60 leading-relaxed line-clamp-2">
+                    {p.description}
+                  </p>
+                )}
               </div>
-            )
-          )}
+
+              <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs text-[#2ffcd4] font-medium">
+                <span>Visit Service</span>
+                <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+              </div>
+            </a>
+          ))}
         </div>
       </div>
     </section>

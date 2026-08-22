@@ -5,4 +5,5 @@ contextBridge.exposeInMainWorld("api", {
   tokenGet: () => ipcRenderer.invoke("token:get"),
   tokenSet: (value) => ipcRenderer.invoke("token:set", value),
   tokenClear: () => ipcRenderer.invoke("token:clear"),
+  getHWID: () => ipcRenderer.invoke("hwid:get"),
 });

@@ -12,12 +12,16 @@ export const metadata: Metadata = {
   keywords: "telegram blog, telegram automation, telegram growth, guides, tutorials",
 };
 
+import { STATIC_ARTICLES } from "@/data/static-articles";
+
 async function fetchPosts() {
   try {
-    const res = await blogApi.listPosts({ page_size: 20 });
-    return res.data;
+    const res = await blogApi.listPosts({ page_size: 100 });
+    const items = res.data?.items;
+    if (items && items.length >= STATIC_ARTICLES.length) return res.data;
+    return { items: STATIC_ARTICLES, total: STATIC_ARTICLES.length, page: 1, total_pages: 1 };
   } catch {
-    return { items: [], total: 0, page: 1, total_pages: 1 };
+    return { items: STATIC_ARTICLES, total: STATIC_ARTICLES.length, page: 1, total_pages: 1 };
   }
 }
 
@@ -26,7 +30,11 @@ function Cover({ src, alt, category, title, className }: { src?: string | null; 
     <div className={`relative overflow-hidden bg-secondary/40 ${className}`}>
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt={alt} className="w-full h-full object-cover" />
+        <img
+          src={src}
+          alt={alt}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
       ) : (
         <div className="w-full h-full relative flex items-end p-4 bg-gradient-to-br from-primary/15 via-secondary/10 to-secondary/40">
           <div className="absolute inset-0 opacity-[0.07]" style={{
@@ -122,7 +130,7 @@ export default async function BlogIndexPage() {
                     href={`/blog/${featured.slug}`}
                     className="group grid lg:grid-cols-2 gap-0 overflow-hidden rounded-2xl border border-border bg-card hover:border-primary/30 transition-all"
                   >
-                    <Cover className="aspect-[16/10] lg:aspect-auto lg:h-full" src={featured.cover_image} alt={featured.title} category={featured.category_name} title={featured.title} />
+                    <Cover className="w-full aspect-[16/9] lg:aspect-auto lg:min-h-[360px]" src={featured.cover_image} alt={featured.title} category={featured.category_name} title={featured.title} />
                     <div className="p-6 md:p-10 flex flex-col justify-center">
                       <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-primary mb-4">
                         <Newspaper className="w-3.5 h-3.5" /> Featured
@@ -152,7 +160,7 @@ export default async function BlogIndexPage() {
                         href={`/blog/${post.slug}`}
                         className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-lg transition-all"
                       >
-                        <Cover src={post.cover_image} alt={post.title} className="aspect-[16/10]" category={post.category_name} title={post.title} />
+                        <Cover src={post.cover_image} alt={post.title} className="w-full aspect-[16/9]" category={post.category_name} title={post.title} />
                         <CardContent className="p-5 flex flex-col flex-1">
                           {post.category_name && (
                             <span className="text-xs font-semibold uppercase tracking-wider text-primary mb-2">

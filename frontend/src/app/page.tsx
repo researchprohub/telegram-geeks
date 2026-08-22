@@ -8,6 +8,11 @@ import { blogApi } from "@/lib/api";
 import ModuleExplorer from "@/components/marketing/ModuleExplorer";
 import AnimatedSection from "@/components/marketing/AnimatedSection";
 import {
+  ParticleMeshBackground,
+  StatCounter,
+  LiveModuleSimulator,
+} from "@/components/marketing/TelegramExpertAnimation";
+import {
   ArrowRight, Gift, Users, Globe, MessageCircle,
   Search, Hash, FileJson, UserPlus, Plus, FileText,
   Send, ChevronRight, Sparkles, Target, Shield,
@@ -79,9 +84,11 @@ export default async function LandingPage() {
       <main>
         {/* ── Hero ── */}
         <section className="relative min-h-[90vh] flex flex-col items-center justify-center overflow-hidden pt-28 pb-16">
+          <ParticleMeshBackground />
+
           {/* Subtle background glow */}
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-[#2ffcd4]/[0.04] rounded-full blur-[140px]" />
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-[#2ffcd4]/[0.06] rounded-full blur-[140px]" />
           </div>
 
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex flex-col items-center text-center">
@@ -133,6 +140,16 @@ export default async function LandingPage() {
           </div>
         </section>
 
+        {/* ── Live Counter Tickers ── */}
+        <section className="py-12 border-y border-white/[0.08] bg-[#040607]">
+          <div className="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6">
+            <StatCounter label="Years on Market" value={6} suffix="+" sublabel="Continuous innovation" />
+            <StatCounter label="Active Clients" value={10000} suffix="+" sublabel="Worldwide operators" />
+            <StatCounter label="Core Modules" value={77} suffix="+" sublabel="Telegram Expert parity" />
+            <StatCounter label="Platform Uptime" value={99} suffix=".9%" sublabel="Enterprise reliability" />
+          </div>
+        </section>
+
         {/* ── Partner Logos ── */}
         <PartnerLogos />
 
@@ -157,6 +174,21 @@ export default async function LandingPage() {
               <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#050707] to-transparent pointer-events-none" />
               <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#050707] to-transparent pointer-events-none" />
             </div>
+          </div>
+        </section>
+
+        {/* ── Live Module Simulator ── */}
+        <section className="py-16 bg-[#030505] border-b border-white/[0.06]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <div className="text-center max-w-2xl mx-auto space-y-2">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                Live Engine Simulator
+              </h2>
+              <p className="text-xs sm:text-sm text-white/60">
+                Preview real-time MTProto telemetry, autonomous persona generation, and audience scraping in action.
+              </p>
+            </div>
+            <LiveModuleSimulator />
           </div>
         </section>
 

@@ -4,8 +4,10 @@ FROM node:${NODE_VERSION} AS builder
 
 WORKDIR /app
 
-ARG NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+ARG NEXT_PUBLIC_API_URL=/api
+ARG NEXT_PUBLIC_SITE_URL=https://telegramgeekspro.com
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 
 COPY package.json package-lock.json* ./
 RUN npm ci

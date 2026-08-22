@@ -1,0 +1,28 @@
+# TelegramGeeks Pro — AI Search & Indexing Context (llms.txt)
+
+> TelegramGeeks Pro is a next-generation Telegram automation operating system, AI persona conversational warming platform, and MTProto marketing suite.
+
+## Core Platform Summary
+- **Architecture**: Dual-layer architecture consisting of a standalone Windows Desktop client (Electron + embedded FastAPI) and a modern Web Cloud App (Next.js 15 + FastAPI).
+- **Module Count**: 77+ high-concurrency MTProto modules covering account registration, 2-way TData conversion, scrapers, mass messaging, and group management.
+- **AI Personas**: Autonomous AI personas powered by dual Soul Prompts, 3-tier episodic/semantic memory, dynamic emotional state machines, and context-aware natural conversation.
+- **Anti-Ban Defense**: Predictive flood guards, peer-flood delay algorithms, device fingerprint cloaking, and automatic mobile 4G/5G proxy rotation.
+
+## Key Feature Categories
+1. **Account Operations**: Two-way TData <-> Telethon Session+JSON converter, 30-day progressive booster/warmer, SMS registrar (25+ providers), SpamBot restriction remover.
+2. **Audience & Parsing**: Member scraper from public/private chats, active-only filter, global chat search, hidden member analyzer, comment parser.
+3. **Messaging & Outreach**: Mass direct messaging (DM), group inviter with admin bypass, channel auto-forwarder, interactive poll voter, reaction booster.
+4. **AI Personas & Neuro-Text**: Autonomous multi-account conversational warm-up, neuro-text spin generator, multi-lingual contextual responder.
+5. **Infrastructure & Security**: Hardware DPAPI encrypted credential vault, standalone local SQLite database, MTProto session duplicator, proxy speed benchmark.
+
+## Commercial Licensing & Plans
+- **Starter Tier ($49/mo)**: Full scraper tools, 2-way TData converters, basic warming.
+- **Pro Tier ($149/mo)**: All 77 modules, autonomous AI personas, mass DM & inviter engines, unlimited proxies.
+- **Enterprise ($499/mo)**: Source code access, dedicated API cluster, custom MTProto protocols, priority support.
+
+## Documentation & Reference URLs
+- Official Website: https://telegramgeekspro.com
+- Documentation & Manuals: https://telegramgeekspro.com/manuals
+- Technical Blog & Research: https://telegramgeekspro.com/blog
+- Chinese Portal: https://telegramgeekspro.com/cn
+- Telegram Channel: https://t.me/telegramgeeks

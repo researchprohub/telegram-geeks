@@ -1,0 +1,122 @@
+# TelegramGeeks Pro — Comprehensive Platform Index (llms-full.txt)
+
+TelegramGeeks Pro is the industry standard for scalable Telegram marketing, account lifecycle management, audience extraction, and AI-driven conversational outreach.
+
+## 77 Automation Modules Reference
+
+### 1. Account Operations
+- `converter`: High-speed session to TData converter.
+- `two_way_converter`: Bidirectional conversion between Telegram Desktop TData folders and Telethon/Pyrogram SQLite sessions.
+- `booster`: 30-day progressive algorithmic warming engine mimicking human behavior.
+- `registrar`: Multi-threaded SMS account registrar supporting 25+ SMS services.
+- `duplicator`: Clones and exports secondary sessions with independent hardware keys.
+- `json_generator`: Generates random realistic Android/iOS/Desktop device fingerprints.
+- `spambot_remover`: Automated appeal dispatcher to @SpamBot for lifting temporary blocks.
+- `manager`: Batch profile updater (avatars, 2FA passwords, bio, usernames, privacy settings).
+- `number_checker`: Phone number validation against Telegram user database.
+- `tdata_checker`: Session validity and freeze verification engine.
+- `auth_key_cleaner`: Session revocation and active session termination tool.
+- `session_fixer`: Automated repair for corrupted SQLite session headers.
+- `account_stats`: Live account balance, subscription, and limitation telemetry.
+- `account_cleanup`: Auto-leave unused groups and purge dialogue history.
+- `profile_sync`: Multi-account avatar and metadata bulk synchronization.
+- `bulk_logout`: Graceful session revocation across distributed clusters.
+
+### 2. Audience & Parsing
+- `scraper`: Fast member extraction from public/private Telegram supergroups.
+- `active_filter`: Real-time filtering by user online status (recently, this week, active).
+- `comment_parser`: Scrapes commenters and discussion participants under channel broadcasts.
+- `global_search`: Keyword-based discovery for global Telegram channels and public groups.
+- `hidden_parser`: Extract members through message reactions, polls, and comment history.
+- `geo_search`: Location-based proximity member search via Telegram NearBy API.
+- `phone_parser`: Extract contacts and cross-match phone databases.
+- `invite_link_collector`: Auto-discover Telegram invite links across web and social platforms.
+- `admin_finder`: Identify owners and administrators of target groups.
+- `user_info_enricher`: Scrapes bio, creation date estimate, and verified badge indicators.
+- `group_analytics`: Group activity metrics, message frequency, and active hours distribution.
+- `story_viewer`: Auto-view user stories to generate inbound curiosity traffic.
+- `topic_parser`: Sub-forum and forum topic thread scraper.
+- `silent_collector`: Passive packet-level member interception.
+- `duplicate_cleaner`: Deduplicate target user lists across multiple campaigns.
+
+### 3. Messaging & Outreach
+- `mass_dm`: Multi-threaded direct message sender with spintax and dynamic delays.
+- `inviter`: Bulk group member inviter with rate limit throttling and admin bypass.
+- `forwarder`: Automated cross-posting and message mirroring between channels.
+- `secret_chat_dm`: High-security end-to-end encrypted secret chat outreach.
+- `story_reaction`: Automated emoji reaction sender for Telegram stories.
+- `poll_booster`: Automated vote casting on channel surveys and polls.
+- `reaction_booster`: Automated emoji reaction booster for channel broadcasts.
+- `chat_warmer`: Simulated organic dialogue and mutual chat exchange between account clusters.
+- `voice_dm`: Automated voice note dispatcher.
+- `video_note_dm`: Automated circular video note message sender.
+- `premium_gift_sender`: Bulk giveaway and Telegram Premium gift automation.
+- `scheduled_broadcaster`: Timed announcement scheduler with queue management.
+- `draft_broadcaster`: Bulk cloud draft injector across managed accounts.
+- `report_engine`: Mass reporting automation against infringing or competitor assets.
+- `mass_mention`: Tag target users in group discussions with targeted offers.
+- `button_message_sender`: Inline URL and callback button message sender.
+
+### 4. AI Personas & Neuro-Text
+- `persona_orchestrator`: AI multi-agent dialogue manager with dynamic contextual memory.
+- `neuro_text`: LLM-based text spinner and paraphrasing engine for zero-pattern outreach.
+- `soul_prompts`: Deep personality, temperament, and goal configuration for worker bots.
+- `context_memory`: Episodic conversation retrieval across multi-day user dialogues.
+- `auto_responder`: Autonomous 24/7 lead qualifier and objection handler.
+- `translator`: Real-time bidirectional message translation in 45+ languages.
+- `sentiment_analyzer`: Real-time mood and intent detection on incoming leads.
+- `lead_tagger`: Auto-qualify and categorize leads into CRM stages.
+- `objection_handler`: Semantic response selection for pricing, trust, and tech inquiries.
+- `voice_synthesis`: AI voice cloning and natural speech message creation.
+- `avatar_generator`: AI realistic portrait generator for profile photos.
+- `bio_synthesizer`: Natural persona bio and username generator.
+
+### 5. Infrastructure & Operations
+- `proxy_manager`: SOCKS5/HTTP/IPv6 proxy pool manager with auto-rotation.
+- `proxy_tester`: Latency, fraud score, and IP geolocation verification tool.
+- `sms_dashboard`: Live balance check and API key manager for 25+ SMS vendors.
+- `flood_analyzer`: Real-time tracking of Telegram API flood wait countdowns.
+- `cloud_storage`: Secure remote backup of session databases.
+- `dpapi_vault`: Hardware-level Windows credential encryption.
+- `device_emulation`: Realistic hardware profiles (GPU, RAM, OS build, CPU cores).
+- `ip_geolocation`: Geo-match proxy IP with account registration country.
+- `multi_threading`: Asynchronous concurrent event loop manager.
+- `task_scheduler`: Cron-style recurring automation workflow runner.
+- `webhook_dispatcher`: Real-time HTTP notifications for incoming leads and alerts.
+- `traffic_balancer`: Workload distribution across multiple server instances.
+- `anomaly_detector`: Early warning system for account degradation signals.
+- `license_validator`: Hardware-bound offline activation key manager.
+- `audit_logger`: Immutable action history and compliance logs.
+
+## 30 Authoritative Knowledge Base & Technical Guides
+1. https://telegramgeekspro.com/blog/telegram-scraper-guide-2026 — Complete Guide to Scraping Telegram Groups, Channels & Hidden Members in 2026
+2. https://telegramgeekspro.com/blog/tdata-converter-session-guide — TData vs Session Files: Two-Way Conversion & Safe Session Management
+3. https://telegramgeekspro.com/blog/telegram-account-warmup-ai-personas — Automated Telegram Account Warmup: The 30-Day AI Persona Blueprint
+4. https://telegramgeekspro.com/blog/telegram-anti-ban-proxy-fingerprint-guide — The Ultimate Anti-Ban Strategy: Proxies, Device Emulation & Fingerprints
+5. https://telegramgeekspro.com/blog/telegram-mass-messaging-spintax-guide — Mastering Mass Direct Messaging on Telegram with Spintax & AI Neuro-Text
+6. https://telegramgeekspro.com/blog/telegram-expert-alternative-review-2026 — Telegram Expert vs Telegram Geeks: The Comprehensive 2026 Comparison
+7. https://telegramgeekspro.com/blog/automated-telegram-bot-farm-architecture — Building an Autonomous Telegram Bot Farm: Hardware, Scale & Security
+8. https://telegramgeekspro.com/blog/telegram-group-scraper-active-members — How to Scrape Hidden Telegram Group Members: Technical Walkthrough
+9. https://telegramgeekspro.com/blog/ai-neuro-text-telegram-marketing — AI Neuro-Text for Telegram: Conversational AI Lead Qualification
+10. https://telegramgeekspro.com/blog/telegram-marketing-roi-enterprise-growth — Maximizing ROI in Telegram Marketing: Economics & Scaling Playbook
+11. https://telegramgeekspro.com/blog/telegram-2fa-bulk-activation-security — Bulk 2FA Activation & Cloud Password Security for Telegram Account Clusters
+12. https://telegramgeekspro.com/blog/mtproto-vs-tdlib-telegram-automation-benchmark — MTProto Direct Protocol vs TDLib vs Telethon: 2026 High-Concurrency Benchmarks
+13. https://telegramgeekspro.com/blog/telegram-channel-cloner-migration-guide — Complete Telegram Channel & Group Cloner: Seamless Post & Media Replication
+14. https://telegramgeekspro.com/blog/residential-vs-mobile-proxies-telegram-automation — 4G/5G Mobile Proxies vs Static Residential: The Telegram Rotation Matrix
+15. https://telegramgeekspro.com/blog/telegram-sms-virtual-number-api-integration — Virtual Number SMS APIs for Automated Telegram Account Registration
+16. https://telegramgeekspro.com/blog/telegram-comment-scraper-sentiment-analysis — Telegram Channel Comment Scraper: Extracting Real-Time Leads & AI Sentiment Filtering
+17. https://telegramgeekspro.com/blog/telegram-spambot-appeal-unban-automation — How to Automate @SpamBot Restrictions Removal & Recover Telegram Accounts in 24 Hours
+18. https://telegramgeekspro.com/blog/telegram-crypto-community-growth-playbook — Web3 & Crypto Community Growth Playbook: Safely Scaling to 100K Active Telegram Members
+19. https://telegramgeekspro.com/blog/telegram-dialog-manager-multi-agent-inbox — Multi-Account Telegram Dialog Manager: Unified Inbox Architecture for Enterprise Teams
+20. https://telegramgeekspro.com/blog/telegram-invite-via-admin-permissions-exploit — Admin-Assisted Group Inviting: How to Bypass Standard Member Add Limits Safely
+21. https://telegramgeekspro.com/blog/telegram-reaction-booster-view-counter-algorithms — Algorithmic Anatomy of Telegram Post Views, Reactions & Search Ranking Signals
+22. https://telegramgeekspro.com/blog/desktop-vs-cloud-telegram-automation-security — Standalone Windows Desktop vs Cloud-Hosted Telegram Bots: Security & Ban Risks
+23. https://telegramgeekspro.com/blog/telegram-voice-video-message-ai-synthesis — AI Voice Note & Video Note Synthesis for Telegram Outreach: Next-Gen Conversational Conversion
+24. https://telegramgeekspro.com/blog/telegram-folder-tag-management-automation — Automated Telegram Folder Sorting & Dialog Organization for 1,000+ Active Accounts
+25. https://telegramgeekspro.com/blog/telegram-global-search-keyword-scraping — Reverse-Engineering Telegram Global Search: Keyword Optimization & Public Scraping
+26. https://telegramgeekspro.com/blog/telegram-bot-father-mass-token-orchestration — Mass BotFather Token Management: Provisioning 500+ Telegram Mini-Apps & Utilities
+27. https://telegramgeekspro.com/blog/telegram-secret-chat-encryption-automation — End-to-End Encrypted Secret Chats in Automation: Ephemeral Messaging Protocols
+28. https://telegramgeekspro.com/blog/bypassing-telegram-flood-wait-rate-limits — The Engineer's Guide to Telegram FloodWait Errors: Exponential Backoff & Concurrency Jitter
+29. https://telegramgeekspro.com/blog/telegram-affiliate-referral-traffic-arbitrage — Telegram Traffic Arbitrage: Converting Cold Scraped Audiences into High-LTV Affiliate Revenue
+30. https://telegramgeekspro.com/blog/telegram-enterprise-compliance-gdpr-privacy — Enterprise Telegram Marketing Compliance: Navigating GDPR, Data Privacy & TOS Boundaries
+

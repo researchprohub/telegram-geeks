@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="450" viewBox="0 0 800 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#080d16" />
+      <stop offset="50%" stopColor="#0b1320" />
+      <stop offset="100%" stopColor="#05080f" />
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.25" />
+      <stop offset="100%" stopColor="#00f2fe" stopOpacity="0" />
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgba(255, 255, 255, 0.04)" stroke-width="1" />
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="450" fill="url(#bgGrad)" />
+  <rect width="800" height="450" fill="url(#grid)" />
+
+  <!-- Ambient Glow -->
+  <circle cx="400" cy="240" r="140" fill="url(#glowGrad)" style="filter: blur(30px)" />
+  <circle cx="680" cy="90" r="90" fill="#8b5cf6" fill-opacity="0.08" style="filter: blur(40px)" />
+
+  <!-- Central Visual Container -->
+  <rect x="280" y="140" width="240" height="180" rx="24" fill="#0d1726" fill-opacity="0.8" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1" />
+  <rect x="280" y="140" width="240" height="180" rx="24" stroke="#8b5cf6" stroke-opacity="0.3" stroke-width="1" />
+
+  <!-- Central Graphic -->
+  <rect x="385" y="180" width="30" height="55" rx="15" fill="none" stroke="#8b5cf6" stroke-width="6"/><path d="M365 210 C365 245 435 245 435 210 M400 245 V280 M375 280 H425" stroke="#2ffcd4" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- Header Category Badge -->
+  <rect x="40" y="40" width="160" height="32" rx="16" fill="#8b5cf6" fill-opacity="0.12" stroke="#8b5cf6" stroke-opacity="0.3" />
+  <text x="54" y="61" fill="#8b5cf6" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="700" letter-spacing="1">TELEGRAM GEEKS</text>
+
+  <!-- Title & Subtitle in Footer -->
+  <text x="40" y="385" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="800" letter-spacing="-0.5">AI Voice &amp; Video Notes</text>
+  <text x="40" y="415" fill="#94a3b8" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="500">Multimodal Synthesis Outreach</text>
+
+  <!-- Corner Watermark Mark -->
+  <circle cx="730" cy="390" r="24" fill="#101929" stroke="rgba(255,255,255,0.1)" />
+  <path d="M722 388 L738 380 L732 396 L726 400 Z" fill="#8b5cf6" />
+</svg>

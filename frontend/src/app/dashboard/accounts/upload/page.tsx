@@ -1,21 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileArchive, CheckCircle, AlertCircle, Loader2, Info, ArrowLeft, QrCode, Phone, Files } from "lucide-react";
+import { Upload, FileArchive, CheckCircle, AlertCircle, Loader2, Info, ArrowLeft, QrCode, Phone, Files, Bot, Settings, ExternalLink } from "lucide-react";
 import api from "@/lib/api";
 
 export default function TDataUploadPage() {
   const router = useRouter();
   const [tab, setTab] = useState<"qr" | "phone" | "tdata">("tdata");
 
-  // shared API credentials
-  const [apiId, setApiId] = useState("");
-  const [apiHash, setApiHash] = useState("");
+  // shared API credentials (loaded from Settings or localStorage)
+  const [apiId, setApiId] = useState("2040");
+  const [apiHash, setApiHash] = useState("b18441a1ff607e10a989891a5462e627");
+  const [customCredsActive, setCustomCredsActive] = useState(false);
+
+  useEffect(() => {
+    // 1. Try local storage
+    if (typeof window !== "undefined") {
+      const storedId = localStorage.getItem("telegram_api_id");
+      const storedHash = localStorage.getItem("telegram_api_hash");
+      if (storedId) { setApiId(storedId); setCustomCredsActive(true); }
+      if (storedHash) { setApiHash(storedHash); setCustomCredsActive(true); }
+    }
+
+    // 2. Fetch from backend global config
+    api.get("/global-config").then(res => {
+      const tg = res.data?.telegram;
+      if (tg?.api_id) { setApiId(String(tg.api_id)); setCustomCredsActive(true); }
+      if (tg?.api_hash) { setApiHash(String(tg.api_hash)); setCustomCredsActive(true); }
+    }).catch(() => {});
+  }, []);
 
   // TData state
   const [files, setFiles] = useState<File[]>([]);
@@ -245,23 +264,35 @@ export default function TDataUploadPage() {
           </Button>
         </div>
 
-        {/* API Credentials */}
-        <Card className="border-border shadow-sm">
-          <CardHeader className="pb-2"><CardTitle className="text-sm">API Credentials</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1.5">Telegram API ID</label>
-              <Input value={apiId} onChange={e => setApiId(e.target.value)} placeholder="Enter your Telegram API ID" />
+        {/* API Credentials Status Notice */}
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-card border border-border text-xs">
+          <div className="flex items-center gap-2.5">
+            <div className="h-7 w-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+              <Bot className="h-4 w-4" />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1.5">Telegram API Hash</label>
-              <Input value={apiHash} onChange={e => setApiHash(e.target.value)} placeholder="Enter your Telegram API Hash" />
+              <div className="font-semibold text-foreground flex items-center gap-1.5">
+                Telegram API Credentials Configured
+                {customCredsActive ? (
+                  <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/20 px-1.5 py-0">Custom</Badge>
+                ) : (
+                  <Badge variant="outline" className="text-[10px] bg-secondary text-muted-foreground border-border px-1.5 py-0">Default System App</Badge>
+                )}
+              </div>
+              <p className="text-muted-foreground text-[11px]">
+                App ID: <span className="font-mono text-foreground">{apiId || "2040"}</span> • Hash: <span className="font-mono text-foreground">••••••••</span>
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Get your API credentials from <a href="https://my.telegram.org" target="_blank" rel="noopener noreferrer" className="text-primary underline">my.telegram.org</a>
-            </p>
-          </CardContent>
-        </Card>
+          </div>
+          <Link
+            href="/dashboard/settings"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 border border-border text-foreground font-medium text-xs transition-colors"
+          >
+            <Settings className="h-3.5 w-3.5 text-primary" />
+            Manage in Settings
+            <ExternalLink className="h-3 w-3 text-muted-foreground ml-0.5" />
+          </Link>
+        </div>
 
         {/* QR Login */}
         {tab === "qr" && (

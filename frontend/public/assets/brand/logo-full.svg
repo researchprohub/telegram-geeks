@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 120" fill="none">
+  <defs>
+    <linearGradient id="fullBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0e1726"/>
+      <stop offset="100%" stop-color="#060a12"/>
+    </linearGradient>
+    <linearGradient id="fullCyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2ffcd4"/>
+      <stop offset="50%" stop-color="#00f2fe"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+    <linearGradient id="fullVioletGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="fullBorderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2ffcd4" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.5"/>
+    </linearGradient>
+    <linearGradient id="badgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2ffcd4"/>
+      <stop offset="100%" stop-color="#00d2ff"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Left Icon Mark -->
+  <g transform="translate(10, 10)">
+    <rect x="0" y="0" width="100" height="100" rx="24" fill="url(#fullBgGrad)"/>
+    <rect x="0" y="0" width="100" height="100" rx="24" stroke="url(#fullBorderGrad)" stroke-width="2"/>
+    
+    <circle cx="50" cy="50" r="30" fill="#2ffcd4" opacity="0.12"/>
+    
+    <path d="M22 50 L80 24 L58 56 L44 68 Z" fill="url(#fullCyanGrad)"/>
+    <path d="M80 24 L48 54 L58 56 L38 78 L46 62 L34 64 Z" fill="#ffffff"/>
+    <circle cx="80" cy="24" r="3" fill="#ffffff"/>
+  </g>
+
+  <!-- Typography: Telegram -->
+  <text x="130" y="68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="38" font-weight="800" fill="#ffffff" letter-spacing="-0.5">Telegram<tspan fill="url(#fullCyanGrad)">Geeks</tspan></text>
+  
+  <!-- Subtitle Tagline -->
+  <text x="132" y="92" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#94a3b8" letter-spacing="1.5">NEXT-GEN AUTOMATION OS</text>
+
+  <!-- PRO Badge Pill -->
+  <g transform="translate(480, 42)">
+    <rect x="0" y="0" width="56" height="26" rx="6" fill="#2ffcd4" fill-opacity="0.15" stroke="#2ffcd4" stroke-width="1.2"/>
+    <text x="28" y="17" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800" fill="#2ffcd4" text-anchor="middle" letter-spacing="1">PRO</text>
+  </g>
+</svg>

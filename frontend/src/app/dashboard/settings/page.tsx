@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Key, Wifi, Timer, Brain, Lock, Loader2, CheckCircle2, LogOut, Save } from "lucide-react";
+import { User, Key, Wifi, Timer, Brain, Lock, Loader2, CheckCircle2, LogOut, Save, Bot, Smartphone } from "lucide-react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 
@@ -105,28 +105,29 @@ export default function SettingsPage() {
 
   return (
     <>
-      <div className="sticky top-0 z-30 bg-white/[0.02] backdrop-blur-xl border-b border-white/[0.07] px-6 py-4">
-        <h1 className="text-2xl font-bold text-white">Settings</h1>
-        <p className="text-sm text-slate-400 mt-1">Configure your platform preferences</p>
+      <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border px-8 py-5">
+        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+        <p className="text-sm text-muted-foreground mt-1">Configure your platform preferences & API credentials</p>
       </div>
 
-      <div className="p-6 max-w-3xl">
+      <div className="p-8 max-w-4xl space-y-6">
         {msg.text && (
-          <div className={`rounded-2xl p-3 flex items-center gap-2 text-sm mb-4 ${
-            msg.ok ? "bg-success/10 border border-success/20 text-green-400"
-                   : "bg-destructive/10 border border-destructive/20 text-red-400"}`}>
+          <div className={`rounded-xl p-3.5 flex items-center gap-2 text-sm mb-4 ${
+            msg.ok ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                   : "bg-destructive/10 border border-destructive/20 text-destructive"}`}>
             <CheckCircle2 className="h-4 w-4 shrink-0" />{msg.text}
           </div>
         )}
 
         <Tabs defaultValue="profile">
-          <TabsList className="p-1 bg-white/[0.02] border border-white/[0.07] rounded-xl">
-            <TabsTrigger value="profile" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-lg"><User className="h-3.5 w-3.5 mr-1" />Profile</TabsTrigger>
-            <TabsTrigger value="security" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-lg"><Key className="h-3.5 w-3.5 mr-1" />Security</TabsTrigger>
-            <TabsTrigger value="proxy" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-lg"><Wifi className="h-3.5 w-3.5 mr-1" />Proxy</TabsTrigger>
-            <TabsTrigger value="delays" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-lg"><Timer className="h-3.5 w-3.5 mr-1" />Delays</TabsTrigger>
-            <TabsTrigger value="ai" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-lg"><Brain className="h-3.5 w-3.5 mr-1" />AI Providers</TabsTrigger>
-            <TabsTrigger value="license" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-lg"><Lock className="h-3.5 w-3.5 mr-1" />License</TabsTrigger>
+          <TabsList className="p-1 bg-secondary border border-border rounded-xl flex flex-wrap gap-1">
+            <TabsTrigger value="profile" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-lg text-xs font-semibold"><User className="h-3.5 w-3.5 mr-1" />Profile</TabsTrigger>
+            <TabsTrigger value="telegram" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-lg text-xs font-semibold"><Bot className="h-3.5 w-3.5 mr-1" />Telegram API</TabsTrigger>
+            <TabsTrigger value="security" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-lg text-xs font-semibold"><Key className="h-3.5 w-3.5 mr-1" />Security</TabsTrigger>
+            <TabsTrigger value="proxy" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-lg text-xs font-semibold"><Wifi className="h-3.5 w-3.5 mr-1" />Proxy</TabsTrigger>
+            <TabsTrigger value="delays" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-lg text-xs font-semibold"><Timer className="h-3.5 w-3.5 mr-1" />Delays</TabsTrigger>
+            <TabsTrigger value="ai" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-lg text-xs font-semibold"><Brain className="h-3.5 w-3.5 mr-1" />AI Providers</TabsTrigger>
+            <TabsTrigger value="license" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-lg text-xs font-semibold"><Lock className="h-3.5 w-3.5 mr-1" />License</TabsTrigger>
           </TabsList>
 
           {/* Profile */}
@@ -154,6 +155,86 @@ export default function SettingsPage() {
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   Save Changes
                 </button>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Telegram API Credentials */}
+          <TabsContent value="telegram" className="space-y-4 mt-6">
+            <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <Bot className="h-5 w-5 text-primary" />
+                <h3 className="text-base font-bold text-foreground">Telegram API Credentials</h3>
+              </div>
+              <p className="text-xs text-muted-foreground mb-6">
+                Configure your global Telegram API ID & Hash. Once saved, all account uploads (TData ZIPs, Telethon sessions, QR logins) and registrar tools will automatically use these credentials without prompting every time.
+              </p>
+
+              <div className="space-y-4 max-w-lg">
+                <div>
+                  <label className="block text-xs font-semibold text-foreground mb-1.5">Telegram API ID (App ID)</label>
+                  <input
+                    type="text"
+                    value={sv("telegram", "api_id", "")}
+                    placeholder="e.g. 2040"
+                    onChange={e => {
+                      update("telegram", "api_id", e.target.value);
+                      if (typeof window !== "undefined") {
+                        localStorage.setItem("telegram_api_id", e.target.value);
+                      }
+                    }}
+                    className="w-full rounded-xl border border-border bg-secondary/80 px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/40"
+                  />
+                  <p className="text-[11px] text-muted-foreground mt-1">Get your App ID from <a href="https://my.telegram.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">my.telegram.org</a></p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-foreground mb-1.5">Telegram API Hash</label>
+                  <input
+                    type="password"
+                    value={sv("telegram", "api_hash", "")}
+                    placeholder="e.g. b18441a1ff607e10a989891a5462e627"
+                    onChange={e => {
+                      update("telegram", "api_hash", e.target.value);
+                      if (typeof window !== "undefined") {
+                        localStorage.setItem("telegram_api_hash", e.target.value);
+                      }
+                    }}
+                    className="w-full rounded-xl border border-border bg-secondary/80 px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/40"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-foreground mb-1.5">Default Device Model</label>
+                    <input
+                      type="text"
+                      value={sv("telegram", "device_model", "Desktop 64-bit")}
+                      onChange={e => update("telegram", "device_model", e.target.value)}
+                      className="w-full rounded-xl border border-border bg-secondary/80 px-3.5 py-2 text-xs text-foreground outline-none focus:border-primary/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-foreground mb-1.5">Default App Version</label>
+                    <input
+                      type="text"
+                      value={sv("telegram", "app_version", "5.4.1 x64")}
+                      onChange={e => update("telegram", "app_version", e.target.value)}
+                      className="w-full rounded-xl border border-border bg-secondary/80 px-3.5 py-2 text-xs text-foreground outline-none focus:border-primary/50"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    onClick={() => saveConfig("telegram")}
+                    disabled={saving}
+                    className="inline-flex items-center gap-2 rounded-xl bg-primary text-primary-foreground font-semibold px-5 py-2.5 text-sm hover:opacity-90 transition-all shadow-md shadow-primary/20 disabled:opacity-50"
+                  >
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    Save API Credentials
+                  </button>
+                </div>
               </div>
             </div>
           </TabsContent>

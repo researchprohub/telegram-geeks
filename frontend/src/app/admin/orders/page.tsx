@@ -1,31 +1,45 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { CheckCircle, Eye, Loader2, AlertCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  ShoppingCart,
+  CheckCircle,
+  Eye,
+  Loader2,
+  AlertCircle,
+  RefreshCw,
+  Search,
+  CheckCircle2,
+  ExternalLink,
+  Coins,
+  ArrowRight,
+} from "lucide-react";
 import api from "@/lib/api";
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [confirming, setConfirming] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     fetchOrders();
   }, []);
 
   async function fetchOrders() {
+    setLoading(true);
     try {
       const res = await api.get("/admin/orders");
-      setOrders(res.data.orders || []);
+      setOrders(res.data?.orders || []);
     } catch (err: any) {
       setError(err.response?.data?.detail || "Failed to load orders");
     } finally {
@@ -33,21 +47,17 @@ export default function AdminOrdersPage() {
     }
   }
 
-  const filtered = statusFilter ? orders.filter(o => o.status === statusFilter) : orders;
-
-  const statusColor = (status: string) =>
-    status === "completed" || status === "confirmed"
-      ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
-      : status === "pending"
-        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300"
-        : "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300";
+  const filtered = statusFilter === "all" ? orders : orders.filter((o) => o.status === statusFilter);
 
   const handleConfirm = async () => {
     if (!selectedOrder) return;
     setConfirming(true);
     try {
       await api.put(`/admin/orders/${selectedOrder.order_id}/status`, { status: "confirmed" });
-      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, status: "confirmed" } : o));
+      setOrders((prev) =>
+        prev.map((o) => (o.id === selectedOrder.id ? { ...o, status: "confirmed" } : o))
+      );
+      setSuccess(`Order ${selectedOrder.order_id} marked as confirmed.`);
       setShowConfirmModal(false);
       setSelectedOrder(null);
     } catch (err: any) {
@@ -57,117 +67,229 @@ export default function AdminOrdersPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  const getStatusBadge = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "completed":
+      case "confirmed":
+        return <Badge className="bg-teal-500/10 text-teal-400 border-teal-500/20 text-[10px]">Paid</Badge>;
+      case "pending":
+        return <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/20 text-[10px]">Pending</Badge>;
+      default:
+        return <Badge variant="destructive" className="text-[10px]">{status}</Badge>;
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Orders & Payments</h1>
-        <p className="text-sm text-muted-foreground">Track crypto payments and confirm pending orders.</p>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-xs font-semibold text-purple-400 mb-2 shadow-sm">
+            <ShoppingCart className="h-3.5 w-3.5" />
+            <span>Cryptocurrency & Subscription Checkout Ledger</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+            Customer Orders & Billing
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+            Real-time audit log of checkout transactions, crypto settlement hashes, and license issuance.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchOrders}
+            disabled={loading}
+            className="border-border/60 hover:bg-secondary/40 font-semibold"
+          >
+            <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
+      {/* Notifications */}
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
-          <AlertCircle className="h-4 w-4 flex-shrink-0" />
-          {error}
-          <button onClick={() => setError("")} className="ml-auto">✕</button>
+        <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs sm:text-sm flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+          <button onClick={() => setError("")}>✕</button>
         </div>
       )}
 
-      {/* Summary */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-border shadow-sm"><CardContent className="pt-6"><div className="text-3xl font-bold text-yellow-500">{orders.filter(o => o.status === "pending").length}</div><p className="mt-1 text-sm text-muted-foreground">Pending</p></CardContent></Card>
-        <Card className="border-border shadow-sm"><CardContent className="pt-6"><div className="text-3xl font-bold text-green-500">{orders.filter(o => o.status === "completed" || o.status === "confirmed").length}</div><p className="mt-1 text-sm text-muted-foreground">Completed</p></CardContent></Card>
-        <Card className="border-border shadow-sm"><CardContent className="pt-6"><div className="text-3xl font-bold text-red-500">{orders.filter(o => o.status === "expired" || o.status === "failed").length}</div><p className="mt-1 text-sm text-muted-foreground">Expired / Failed</p></CardContent></Card>
-        <Card className="border-border shadow-sm"><CardContent className="pt-6"><div className="text-3xl font-bold">${orders.filter(o => o.status === "completed" || o.status === "confirmed").reduce((s, o) => s + (o.amount || 0), 0).toFixed(2)}</div><p className="mt-1 text-sm text-muted-foreground">Total Revenue</p></CardContent></Card>
-      </div>
+      {success && (
+        <div className="p-3.5 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 text-xs sm:text-sm flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            <span>{success}</span>
+          </div>
+          <button onClick={() => setSuccess("")}>✕</button>
+        </div>
+      )}
 
-      {/* Orders Table */}
-      <Card className="border-border shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base text-foreground">All Orders</CardTitle>
-          <select
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
-            className="rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm outline-none focus:border-primary"
-          >
-            <option value="">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="completed">Completed</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="expired">Expired</option>
-            <option value="failed">Failed</option>
-          </select>
-        </CardHeader>
-        <CardContent>
-          {filtered.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">No orders found.</p>
+      {/* Filter Toolbar */}
+      <Card className="border-border/60 bg-card/60 backdrop-blur-md">
+        <CardContent className="p-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-muted-foreground">Filter Status:</span>
+            <div className="inline-flex rounded-xl bg-secondary/40 p-1 border border-border/60">
+              {["all", "completed", "pending", "failed"].map((st) => (
+                <button
+                  key={st}
+                  onClick={() => setStatusFilter(st)}
+                  className={`px-3 py-1 text-xs font-semibold rounded-lg capitalize transition-all ${
+                    statusFilter === st
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {st}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="text-xs text-muted-foreground font-mono">
+            Showing {filtered.length} of {orders.length} transactions
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Orders Ledger */}
+      <Card className="border-border/60 bg-card/60 backdrop-blur-md">
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="py-12 flex justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="py-10 text-center text-xs text-muted-foreground">
+              No orders matched your selected status filter.
+            </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order ID</TableHead>
-                  <TableHead>User</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Plan</TableHead>
-                  <TableHead>Gateway</TableHead>
-                  <TableHead>Crypto</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>TX Hash</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map(o => (
-                  <TableRow key={o.id}>
-                    <TableCell className="font-mono text-sm text-foreground">{o.order_id}</TableCell>
-                    <TableCell className="text-foreground">#{o.user_id}</TableCell>
-                    <TableCell className="font-medium text-foreground">${Number(o.amount || 0).toFixed(2)} {o.currency}</TableCell>
-                    <TableCell className="text-sm text-foreground">{o.plan_tier || "—"}</TableCell>
-                    <TableCell><Badge variant="outline">{o.gateway || "—"}</Badge></TableCell>
-                    <TableCell className="text-sm text-foreground">{o.crypto_currency || "—"}</TableCell>
-                    <TableCell>
-                      <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${statusColor(o.status)}`}>
-                        {o.status}
-                      </span>
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">{o.tx_hash ? `${String(o.tx_hash).slice(0, 18)}…` : "—"}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{o.created_at ? new Date(o.created_at).toLocaleString() : "—"}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
-                        {o.status === "pending" && (
-                          <Button variant="ghost" size="sm" onClick={() => { setSelectedOrder(o); setShowConfirmModal(true); }}>
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-border/50 text-xs">
+                    <TableHead className="pl-6">Order Reference</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Fiat Amount</TableHead>
+                    <TableHead>Crypto Payment</TableHead>
+                    <TableHead>Plan</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right pr-6">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map((order) => (
+                    <TableRow key={order.id} className="border-border/30 hover:bg-secondary/20 transition-colors text-xs">
+                      <TableCell className="pl-6 font-mono font-bold">
+                        <span className="text-foreground select-all">{order.order_id}</span>
+                      </TableCell>
+
+                      <TableCell className="text-muted-foreground">
+                        User #{order.user_id}
+                      </TableCell>
+
+                      <TableCell className="font-mono font-bold text-foreground">
+                        ${Number(order.amount || 0).toFixed(2)} USD
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex items-center gap-1.5 font-mono text-[11px]">
+                          <Badge variant="outline" className="text-[10px] uppercase font-bold text-primary border-primary/30">
+                            {order.crypto_currency || "CRYPTO"}
+                          </Badge>
+                          {order.crypto_amount && (
+                            <span className="text-muted-foreground">{order.crypto_amount}</span>
+                          )}
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <Badge variant="outline" className="text-[10px] uppercase font-semibold">
+                          {order.plan_tier || "PRO"}
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell>{getStatusBadge(order.status)}</TableCell>
+
+                      <TableCell className="text-muted-foreground font-mono text-[11px]">
+                        {order.created_at ? new Date(order.created_at).toLocaleDateString() : "—"}
+                      </TableCell>
+
+                      <TableCell className="text-right pr-6">
+                        <div className="flex items-center justify-end gap-1">
+                          {order.status === "pending" && (
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                setSelectedOrder(order);
+                                setShowConfirmModal(true);
+                              }}
+                              className="h-7 text-xs bg-teal-500/10 text-teal-400 border border-teal-500/20 hover:bg-teal-500 hover:text-white"
+                            >
+                              <CheckCircle className="h-3.5 w-3.5 mr-1" />
+                              Fulfill
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Confirm Modal */}
+      {/* Confirmation Modal */}
       <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Confirm Order {selectedOrder?.order_id}</DialogTitle></DialogHeader>
-          <p className="text-sm text-muted-foreground">Are you sure this payment has been received? This will credit the user's account.</p>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowConfirmModal(false)}>Cancel</Button>
-            <Button onClick={handleConfirm} disabled={confirming}>
-              {confirming ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CheckCircle className="h-4 w-4 mr-1" />}
-              {confirming ? "Confirming..." : "Confirm Payment"}
+        <DialogContent className="sm:max-w-[450px] bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+              <CheckCircle className="h-5 w-5 text-teal-400" />
+              Manual Order Fulfillment
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Verify and confirm transaction {selectedOrder?.order_id}. This will activate the user&apos;s subscription.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedOrder && (
+            <div className="p-3.5 rounded-xl bg-secondary/30 border border-border space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Fiat Amount:</span>
+                <strong className="font-mono text-foreground">${selectedOrder.amount} USD</strong>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Selected Currency:</span>
+                <strong className="font-mono text-primary">{selectedOrder.crypto_currency || "CRYPTO"}</strong>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">User ID:</span>
+                <strong className="font-mono text-foreground">#{selectedOrder.user_id}</strong>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 pt-3">
+            <Button variant="outline" onClick={() => setShowConfirmModal(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirm}
+              disabled={confirming}
+              className="bg-teal-500 text-white font-semibold hover:bg-teal-600"
+            >
+              {confirming ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}
+              Confirm & Issue Key
             </Button>
           </DialogFooter>
         </DialogContent>

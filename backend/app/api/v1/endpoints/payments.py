@@ -11,6 +11,7 @@ from app.db.session import get_db
 from app.models import User, Order, Deposit, AuditLog, Subscription, ModuleAccess
 from app.dependencies import get_current_user
 from app.services import nowpayments_service, oxapay_service, manual_deposit_service
+from app.services.blockchain_monitor import blockchain_scanner
 from app.services.settings_service import SettingsService
 from datetime import datetime, timedelta
 
@@ -84,8 +85,31 @@ async def _upgrade_user_on_payment(db: AsyncSession, user_id: int, plan_tier: st
         return None
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    if user and user.role == "operator":
-        user.role = plan_tier
+    if user:
+        if user.role == "operator":
+            user.role = plan_tier
+        # Dispatch Payment Receipt Email asynchronously
+        try:
+            from app.services.email_service import email_service
+            import asyncio
+            rcpt_tmpl = email_service.build_payment_receipt_email(
+                user_name=user.full_name or user.email,
+                order_id=f"PAY-{user.id}-{int(datetime.utcnow().timestamp())}",
+                amount=79.0 if "pro" in plan_tier else 199.0 if "agency" in plan_tier else 29.0,
+                currency="USD / Crypto",
+                plan_tier=plan_tier,
+            )
+            asyncio.create_task(
+                email_service.send_email(
+                    to_email=user.email,
+                    subject=rcpt_tmpl["subject"],
+                    html_content=rcpt_tmpl["html"],
+                    text_content=rcpt_tmpl["text"],
+                    db=db,
+                )
+            )
+        except Exception:
+            pass
     return user
 
 
@@ -262,6 +286,49 @@ async def oxapay_callback(payload: dict, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         logger.error(f"Oxapay callback error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.get("/manual-wallets")
+async def get_manual_wallets():
+    """Return all direct company crypto deposit addresses, QR payloads, and fee instructions."""
+    wallets = await blockchain_scanner.get_wallets_info()
+    return {
+        "status": "success",
+        "wallets": wallets,
+        "fee_notice": "Always add $10 - $15 extra to your transfer amount for blockchain network/gas fees. The deposit monitor automatically matches and approves the net on-chain balance.",
+    }
+
+
+@router.post("/orders/{order_id}/check-blockchain")
+async def check_order_blockchain(
+    order_id: str,
+    tx_hash: Optional[str] = Query(None),
+    network: str = Query("TRC20"),
+    amount: float = Query(120.0),
+    db: AsyncSession = Depends(get_db),
+):
+    """Trigger real-time on-chain scan to auto-verify and activate a payment order."""
+    match_result = await blockchain_scanner.match_and_auto_approve(
+        order_id=order_id,
+        expected_amount_usd=amount,
+        network=network,
+        provided_tx_hash=tx_hash,
+    )
+
+    if match_result.get("matched"):
+        # Update order in database if exists
+        order = (await db.execute(select(Order).where(Order.order_id == order_id))).scalar_one_or_none()
+        if order and not order.processed:
+            order.status = "completed"
+            order.tx_hash = match_result.get("tx_hash")
+            order.confirmed_at = datetime.utcnow()
+            order.processed = True
+            if order.plan_tier and order.plan_tier.startswith("module:"):
+                await _activate_module(db, order.user_id, order.plan_tier.split(":", 1)[1])
+            await _upgrade_user_on_payment(db, order.user_id, order.plan_tier or "pro")
+            await db.commit()
+
+    return match_result
 
 
 @router.post("/manual-deposit", response_model=ManualDepositResponse)

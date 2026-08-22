@@ -9,17 +9,30 @@ const HOST = "127.0.0.1";
 const PORT = 8765;
 const BASE_URL = `http://${HOST}:${PORT}`;
 
-const REPO_ROOT = path.dirname(app.getAppPath());
-const BACKEND_DIR = app.isPackaged
-  ? path.join(process.resourcesPath, "backend")
-  : path.join(REPO_ROOT, "backend");
-const BACKEND_PYTHON = path.join(BACKEND_DIR, ".venv", "Scripts", "python.exe");
+const REPO_ROOT = app.isPackaged
+  ? process.resourcesPath
+  : path.dirname(app.getAppPath());
+const BACKEND_DIR = path.join(REPO_ROOT, "backend");
+
+function resolvePython() {
+  const candidates = [
+    path.join(BACKEND_DIR, ".venv", "Scripts", "python.exe"),
+    path.join(process.resourcesPath || "", "backend", ".venv", "Scripts", "python.exe"),
+    path.join(path.dirname(app.getAppPath()), "backend", ".venv", "Scripts", "python.exe"),
+  ];
+  for (const c of candidates) {
+    if (c && fs.existsSync(c)) return c;
+  }
+  return "python";
+}
+
 const DATA_DIR = path.join(process.env.LOCALAPPDATA || app.getPath("userData"), "TelegramGeeks");
 const TOKEN_FILE = path.join(DATA_DIR, "token.bin");
 const DB_PATH = path.join(DATA_DIR, "telegramgeeks.db").replace(/\\/g, "/");
 
 let backendProc = null;
 let backendStarted = false;
+let mainWindow = null;
 
 function portInUse() {
   return new Promise((resolve) => {
@@ -50,7 +63,7 @@ async function waitReady(timeoutMs = 90000) {
     if (backendProc && backendProc.exitCode !== null) return false;
     try {
       const r = await httpGetJson(`${BASE_URL}/health`);
-      if (r.status === 200 && r.data.checks && r.data.checks.database === true) return true;
+      if (r.status === 200 && r.data?.checks?.database === true) return true;
     } catch { /* not up yet */ }
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
@@ -59,10 +72,20 @@ async function waitReady(timeoutMs = 90000) {
 
 async function startBackend() {
   if (backendProc && backendProc.exitCode === null) return true;
-  if (await portInUse()) return false; // stale backend must not be reused
+  if (await portInUse()) {
+    try {
+      const r = await httpGetJson(`${BASE_URL}/health`, 1500);
+      if (r.status === 200 && r.data?.checks?.database === true) {
+        backendStarted = true;
+        return true;
+      }
+    } catch {
+      return false;
+    }
+  }
   fs.mkdirSync(DATA_DIR, { recursive: true });
   fs.mkdirSync(path.join(DATA_DIR, "sessions"), { recursive: true });
-  if (!fs.existsSync(BACKEND_PYTHON)) return false;
+  const py = resolvePython();
   const env = {
     ...process.env,
     PYTHONPATH: [REPO_ROOT, BACKEND_DIR].join(path.delimiter),
@@ -75,11 +98,17 @@ async function startBackend() {
     DEFAULT_AI_PROVIDER: process.env.DEFAULT_AI_PROVIDER || "none",
     JWT_EXPIRE_MINUTES: process.env.JWT_EXPIRE_MINUTES || "480",
   };
-  backendProc = spawn(
-    BACKEND_PYTHON,
-    ["-m", "uvicorn", "app.main:app", "--host", HOST, "--port", String(PORT), "--log-level", "warning"],
-    { cwd: BACKEND_DIR, env, windowsHide: true, stdio: "ignore" }
-  );
+  try {
+    const logFd = fs.openSync(path.join(DATA_DIR, "backend.log"), "a");
+    backendProc = spawn(
+      py,
+      ["-m", "uvicorn", "app.main:app", "--host", HOST, "--port", String(PORT), "--log-level", "info"],
+      { cwd: BACKEND_DIR, env, windowsHide: true, stdio: ["ignore", logFd, logFd] }
+    );
+  } catch (err) {
+    console.error("[main] Failed to spawn backend:", err);
+    return false;
+  }
   const ok = await waitReady();
   if (!ok) { stopBackend(); return false; }
   backendStarted = true;
@@ -101,7 +130,7 @@ function tokenValue() {
 }
 
 function createWindow() {
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     minWidth: 960,
@@ -114,37 +143,88 @@ function createWindow() {
       nodeIntegration: false,
     },
   });
-  if (process.env.VITE_DEV_SERVER_URL) win.loadURL(process.env.VITE_DEV_SERVER_URL);
-  else win.loadFile(path.join(app.getAppPath(), "dist", "index.html"));
+
+  mainWindow.webContents.on("before-input-event", (event, input) => {
+    if (input.key === "F12" && input.type === "keyDown") {
+      mainWindow.webContents.toggleDevTools();
+    }
+  });
+
+  mainWindow.webContents.on("did-fail-load", (_event, errorCode, errorDescription) => {
+    console.error(`[main] Failed to load SPA: ${errorCode} - ${errorDescription}`);
+  });
+
+  if (process.env.VITE_DEV_SERVER_URL) {
+    mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
+  } else {
+    mainWindow.loadFile(path.join(app.getAppPath(), "dist", "index.html"));
+  }
 }
 
-app.whenReady().then(async () => {
-  const ok = await startBackend();
-  if (!ok) console.error("[main] backend failed to start (port in use or python missing)");
+const os = require("os");
+const crypto = require("crypto");
+const { execSync } = require("child_process");
 
-  ipcMain.handle("backend:status", () => ({
-    running: backendProc !== null && backendProc.exitCode === null,
-    started: backendStarted,
-  }));
-  ipcMain.handle("token:get", () => tokenValue());
-  ipcMain.handle("token:set", (_event, value) => {
-    try {
-      fs.writeFileSync(TOKEN_FILE, safeStorage.encryptString(String(value)));
-      return true;
-    } catch { return false; }
-  });
-  ipcMain.handle("token:clear", () => {
-    try { fs.rmSync(TOKEN_FILE, { force: true }); return true; }
-    catch { return false; }
+function getMachineHWID() {
+  try {
+    let machineGuid = "";
+    if (process.platform === "win32") {
+      try {
+        const out = execSync('reg query "HKLM\\SOFTWARE\\Microsoft\\Cryptography" /v MachineGuid', { encoding: "utf8", windowsHide: true });
+        const m = out.match(/MachineGuid\s+REG_SZ\s+([a-f0-9\-]+)/i);
+        if (m) machineGuid = m[1];
+      } catch {}
+    }
+    const cpu = os.cpus()[0]?.model || "GENERIC_CPU";
+    const host = os.hostname();
+    const raw = `${machineGuid}_${cpu}_${host}_${os.platform()}`;
+    const hash = crypto.createHash("sha256").update(raw).digest("hex").toUpperCase();
+    return `HWID-${hash.slice(0, 4)}-${hash.slice(4, 8)}-${hash.slice(8, 12)}-${hash.slice(12, 16)}`;
+  } catch (err) {
+    return "HWID-DEFAULT-NODE-0001";
+  }
+}
+
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on("second-instance", () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
   });
 
-  createWindow();
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
-});
+  app.whenReady().then(async () => {
+    const ok = await startBackend();
+    if (!ok) console.error("[main] backend failed to start (port in use or python missing)");
 
-app.on("window-all-closed", () => {
-  stopBackend();
-  if (process.platform !== "darwin") app.quit();
-});
+    ipcMain.handle("backend:status", () => ({
+      running: (backendProc !== null && backendProc.exitCode === null) || backendStarted,
+      started: backendStarted,
+    }));
+    ipcMain.handle("token:get", () => tokenValue());
+    ipcMain.handle("token:set", (_event, value) => {
+      try {
+        fs.writeFileSync(TOKEN_FILE, safeStorage.encryptString(String(value)));
+        return true;
+      } catch { return false; }
+    });
+    ipcMain.handle("token:clear", () => {
+      try { fs.rmSync(TOKEN_FILE, { force: true }); return true; }
+      catch { return false; }
+    });
+    ipcMain.handle("hwid:get", () => getMachineHWID());
+
+    createWindow();
+    app.on("activate", () => {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
+  });
+
+  app.on("window-all-closed", () => {
+    stopBackend();
+    if (process.platform !== "darwin") app.quit();
+  });
+}

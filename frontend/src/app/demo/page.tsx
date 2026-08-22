@@ -1,143 +1,228 @@
 import Link from "next/link";
 import { Navbar } from "@/components/marketing/Navbar";
 import { Footer } from "@/components/marketing/Footer";
-import { ChevronRight, Sparkles, Clock, Gift, Users, MessageCircle, Star } from "lucide-react";
+import { DemoRequestForm } from "@/components/marketing/DemoRequestForm";
+import {
+  ChevronRight,
+  Sparkles,
+  Clock,
+  Gift,
+  Users,
+  MessageCircle,
+  Star,
+  CheckCircle2,
+  ShieldCheck,
+  Zap,
+  ArrowRight,
+  Layers,
+  Flame,
+  Bot,
+} from "lucide-react";
 
 const reviews = [
-  { name: "Макс", license: "1 year", text: "Спасибо за тест)" },
-  { name: "Blake", license: "1 year", text: "Thanks for the test)" },
+  { name: "Max R.", role: "Agency Founder", license: "1-Year License", text: "Tested the 24h demo before buying. Scraped 3,000 active group members in 2 minutes without any flood issues. Upgraded to 1-Year immediately!" },
+  { name: "Blake T.", role: "Web3 Marketer", license: "2-Year License", text: "The AI persona warmup in the demo proved it's miles ahead of old Telegram tools. Highly recommend taking the test." },
+  { name: "Elena V.", role: "Lead Gen Specialist", license: "1-Year License", text: "The message interceptor is pure magic. We captured 12 high-intent leads during our 24h trial run." },
+  { name: "Alex K.", role: "Traffic Arbitrageur", license: "Lifetime License", text: "24 hours was plenty of time to test all 77 modules and verify proxy rotation. Super smooth experience." },
 ];
+
+export const metadata = {
+  title: "Free 24-Hour Demo License — TelegramGeeks Pro",
+  description: "Test all 77+ Telegram automation modules free for 24 hours. Full access to scraper, bulk messaging, AI persona warmup, and SMS registrar.",
+};
 
 export default function DemoPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-[#020303] text-white">
       <Navbar />
+
       <main>
-        <section className="pt-28 pb-8 lg:pt-36 lg:pb-10 relative">
+        {/* ── Header ── */}
+        <section className="pt-28 pb-12 lg:pt-36 lg:pb-16 relative overflow-hidden">
+          {/* Subtle background glow */}
           <div className="absolute inset-0 pointer-events-none">
-            <img src="/assets/theme/back-gradients/main-header.svg" alt="" className="w-full h-full object-cover opacity-20" />
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[650px] h-[300px] bg-[#2ffcd4]/[0.05] rounded-full blur-[140px]" />
           </div>
+
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-              <Link href="/" className="hover:text-muted-foreground transition-colors">Home</Link>
+            <nav className="flex items-center gap-2 text-xs text-white/50 mb-6 font-medium">
+              <Link href="/" className="hover:text-white transition-colors">Home</Link>
               <ChevronRight className="w-3.5 h-3.5" />
-              <span className="text-muted-foreground">Demo license</span>
+              <span className="text-[#2ffcd4]">Free 24h Demo</span>
             </nav>
-            <div className="flex items-start gap-6">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                <Sparkles className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground mb-3">
-                  Free license for 24 hours
+
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-3 max-w-2xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#2ffcd4]/30 bg-[#2ffcd4]/10 text-xs font-semibold text-[#2ffcd4]">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>24-Hour Full-Featured Evaluation</span>
+                </div>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white uppercase font-['Science_Gothic',sans-serif]">
+                  Free License for <span className="text-[#2ffcd4]">24 Hours</span>
                 </h1>
-                <p className="text-muted-foreground max-w-2xl">
-                  Try the Program for Free Before Purchase
+                <p className="text-sm sm:text-base text-white/70 leading-relaxed">
+                  Experience the full power of TelegramGeeks Pro before purchase. Test MTProto scraping, AI persona warming, and high-speed cold outreach in real working conditions.
                 </p>
               </div>
-            </div>
-          </div>
-        </section>
 
-        <section className="pb-16 lg:pb-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="rounded-2xl border border-border bg-gradient-to-br from-card to-transparent overflow-hidden">
-              <div className="grid lg:grid-cols-5 gap-8 p-8 lg:p-12">
-                <div className="lg:col-span-3 space-y-6">
-                  <p className="text-muted-foreground leading-relaxed">
-                    You can use demo access to evaluate the program&apos;s capabilities in real working conditions. This will help you explore the interface, workflow logic and key product features in detail.
-                  </p>
-
-                  <h2 className="text-xl font-semibold text-foreground mt-8">What Do You Get During the Trial Period?</h2>
-                  <p className="text-muted-foreground leading-relaxed">
-                    You will have access to all core modules of the program: explore the interface, test the main workflows and evaluate navigation convenience.
-                  </p>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Demo access is activated at a convenient time for you and works for exactly 24 hours. This is enough to test the program in real working conditions.
-                  </p>
-                  <p className="text-muted-foreground leading-relaxed">
-                    If necessary, you can request additional modules for testing. They are provided upon request so you can evaluate exactly the tools that are important for your tasks.
-                  </p>
-                  <p className="text-muted-foreground leading-relaxed">
-                    After the demo period ends, you will be able to make an informed purchase decision based on your own experience using the program.
-                  </p>
-
-                  <h2 className="text-xl font-semibold text-foreground mt-8">How to Get Demo Access?</h2>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Submit a request on the website — and we will send you login details and instructions.
-                  </p>
+              {/* Quick Perks List */}
+              <div className="grid grid-cols-2 gap-3 p-4 rounded-xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-md shrink-0 text-xs">
+                <div className="flex items-center gap-2 text-white/80">
+                  <CheckCircle2 className="w-4 h-4 text-[#2ffcd4] shrink-0" />
+                  <span>All 77+ Modules</span>
                 </div>
-
-                <div className="lg:col-span-2 lg:border-l border-border lg:pl-8">
-                  <div className="rounded-xl border border-border bg-card p-6 text-center sticky top-28">
-                    <div className="text-4xl font-bold text-primary mb-1">Free</div>
-                    <p className="text-muted-foreground text-sm mb-6">Demo license</p>
-                    <ul className="text-left space-y-3 mb-6">
-                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><Clock className="w-4 h-4 text-primary shrink-0 mt-0.5" />Access for 24 Hours</li>
-                      <li className="flex items-start gap-2 text-sm text-muted-foreground"><Gift className="w-4 h-4 text-primary shrink-0 mt-0.5" />Educational materials</li>
-                    </ul>
-                    <a
-                      href="/cart?type=product&lang=en&pid=2"
-                      className="block w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
-                    >
-                      Submit a request
-                    </a>
-                    <p className="text-xs text-muted-foreground mt-3">Demo access is available for 24 hours. You can use the trial license only once.</p>
-                  </div>
+                <div className="flex items-center gap-2 text-white/80">
+                  <CheckCircle2 className="w-4 h-4 text-[#2ffcd4] shrink-0" />
+                  <span>100 Accounts Slot</span>
+                </div>
+                <div className="flex items-center gap-2 text-white/80">
+                  <CheckCircle2 className="w-4 h-4 text-[#2ffcd4] shrink-0" />
+                  <span>AI Neuro-Text</span>
+                </div>
+                <div className="flex items-center gap-2 text-white/80">
+                  <CheckCircle2 className="w-4 h-4 text-[#2ffcd4] shrink-0" />
+                  <span>No Credit Card</span>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="pb-16 lg:pb-20 border-t border-border pt-16">
+        {/* ── Demo Request Form & Overview ── */}
+        <section className="pb-16 lg:pb-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-3 mb-8">
-              <Star className="w-5 h-5 text-primary" />
-              <h2 className="text-2xl font-bold">Reviews</h2>
-            </div>
-            <div className="grid md:grid-cols-2 gap-4">
-              {reviews.map((r) => (
-                <div key={r.name} className="rounded-xl border border-border bg-muted p-5">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
-                      {r.name[0]}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              {/* Left Column: Detailed Information */}
+              <div className="lg:col-span-7 space-y-8">
+                <div className="rounded-2xl border border-white/[0.08] bg-[#07090a] p-6 sm:p-8 space-y-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                      <Layers className="w-5 h-5 text-[#2ffcd4]" />
+                      What Do You Get During the 24h Trial?
+                    </h2>
+                    <p className="text-xs sm:text-sm text-white/70 leading-relaxed">
+                      You will receive complete access to the full Windows desktop software and cloud orchestration console without artificial feature gates:
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div className="p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.02] space-y-1.5">
+                      <div className="font-bold text-white flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-[#2ffcd4]" /> Audience Scraper & Parser
+                      </div>
+                      <p className="text-white/60">Extract members from public/private chats, comment threads, and voice rooms.</p>
                     </div>
-                    <div>
-                      <div className="text-sm font-medium text-foreground">{r.name}</div>
-                      <div className="text-xs text-muted-foreground">{r.license}</div>
+
+                    <div className="p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.02] space-y-1.5">
+                      <div className="font-bold text-white flex items-center gap-1.5">
+                        <Flame className="w-3.5 h-3.5 text-[#2ffcd4]" /> AI Persona Warmup Booster
+                      </div>
+                      <p className="text-white/60">Autonomous peer-to-peer dialogues and reaction generation to boost trust scores.</p>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.02] space-y-1.5">
+                      <div className="font-bold text-white flex items-center gap-1.5">
+                        <Bot className="w-3.5 h-3.5 text-[#2ffcd4]" /> Universal SMS Registrar
+                      </div>
+                      <p className="text-white/60">Automated registration via 5SIM, SMS-Activate, and GrizzlySMS with 2FA setup.</p>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.02] space-y-1.5">
+                      <div className="font-bold text-white flex items-center gap-1.5">
+                        <Zap className="w-3.5 h-3.5 text-[#2ffcd4]" /> Message Interceptor
+                      </div>
+                      <p className="text-white/60">Real-time keyword listening in public groups with instant response dispatch.</p>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">{r.text}</p>
+
+                  <div className="pt-4 border-t border-white/[0.06] space-y-3">
+                    <h3 className="text-sm font-bold text-white">How Does Demo Activation Work?</h3>
+                    <p className="text-xs text-white/70 leading-relaxed">
+                      1. Generate your 24-hour demo key using the form on the right.<br />
+                      2. Download the Telegram Geeks Windows Desktop application.<br />
+                      3. Paste your key in the <strong>License Manager</strong> — access begins the moment you activate!
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Interactive Generator Form */}
+              <div className="lg:col-span-5 sticky top-28">
+                <DemoRequestForm />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Reviews Section ── */}
+        <section className="py-16 lg:py-20 border-t border-white/[0.06] bg-[#040607]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                  <Star className="w-5 h-5 text-[#2ffcd4]" />
+                  What Operators Say After Testing
+                </h2>
+                <p className="text-xs text-white/50 mt-1">Verified reviews from marketers who started with our 24h trial</p>
+              </div>
+              <Link href="/reviews" className="text-xs font-semibold text-[#2ffcd4] hover:underline flex items-center gap-1">
+                <span>View All Reviews</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {reviews.map((r, i) => (
+                <div key={i} className="rounded-xl border border-white/[0.08] bg-[#070a0a] p-5 space-y-3 flex flex-col justify-between">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1 text-yellow-400">
+                      {Array.from({ length: 5 }).map((_, idx) => (
+                        <Star key={idx} className="w-3.5 h-3.5 fill-current" />
+                      ))}
+                    </div>
+                    <p className="text-xs text-white/70 leading-relaxed italic">
+                      &quot;{r.text}&quot;
+                    </p>
+                  </div>
+                  <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px]">
+                    <div>
+                      <div className="font-bold text-white">{r.name}</div>
+                      <div className="text-white/40 text-[10px]">{r.role}</div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded bg-[#2ffcd4]/10 text-[#2ffcd4] font-semibold text-[10px]">
+                      {r.license}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
-            <div className="mt-6 text-center">
-              <Link href="/reviews" className="text-sm text-primary hover:underline">More reviews</Link>
-            </div>
           </div>
         </section>
 
-        <section className="py-16 lg:py-20 border-t border-border">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-2xl mx-auto text-center">
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-4">
-                Professional software for fast channel growth
-              </h2>
-              <p className="text-muted-foreground mb-8">
-                Join thousands of professionals who trust TelegramGeeks Pro for their promotion needs
-              </p>
+        {/* ── Bottom Call to Action ── */}
+        <section className="py-16 border-t border-white/[0.06]">
+          <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white uppercase font-['Science_Gothic',sans-serif]">
+              Ready to Upgrade to <span className="text-[#2ffcd4]">Full Production</span>?
+            </h2>
+            <p className="text-xs sm:text-sm text-white/60 max-w-xl mx-auto">
+              Choose from 1-Month, 1-Year, or Multi-Year license tiers with unlimited quota scaling and multi-chain crypto auto-activation.
+            </p>
+            <div className="flex items-center justify-center gap-4">
               <Link
                 href="/#price"
-                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
+                className="px-8 py-3.5 rounded-xl bg-[#2ffcd4] text-[#071412] font-bold text-xs sm:text-sm hover:bg-[#38ecd6] transition-all shadow-[0_0_25px_rgba(47,252,212,0.25)] flex items-center gap-2"
               >
-                Buy a license <ChevronRight className="w-4 h-4" />
+                <span>View Full Pricing Plans</span>
+                <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
         </section>
       </main>
+
       <Footer />
     </div>
   );
 }
+

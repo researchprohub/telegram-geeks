@@ -10,6 +10,9 @@ export function CardHeader({ children, className = "" }: Props) {
 export function CardTitle({ children, className = "" }: Props) {
   return <h3 className={`text-lg font-semibold ${className}`}>{children}</h3>;
 }
+export function CardDescription({ children, className = "" }: Props) {
+  return <p className={`text-sm text-muted-foreground ${className}`}>{children}</p>;
+}
 export function CardContent({ children, className = "" }: Props) {
   return <div className={`px-6 pb-6 ${className}`}>{children}</div>;
 }

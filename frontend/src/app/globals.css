@@ -4,29 +4,29 @@
 
 @layer base {
   :root {
-    /* Midnight Blue / Charcoal Glassmorphism Theme — restyled to telegramexpert.pro design */
+    /* Premium High-Contrast Slate / Cyan Theme (Linear & Vercel inspired) */
     color-scheme: dark;
-    --background: 0 1% 1%;
-    --foreground: 0 0% 100%;
-    --card: 0 1% 2%;
-    --card-foreground: 0 0% 100%;
-    --primary: 180 92% 73%;
-    --primary-foreground: 0 0% 7%;
-    --secondary: 0 0% 5%;
-    --secondary-foreground: 0 0% 80%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 55%;
-    --accent: 180 92% 73%;
-    --accent-foreground: 0 0% 100%;
+    --background: 222 47% 6%;         /* #080c14 deep refined navy-slate */
+    --foreground: 210 40% 98%;        /* #f8fafc crisp bright white */
+    --card: 222 38% 10%;              /* #101726 elevated sleek card surface */
+    --card-foreground: 210 40% 98%;   /* #f8fafc */
+    --primary: 174 90% 52%;           /* #2ffcd4 electric cyan-teal */
+    --primary-foreground: 222 47% 7%; /* dark text on primary */
+    --secondary: 222 28% 15%;         /* #1b2438 interactive secondary */
+    --secondary-foreground: 210 30% 90%;
+    --surface: 222 30% 18%;           /* #202b42 elevated hover state */
+    --muted: 222 25% 16%;             /* #1e273a */
+    --muted-foreground: 218 15% 65%;  /* #94a3b8 clear readable text */
+    --accent: 174 90% 52%;            /* #2ffcd4 */
+    --accent-foreground: 222 47% 7%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --success: 142 60% 50%;
+    --success: 142 70% 48%;
     --warning: 38 92% 50%;
-    --border: 0 0% 18%;
-    --ring: 180 92% 73%;
-    --radius: 5px;
-    --surface: 0 1% 3%;
-    --input: 0 0% 18%;
+    --border: 222 25% 18%;            /* #222d42 distinct visible border */
+    --ring: 174 90% 52%;
+    --radius: 10px;
+    --input: 222 25% 18%;
   }
 
   * {
@@ -295,5 +295,119 @@
   .manual-body i, .manual-body em {
     font-style: italic;
     color: rgba(255, 255, 255, 0.5);
+  }
+
+  /* ── Rich Blog Article Typography & Spacing ── */
+  .blog-content {
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 1.0625rem;
+    line-height: 1.85;
+  }
+  .blog-content h1 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    color: #ffffff;
+    margin-top: 2.75rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.3;
+  }
+  .blog-content h2 {
+    font-size: 1.65rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    margin-top: 3rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.35;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 0.65rem;
+  }
+  .blog-content h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: #2ffcd4;
+    margin-top: 2.25rem;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+  }
+  .blog-content h4 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-top: 1.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .blog-content p {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    line-height: 1.85;
+    color: rgba(255, 255, 255, 0.8);
+  }
+  .blog-content strong {
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .blog-content ul {
+    list-style-type: disc;
+    padding-left: 1.75rem;
+    margin-top: 1rem;
+    margin-bottom: 1.75rem;
+  }
+  .blog-content ol {
+    list-style-type: decimal;
+    padding-left: 1.75rem;
+    margin-top: 1rem;
+    margin-bottom: 1.75rem;
+  }
+  .blog-content li {
+    margin-bottom: 0.65rem;
+    line-height: 1.75;
+    color: rgba(255, 255, 255, 0.8);
+  }
+  .blog-content blockquote {
+    border-left: 3px solid #2ffcd4;
+    background: rgba(47, 252, 212, 0.05);
+    padding: 1.25rem 1.5rem;
+    border-radius: 0 0.75rem 0.75rem 0;
+    margin: 2rem 0;
+    color: rgba(255, 255, 255, 0.9);
+    font-style: normal;
+  }
+  .blog-content hr {
+    border: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 2.75rem 0;
+  }
+  .blog-content code {
+    color: #2ffcd4;
+    background: rgba(47, 252, 212, 0.08);
+    padding: 0.2rem 0.45rem;
+    border-radius: 0.35rem;
+    font-size: 0.875em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+  .blog-content pre {
+    background: #06090e;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.85rem;
+    padding: 1.25rem;
+    margin: 1.75rem 0;
+    overflow-x: auto;
+  }
+  .blog-content pre code {
+    color: #e2e8f0;
+    background: transparent;
+    padding: 0;
+  }
+  .blog-content a {
+    color: #2ffcd4;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: opacity 0.2s;
+  }
+  .blog-content a:hover {
+    opacity: 0.8;
   }
 }

@@ -32,6 +32,134 @@ def _ensure_init():
         init_proxy_system()
 
 
+# ─── CRUD & List endpoints ──────────────────────────────────────
+
+
+class ProxyCreate(BaseModel):
+    host: str
+    port: int
+    proxy_type: str = "socks5"
+    username: Optional[str] = None
+    password: Optional[str] = None
+    country: Optional[str] = None
+    provider: str = "manual"
+
+
+class ProxyBulkCreate(BaseModel):
+    proxies_text: str
+    proxy_type: str = "socks5"
+
+
+@router.get("/")
+@router.get("")
+async def list_proxies(user=Depends(get_current_user)):
+    _ensure_init()
+    from sqlalchemy import select
+    from app.models import Proxy
+    async with async_session_factory() as session:
+        result = await session.execute(select(Proxy).order_by(Proxy.id.desc()))
+        proxies = result.scalars().all()
+        return {
+            "total": len(proxies),
+            "proxies": [
+                {
+                    "id": p.id,
+                    "host": p.host,
+                    "port": p.port,
+                    "proxy_type": p.proxy_type,
+                    "username": p.username,
+                    "country": p.country,
+                    "status": p.status,
+                    "response_time_ms": p.response_time_ms,
+                    "allocated_to_account_id": p.allocated_to_account_id,
+                    "provider": p.provider,
+                }
+                for p in proxies
+            ],
+        }
+
+
+@router.post("/")
+@router.post("")
+async def create_proxy(body: ProxyCreate, user=Depends(get_current_user)):
+    _ensure_init()
+    from app.models import Proxy
+    async with async_session_factory() as session:
+        p = Proxy(
+            host=body.host.strip(),
+            port=int(body.port),
+            proxy_type=body.proxy_type.strip().lower(),
+            username=body.username.strip() if body.username else None,
+            password=body.password.strip() if body.password else None,
+            country=body.country.strip().upper() if body.country else None,
+            provider=body.provider,
+            status="untested",
+        )
+        session.add(p)
+        await session.commit()
+        await session.refresh(p)
+        return {"id": p.id, "host": p.host, "port": p.port, "status": p.status}
+
+
+@router.delete("/{proxy_id}")
+async def delete_proxy(proxy_id: int, user=Depends(get_current_user)):
+    _ensure_init()
+    from sqlalchemy import select, delete
+    from app.models import Proxy
+    async with async_session_factory() as session:
+        await session.execute(delete(Proxy).where(Proxy.id == proxy_id))
+        await session.commit()
+        return {"deleted": True, "proxy_id": proxy_id}
+
+
+@router.post("/bulk")
+async def bulk_import_proxies(body: ProxyBulkCreate, user=Depends(get_current_user)):
+    _ensure_init()
+    from app.models import Proxy
+    lines = [line.strip() for line in body.proxies_text.splitlines() if line.strip()]
+    created = 0
+    async with async_session_factory() as session:
+        for line in lines:
+            try:
+                # Support formats:
+                # 1. socks5://user:pass@host:port or http://user:pass@host:port
+                # 2. host:port:user:pass
+                # 3. host:port
+                proxy_type = body.proxy_type
+                host, port, user_str, pass_str = "", 0, None, None
+                if "://" in line:
+                    from urllib.parse import urlparse
+                    parsed = urlparse(line)
+                    proxy_type = parsed.scheme or body.proxy_type
+                    host = parsed.hostname or ""
+                    port = parsed.port or 1080
+                    user_str = parsed.username
+                    pass_str = parsed.password
+                else:
+                    parts = line.split(":")
+                    if len(parts) >= 4:
+                        host, port_str, user_str, pass_str = parts[0], parts[1], parts[2], parts[3]
+                        port = int(port_str)
+                    elif len(parts) >= 2:
+                        host, port_str = parts[0], parts[1]
+                        port = int(port_str)
+                if host and port:
+                    p = Proxy(
+                        host=host,
+                        port=port,
+                        proxy_type=proxy_type.lower(),
+                        username=user_str,
+                        password=pass_str,
+                        status="untested",
+                    )
+                    session.add(p)
+                    created += 1
+            except Exception:
+                continue
+        await session.commit()
+    return {"created": created, "total_lines": len(lines)}
+
+
 # ─── Pool endpoints ──────────────────────────────────────────────
 
 

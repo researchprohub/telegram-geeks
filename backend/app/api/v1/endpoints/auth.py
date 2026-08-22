@@ -121,6 +121,23 @@ async def register(request: Request, response: Response, db: AsyncSession = Depe
         await r.setex(f"rt:{jti}", 604800, str(user.id))
     _set_auth_cookies(response, access_token, refresh_token, request=request)
 
+    # Dispatch Welcome Email asynchronously
+    try:
+        from app.services.email_service import email_service
+        import asyncio
+        welcome_tmpl = email_service.build_welcome_email(user_name=user.full_name or user.email, email=user.email)
+        asyncio.create_task(
+            email_service.send_email(
+                to_email=user.email,
+                subject=welcome_tmpl["subject"],
+                html_content=welcome_tmpl["html"],
+                text_content=welcome_tmpl["text"],
+                db=db,
+            )
+        )
+    except Exception:
+        pass
+
     return UserOut(
         id=user.id, email=user.email, full_name=user.full_name,
         role=user.role, is_active=user.is_active, created_at=user.created_at,

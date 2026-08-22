@@ -4,7 +4,7 @@ from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
     auth, accounts, personas, campaigns, groups, analytics,
-    admin, payments, tdata_upload, modules, orchestration, advanced_analytics, tools, neuro_text, global_config,
+    admin, payments, tdata_upload, modules, orchestration, advanced_analytics, tools, neuro_text, global_config, licenses,
 )
 
 api_router = APIRouter(redirect_slashes=False)
@@ -29,8 +29,11 @@ api_router.include_router(advanced_analytics.router, prefix="/advanced-analytics
 # Account import (TData)
 api_router.include_router(tdata_upload.router, prefix="/accounts/upload", tags=["Account Upload"])
 
-# Payments (admin-managed)
+# Payments (direct manual wallets + blockchain monitor)
 api_router.include_router(payments.router, prefix="/payments", tags=["Payments"])
+
+# Licenses (Key generator, HWID binding, and activation)
+api_router.include_router(licenses.router, prefix="/licenses", tags=["Licenses"])
 
 # Admin dashboard
 api_router.include_router(admin.router, prefix="/admin", tags=["Admin"])

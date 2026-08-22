@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
+  <defs>
+    <!-- Dark gradient background -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020406"/>
+      <stop offset="50%" stop-color="#06090e"/>
+      <stop offset="100%" stop-color="#040608"/>
+    </linearGradient>
+
+    <!-- Accent glow -->
+    <radialGradient id="glow" cx="80%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.18"/>
+      <stop offset="60%" stop-color="#ec4899" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Pattern -->
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255, 255, 255, 0.03)" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="675" fill="url(#bgGrad)"/>
+  <rect width="1200" height="675" fill="url(#glow)"/>
+  <rect width="1200" height="675" fill="url(#grid)"/>
+
+  <!-- Left Content Container -->
+  <g transform="translate(80, 0)">
+    <!-- Brand badge -->
+    <g transform="translate(0, 100)">
+      <rect x="0" y="0" width="220" height="34" rx="8" fill="rgba(47, 252, 212, 0.08)" stroke="#a855f7" stroke-opacity="0.4" stroke-width="1"/>
+      <circle cx="16" cy="17" r="4" fill="#a855f7"/>
+      <text x="28" y="22" fill="#a855f7" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="800" font-size="11" letter-spacing="1.5">ACCOUNT CONVERSION</text>
+    </g>
+
+    <!-- Main Title -->
+    <text x="0" y="240" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="44" letter-spacing="-1">
+      Telethon Session vs TData
+    </text>
+
+    <!-- Subtitle / Feature Points -->
+    <text x="0" y="295" fill="rgba(255, 255, 255, 0.65)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="400">
+      Bi-Directional Converter • AuthKey Migration • Bulk Manager
+    </text>
+
+    <!-- Feature metrics bar -->
+    <g transform="translate(0, 420)">
+      <rect x="0" y="0" width="580" height="85" rx="14" fill="#080d12" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1.5"/>
+
+      <!-- Metric 1 -->
+      <g transform="translate(30, 22)">
+        <text x="0" y="16" fill="#a855f7" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="20">100%</text>
+        <text x="0" y="38" fill="rgba(255, 255, 255, 0.45)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="500" font-size="12">MTProto Native</text>
+      </g>
+
+      <!-- Metric 2 -->
+      <g transform="translate(210, 22)">
+        <text x="0" y="16" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="20">Zero-Ban</text>
+        <text x="0" y="38" fill="rgba(255, 255, 255, 0.45)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="500" font-size="12">Smart Warmup</text>
+      </g>
+
+      <!-- Metric 3 -->
+      <g transform="translate(390, 22)">
+        <text x="0" y="16" fill="#a855f7" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="20">77+ Modules</text>
+        <text x="0" y="38" fill="rgba(255, 255, 255, 0.45)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="500" font-size="12">Windows Pro</text>
+      </g>
+    </g>
+
+    <!-- Platform Footer watermark -->
+    <g transform="translate(0, 570)">
+      <circle cx="10" cy="10" r="10" fill="#a855f7"/>
+      <path d="M6 10 L9 13 L14 7" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="30" y="15" fill="rgba(255, 255, 255, 0.5)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="13" letter-spacing="1">TELEGRAM GEEKS PRO • OFFICIAL GUIDE</text>
+    </g>
+  </g>
+
+  <!-- Right Graphic Illustration -->
+  
+        <g transform="translate(760, 130)">
+          <!-- Left box: Telethon -->
+          <rect x="20" y="80" width="130" height="180" rx="12" fill="#0f172a" stroke="#a855f7" stroke-width="2"/>
+          <text x="85" y="130" fill="#a855f7" font-family="sans-serif" font-weight="bold" font-size="14" text-anchor="middle">.SESSION</text>
+          <text x="85" y="160" fill="white" fill-opacity="0.5" font-family="sans-serif" font-size="11" text-anchor="middle">Telethon / Pyrogram</text>
+          <rect x="40" y="190" width="90" height="8" rx="4" fill="#a855f7" fill-opacity="0.4"/>
+          <rect x="40" y="210" width="60" height="8" rx="4" fill="white" fill-opacity="0.2"/>
+
+          <!-- Middle arrows -->
+          <g transform="translate(175, 150)">
+            <circle cx="25" cy="20" r="32" fill="#1e293b" stroke="#a855f7" stroke-width="2"/>
+            <path d="M12 15 L35 15 M27 8 L35 15 L27 22" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M38 25 L15 25 M23 18 L15 25 L23 32" stroke="#ec4899" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </g>
+
+          <!-- Right box: TDATA -->
+          <rect x="250" y="80" width="130" height="180" rx="12" fill="#0f172a" stroke="#ec4899" stroke-width="2"/>
+          <text x="315" y="130" fill="#ec4899" font-family="sans-serif" font-weight="bold" font-size="14" text-anchor="middle">tdata / D873</text>
+          <text x="315" y="160" fill="white" fill-opacity="0.5" font-family="sans-serif" font-size="11" text-anchor="middle">Telegram Desktop</text>
+          <rect x="270" y="190" width="90" height="8" rx="4" fill="#ec4899" fill-opacity="0.4"/>
+          <rect x="270" y="210" width="60" height="8" rx="4" fill="white" fill-opacity="0.2"/>
+        </g>
+      
+</svg>

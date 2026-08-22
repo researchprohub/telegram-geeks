@@ -1,0 +1,111 @@
+# TelegramGeeks Pro — Production Docker Compose (Isolated Environment)
+services:
+  # ─── PostgreSQL ────────────────────────────────────────────
+  telegramgeeks-postgres:
+    container_name: telegramgeeks-postgres
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: telegramgeeks
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_tggeeks_secure2026}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - tggeeks_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - telegramgeeks_net
+
+  # ─── Redis ─────────────────────────────────────────────────
+  telegramgeeks-redis:
+    container_name: telegramgeeks-redis
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6380:6379"
+    volumes:
+      - tggeeks_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - telegramgeeks_net
+
+  # ─── Backend (FastAPI) ─────────────────────────────────────
+  telegramgeeks-backend:
+    container_name: telegramgeeks-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8002:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-postgres_tggeeks_secure2026}@telegramgeeks-postgres:5432/telegramgeeks
+      REDIS_URL: redis://telegramgeeks-redis:6379/0
+      TELEGRAM_API_ID: "${TELEGRAM_API_ID:-12345678}"
+      TELEGRAM_API_HASH: "${TELEGRAM_API_HASH:-your_api_hash}"
+      JWT_SECRET: "${JWT_SECRET:-d98d15e7141e425468e8f942fef9b821b7014ad0ad2ddd75b3bbf0e8bbdf230c}"
+      DEFAULT_AI_PROVIDER: "${DEFAULT_AI_PROVIDER:-ollama}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
+      GROQ_API_KEY: "${GROQ_API_KEY:-}"
+      ENVIRONMENT: "production"
+      ENABLE_DOCS: "true"
+      COOKIE_SECURE: "true"
+      COOKIE_SAMESITE: "lax"
+      CORS_ORIGINS: '["https://telegramgeekspro.com","https://www.telegramgeekspro.com","http://localhost:3001","http://localhost:8002","http://127.0.0.1:3001","http://127.0.0.1:8002"]'
+      FRONTEND_URL: "https://telegramgeekspro.com"
+      LICENSE_SECRET_KEY: "${LICENSE_SECRET_KEY:-tggeeks_master_secret_key_2026_x89f_quantum}"
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    depends_on:
+      telegramgeeks-postgres:
+        condition: service_healthy
+      telegramgeeks-redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - ./telegram_layer:/app/telegram_layer
+      - ./sessions:/app/sessions
+      - ./data:/app/data
+      - ./contacts:/app/contacts
+      - tggeeks_license_data:/root/TelegramGeeks
+    networks:
+      - telegramgeeks_net
+
+  # ─── Frontend (Next.js) ────────────────────────────────────
+  telegramgeeks-frontend:
+    container_name: telegramgeeks-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: /api
+        NEXT_PUBLIC_SITE_URL: https://telegramgeekspro.com
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=/api
+      - NEXT_PUBLIC_SITE_URL=https://telegramgeekspro.com
+      - BACKEND_URL=http://telegramgeeks-backend:8000
+    depends_on:
+      - telegramgeeks-backend
+    networks:
+      - telegramgeeks_net
+
+networks:
+  telegramgeeks_net:
+    driver: bridge
+
+volumes:
+  tggeeks_postgres_data:
+  tggeeks_redis_data:
+  tggeeks_license_data:

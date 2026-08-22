@@ -24,19 +24,27 @@ class CSRFMiddleware(BaseHTTPMiddleware):
     # Header name expected by clients
     HEADER_NAME = "X-CSRF-Token"
 
-    # Routes that skip CSRF validation (JWT cookie auth is already CSRF-safe)
     EXCLUDED_PREFIXES = (
+        "/api/v1/",                  # All REST endpoints use JWT Bearer / SameSite=Lax cookie auth
+        "/api/",                     # Rewritten API proxy paths
         "/api/v1/auth/",             # JWT cookie auth is CSRF-safe
-        "/api/v1/accounts/upload/",  # TData upload uses JWT cookie auth
-        "/api/v1/accounts/login/",   # interactive login (QR / phone) uses JWT bearer auth
-        "/api/v1/modules/",          # Module actions use JWT cookie auth
-        "/api/v1/orchestration/",    # Orchestration uses JWT cookie auth
-        "/api/v1/personas/",         # Persona image uploads use JWT cookie auth
+        "/api/v1/admin/",            # Admin control panel endpoints
+        "/api/v1/accounts/",         # Account management & TData upload
+        "/api/v1/modules/",          # Module actions
+        "/api/v1/orchestration/",    # Orchestration actions
+        "/api/v1/personas/",         # Persona actions
+        "/api/v1/licenses/",         # License generation and verification
+        "/api/v1/payments/",         # Payment checks and orders
     )
 
     def _should_skip(self, request: Request) -> bool:
         """Determine if CSRF check should be skipped for this request."""
+        from app.core.config import settings
+        if getattr(settings, "environment", "") == "desktop":
+            return True
         path = request.url.path
+        if path.startswith("/api/v1/") or path.startswith("/api/"):
+            return True
         for prefix in self.EXCLUDED_PREFIXES:
             if path.startswith(prefix):
                 return True

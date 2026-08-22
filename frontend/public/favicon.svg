@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="favBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a1220"/>
+      <stop offset="100%" stop-color="#04070d"/>
+    </linearGradient>
+    <linearGradient id="favCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2ffcd4"/>
+      <stop offset="100%" stop-color="#00c6ff"/>
+    </linearGradient>
+    <linearGradient id="favBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2ffcd4"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  
+  <rect x="4" y="4" width="120" height="120" rx="30" fill="url(#favBg)"/>
+  <rect x="4" y="4" width="120" height="120" rx="30" stroke="url(#favBorder)" stroke-width="2.5"/>
+  
+  <!-- Telegram Geeks Quantum Plane / Bolt Mark -->
+  <path d="M28 62 L98 32 L72 70 L54 84 Z" fill="url(#favCyan)"/>
+  <path d="M98 32 L58 68 L72 70 L48 96 L58 76 L42 78 Z" fill="#ffffff"/>
+  
+  <circle cx="98" cy="32" r="3" fill="#ffffff"/>
+  <circle cx="98" cy="32" r="6" fill="#2ffcd4" opacity="0.5"/>
+</svg>

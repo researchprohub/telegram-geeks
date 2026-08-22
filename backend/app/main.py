@@ -32,6 +32,7 @@ from app.db.session import engine, async_session_factory
 from app.api.v1.endpoints import (
     auth, accounts, personas, campaigns, groups, analytics,
     admin, payments, tdata_upload, modules, orchestration, advanced_analytics, tools, neuro_text, global_config,
+    licenses,
     sms_providers, ip_analyzer, persona_memory, persona_analytics, persona_warmup,
     model_routing, persona_templates, persona_knowledge_base,
     registrar, spambot_remover, postbot,
@@ -62,7 +63,7 @@ async def init_database():
     from sqlalchemy import select
     seed_users = [
         ("demo@test.com", "demo123", "Demo User", "pro"),
-        ("admin@test.com", "admin123", "Super Admin", "admin"),
+        ("discordmasters@atomicmail.io", "Blackhat2020@@@", "Super Admin", "admin"),
     ]
     async with async_session_factory() as session:
         for email, password, full_name, role in seed_users:
@@ -325,6 +326,8 @@ async def handle_options(full_path: str):
 
 
 @app.get("/health", tags=["System"])
+@app.get("/api/health", tags=["System"])
+@app.get("/api/v1/health", tags=["System"])
 async def health_check():
     """Health check endpoint with live DB and AI provider checks."""
     live_checks = {"database": False, "ai_providers": False}
@@ -400,6 +403,9 @@ app.include_router(tdata_upload.router, prefix="/api/v1", tags=["Account Upload"
 # Payments
 app.include_router(payments.router, prefix="/api/v1/payments", tags=["Payments"])
 
+# Licenses (Key generator, HWID binding, and activation)
+app.include_router(licenses.router, prefix="/api/v1/licenses", tags=["Licenses"])
+
 # Admin
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
 
@@ -454,6 +460,8 @@ app.include_router(group_knowledge_endpoints.router)
 
 # Proxy Management
 app.include_router(proxies.router)
+from app.api.v1.endpoints import proxy_providers
+app.include_router(proxy_providers.router)
 
 # Blog (WordPress-style)
 app.include_router(blog.router, prefix="/api/v1/blog", tags=["Blog"])

@@ -2,6 +2,9 @@
 const nextConfig = {
   output: 'standalone',
   skipTrailingSlashRedirect: true,
+  devIndicators: {
+    position: 'bottom-right',
+  },
   async rewrites() {
     const backend = process.env.BACKEND_URL || 'http://127.0.0.1:8002';
     return [
@@ -23,7 +26,7 @@ const nextConfig = {
           { key: 'X-XSS-Protection', value: '1; mode=block' },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'self'; form-action 'self';",
+            value: "default-src 'self' http: https: data: blob: 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https: http: blob:; font-src 'self' data: https:; connect-src 'self' https: http: ws: wss: data: blob:; frame-ancestors 'self'; form-action 'self';",
           },
           {
             key: 'Permissions-Policy',
