@@ -15,12 +15,132 @@ import { PipelineConsole } from "@/components/workflow/PipelineConsole";
 import api from "@/lib/api";
 import { cn } from "@/lib/utils";
 
+const DEFAULT_WORKFLOW_STAGES = [
+  {
+    id: "stage-1",
+    number: 1,
+    name: "1. Provisioning",
+    description: "Device Params, SMS OTP & TData",
+    status: "ready",
+    steps: [
+      { id: "step-1-1", title: "Device Parameter Generator", operation: "generate_parameters" },
+      { id: "step-1-2", title: "SMS Virtual Activation", operation: "sms_activate" },
+      { id: "step-1-3", title: "TData & Session Conversion", operation: "convert_session" },
+      { id: "step-1-4", title: "7-Folder Sorting & Health Check", operation: "folder_sort" }
+    ]
+  },
+  {
+    id: "stage-2",
+    number: 2,
+    name: "2. Warming",
+    description: "30-Day Maturation & Trust-Score",
+    status: "ready",
+    steps: [
+      { id: "step-2-1", title: "Activity Schedule Simulation", operation: "activity_schedule" },
+      { id: "step-2-2", title: "Automated Story Publishing", operation: "publish_stories" },
+      { id: "step-2-3", title: "Mutual P2P Conversation", operation: "p2p_conversation" },
+      { id: "step-2-4", title: "Daily Trust Score Radar", operation: "trust_score_radar" }
+    ]
+  },
+  {
+    id: "stage-3",
+    number: 3,
+    name: "3. Intelligence",
+    description: "Group Scraping & DB Enrichment",
+    status: "ready",
+    steps: [
+      { id: "step-3-1", title: "Channel & Group Scraper", operation: "scrape_group_members" },
+      { id: "step-3-2", title: "Post Comment Inspector", operation: "scrape_comments" },
+      { id: "step-3-3", title: "Gender & Activity Filter", operation: "filter_gender_activity" },
+      { id: "step-3-4", title: "Database Set Operations", operation: "db_set_operations" }
+    ]
+  },
+  {
+    id: "stage-4",
+    number: 4,
+    name: "4. Outreach",
+    description: "Multi-Thread Spintax Messenger",
+    status: "ready",
+    steps: [
+      { id: "step-4-1", title: "Nested Spintax Engine", operation: "resolve_spintax" },
+      { id: "step-4-2", title: "Multi-Account DM Dispatcher", operation: "dispatch_mass_dm" },
+      { id: "step-4-3", title: "Adaptive FloodWait Bus", operation: "flood_wait_handler" },
+      { id: "step-4-4", title: "2-Way CRM Lead Forwarder", operation: "crm_forwarder" }
+    ]
+  },
+  {
+    id: "stage-5",
+    number: 5,
+    name: "5. Inviter",
+    description: "TelegramInviter V1-V3 Suite",
+    status: "ready",
+    steps: [
+      { id: "step-5-1", title: "Invite by ID / Username (V1)", operation: "invite_v1" },
+      { id: "step-5-2", title: "Admin Promotion Inviter (V2)", operation: "invite_v2" },
+      { id: "step-5-3", title: "Mutual Contact Inviter (V3)", operation: "invite_v3" },
+      { id: "step-5-4", title: "Daily 50-Invite Cap Safety Guard", operation: "invite_safety_cap" }
+    ]
+  },
+  {
+    id: "stage-6",
+    number: 6,
+    name: "6. Engagement",
+    description: "TelegramBooster Views & Waves",
+    status: "ready",
+    steps: [
+      { id: "step-6-1", title: "Emoji Reaction Booster", operation: "boost_reactions" },
+      { id: "step-6-2", title: "Post View Multiplier", operation: "boost_views" },
+      { id: "step-6-3", title: "Poll Voting & Quiz Booster", operation: "boost_poll_votes" },
+      { id: "step-6-4", title: "Multi-Channel Cross-Commenter", operation: "cross_commenter" }
+    ]
+  },
+  {
+    id: "stage-7",
+    number: 7,
+    name: "7. Automation",
+    description: "@BotFather Bot & Channel Cloner",
+    status: "ready",
+    steps: [
+      { id: "step-7-1", title: "Automated BotFather Bot Creator", operation: "create_botfather_bot" },
+      { id: "step-7-2", title: "PostBot Inline Button Builder", operation: "build_postbot_buttons" },
+      { id: "step-7-3", title: "Full Channel History Cloner", operation: "clone_channel_history" },
+      { id: "step-7-4", title: "Automated Anti-Spam Reporter", operation: "dispatch_abuse_report" }
+    ]
+  },
+  {
+    id: "stage-8",
+    number: 8,
+    name: "8. Telemetry",
+    description: "Real-Time Telemetry & Radar",
+    status: "ready",
+    steps: [
+      { id: "step-8-1", title: "Real-Time Activity Radar", operation: "telemetry_radar" },
+      { id: "step-8-2", title: "Account Portfolio Health Heatmap", operation: "health_heatmap" },
+      { id: "step-8-3", title: "Campaign Conversion Funnel", operation: "conversion_funnel" },
+      { id: "step-8-4", title: "Interactive ROI Calculator", operation: "roi_calculator" }
+    ]
+  },
+  {
+    id: "stage-9",
+    number: 9,
+    name: "9. Governance",
+    description: "HWID Cryptographic Licensing",
+    status: "ready",
+    steps: [
+      { id: "step-9-1", title: "HWID Hardware Signature Binding", operation: "hwid_bind" },
+      { id: "step-9-2", title: "Ed25519 License Verification", operation: "verify_license" },
+      { id: "step-9-3", title: "USDT / TON Payout Settlements", operation: "crypto_payout" },
+      { id: "step-9-4", title: "Role-Based Access Control Audit", operation: "rbac_audit" }
+    ]
+  }
+];
+
 export default function MasterWorkflowPage() {
   const router = useRouter();
-  const [stages, setStages] = useState<any[]>([]);
+  const [stages, setStages] = useState<any[]>(DEFAULT_WORKFLOW_STAGES);
   const [telemetry, setTelemetry] = useState<StageOverview["telemetry"] | null>(null);
   const [activeStageId, setActiveStageId] = useState<string>("stage-1");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [executingStep, setExecutingStep] = useState<string | null>(null);
   const [executionResult, setExecutionResult] = useState<any>(null);
   const [pastRuns, setPastRuns] = useState<PipelineRun[]>([]);
@@ -78,14 +198,15 @@ export default function MasterWorkflowPage() {
 
   async function fetchWorkflowData() {
     try {
-      setLoading(true);
       const data = await workflowApi.getStages();
-      setStages(data.stages || []);
-      setTelemetry(data.telemetry || null);
+      if (data && data.stages && data.stages.length > 0) {
+        setStages(data.stages);
+      }
+      if (data && data.telemetry) {
+        setTelemetry(data.telemetry);
+      }
     } catch (err) {
       console.error("Failed to load workflow data", err);
-    } finally {
-      setLoading(false);
     }
   }
 

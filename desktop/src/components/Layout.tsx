@@ -24,6 +24,7 @@ import {
   ShieldCheck,
   Activity,
   LogOut,
+  Brain,
 } from "lucide-react";
 
 interface NavSection {
