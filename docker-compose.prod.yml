@@ -64,6 +64,7 @@ services:
       CORS_ORIGINS: '["https://telegramgeekspro.com","https://www.telegramgeekspro.com","http://localhost:3001","http://localhost:8002","http://127.0.0.1:3001","http://127.0.0.1:8002"]'
       FRONTEND_URL: "https://telegramgeekspro.com"
       LICENSE_SECRET_KEY: "${LICENSE_SECRET_KEY:-tggeeks_master_secret_key_2026_x89f_quantum}"
+      ENCRYPTION_KEY: "${ENCRYPTION_KEY:-tggeeks_master_encryption_secret_2026_aes256}"
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     depends_on:
       telegramgeeks-postgres:
