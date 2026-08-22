@@ -13,17 +13,23 @@ from loguru import logger
 
 
 PROVIDER_CAPABILITIES = {
-    "openai": {"models": ["gpt-4o-mini", "gpt-4o"], "free": False, "quality": 9, "speed": 8, "cost_per_1k": 0.15},
-    "anthropic": {"models": ["claude-3-haiku", "claude-3-sonnet"], "free": False, "quality": 9, "speed": 7, "cost_per_1k": 0.25},
-    "groq": {"models": ["llama-3.1-8b-instant", "llama-3.1-70b-versatile"], "free": True, "quality": 7, "speed": 10, "cost_per_1k": 0.0},
-    "ollama": {"models": ["llama3", "mistral", "phi3"], "free": True, "quality": 6, "speed": 5, "cost_per_1k": 0.0},
-    "google_gemini": {"models": ["gemini-pro", "gemini-1.5-flash"], "free": True, "quality": 8, "speed": 8, "cost_per_1k": 0.0},
-    "mistral_ai": {"models": ["mistral-small", "mistral-large"], "free": False, "quality": 8, "speed": 8, "cost_per_1k": 0.1},
-    "cohere": {"models": ["command-r", "command-r-plus"], "free": False, "quality": 7, "speed": 7, "cost_per_1k": 0.15},
-    "siliconflow": {"models": ["Qwen/Qwen2.5-7B-Instruct"], "free": True, "quality": 7, "speed": 7, "cost_per_1k": 0.0},
-    "cerebras": {"models": ["llama-3.1-8b"], "free": True, "quality": 7, "speed": 9, "cost_per_1k": 0.0},
+    "groq": {"models": ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"], "free": True, "quality": 8, "speed": 10, "cost_per_1k": 0.0},
+    "sambanova": {"models": ["Meta-Llama-3.3-70B-Instruct", "DeepSeek-R1-Distill-Llama-70B"], "free": True, "quality": 8, "speed": 10, "cost_per_1k": 0.0},
+    "together": {"models": ["meta-llama/Llama-3.3-70B-Instruct-Turbo", "deepseek-ai/DeepSeek-R1"], "free": True, "quality": 8, "speed": 8, "cost_per_1k": 0.0},
+    "deepseek": {"models": ["deepseek-chat", "deepseek-reasoner"], "free": True, "quality": 9, "speed": 8, "cost_per_1k": 0.0},
+    "google_gemini": {"models": ["gemini-2.0-flash", "gemini-1.5-flash"], "free": True, "quality": 8, "speed": 9, "cost_per_1k": 0.0},
+    "github": {"models": ["gpt-4o-mini", "Meta-Llama-3.1-70B-Instruct"], "free": True, "quality": 9, "speed": 8, "cost_per_1k": 0.0},
+    "cerebras": {"models": ["llama3.3-70b", "llama3.1-8b"], "free": True, "quality": 8, "speed": 10, "cost_per_1k": 0.0},
+    "siliconflow": {"models": ["Qwen/Qwen2.5-7B-Instruct", "deepseek-ai/DeepSeek-V3"], "free": True, "quality": 8, "speed": 7, "cost_per_1k": 0.0},
     "nvidia_nim": {"models": ["meta/llama-3.1-8b-instruct"], "free": True, "quality": 7, "speed": 7, "cost_per_1k": 0.0},
+    "cloudflare_workers_ai": {"models": ["@cf/meta/llama-3.1-8b-instruct"], "free": True, "quality": 7, "speed": 7, "cost_per_1k": 0.0},
+    "huggingface": {"models": ["meta-llama/Llama-3.1-8B-Instruct"], "free": True, "quality": 7, "speed": 6, "cost_per_1k": 0.0},
+    "ollama": {"models": ["llama3.2", "llama3.1", "mistral", "phi3"], "free": True, "quality": 6, "speed": 5, "cost_per_1k": 0.0},
+    "openai": {"models": ["gpt-4o-mini", "gpt-4o"], "free": False, "quality": 9, "speed": 8, "cost_per_1k": 0.15},
+    "anthropic": {"models": ["claude-3-5-haiku-20241022", "claude-3-5-sonnet-20241022"], "free": False, "quality": 9, "speed": 7, "cost_per_1k": 0.25},
     "openrouter": {"models": ["openrouter/auto"], "free": False, "quality": 8, "speed": 7, "cost_per_1k": 0.2},
+    "mistral_ai": {"models": ["mistral-small-latest", "open-mistral-nemo"], "free": False, "quality": 8, "speed": 8, "cost_per_1k": 0.1},
+    "cohere": {"models": ["command-r", "command-r-plus"], "free": False, "quality": 7, "speed": 7, "cost_per_1k": 0.15},
 }
 
 TASK_TYPE_REQUIREMENTS = {

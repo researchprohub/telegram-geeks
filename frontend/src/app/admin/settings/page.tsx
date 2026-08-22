@@ -8,8 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Plus, Wallet, Settings, Loader2, CheckCircle2, AlertCircle, Brain, Key, Mail, Send, Eye, RefreshCw, Shield, Sparkles, Server, Globe } from "lucide-react";
+import { Plus, Wallet, Settings, Loader2, CheckCircle2, AlertCircle, Brain, Key, Mail, Send, Eye, EyeOff, RefreshCw, Shield, Sparkles, Server, Globe, Zap, Sliders, Cpu, ExternalLink, Layers, Bot, Check, ArrowRight } from "lucide-react";
 import api from "@/lib/api";
 
 export default function AdminSettingsPage() {
@@ -609,76 +608,789 @@ export default function AdminSettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="ai" className="space-y-4">
-          <Card className="border-border shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Brain className="h-4 w-4" />
-                AI Provider API Keys
-              </CardTitle>
+        <TabsContent value="ai" className="space-y-6">
+          {/* Round-Robin & Routing Architecture Card */}
+          <Card className="border-border shadow-sm bg-gradient-to-br from-card via-card to-primary/[0.03]">
+            <CardHeader className="pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+                    <RefreshCw className="h-5 w-5 animate-[spin_12s_linear_infinite]" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base font-semibold">AI Routing & Round-Robin Load Balancer</CardTitle>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Intelligently distribute prompts across multiple free & commercial AI providers to eliminate rate limits.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 gap-1.5 py-1">
+                    <Zap className="h-3 w-3" />
+                    <span>{settings?.ai_routing_strategy === "round_robin" ? "Round-Robin Active" : settings?.ai_routing_strategy === "free_only_round_robin" ? "Free-Only Active" : "Fallback Chain"}</span>
+                  </Badge>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">These keys are used globally by the AI engine. Users cannot see or change them.</p>
+            <CardContent className="space-y-5">
+              {/* Routing Strategy Selection */}
               <div>
-                <label className="block text-sm font-medium mb-1.5 flex items-center gap-2">
-                  <Key className="h-3.5 w-3.5" /> OpenAI API Key
+                <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                  Dispatch & Routing Strategy
                 </label>
-                <Input
-                  type="password"
-                  placeholder="sk-..."
-                  value={settings?.openai_api_key || ""}
-                  onChange={(e) => setSettings({ ...settings, openai_api_key: e.target.value })}
-                />
+                <div className="grid sm:grid-cols-3 gap-3">
+                  <div
+                    onClick={() => setSettings({ ...settings, ai_routing_strategy: "round_robin" })}
+                    className={`cursor-pointer rounded-xl border p-4 transition-all relative ${
+                      settings?.ai_routing_strategy === "round_robin" || !settings?.ai_routing_strategy
+                        ? "border-primary bg-primary/10 shadow-sm"
+                        : "border-border hover:border-border/80 bg-background/50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <RefreshCw className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-semibold">Round-Robin Rotation</span>
+                      </div>
+                      {(settings?.ai_routing_strategy === "round_robin" || !settings?.ai_routing_strategy) && (
+                        <CheckCircle2 className="h-4 w-4 text-primary" />
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Rotates every single request circularly across all configured providers. If one hits 429 rate limits, it auto-cooldowns and routes to the next.
+                    </p>
+                  </div>
+
+                  <div
+                    onClick={() => setSettings({ ...settings, ai_routing_strategy: "free_only_round_robin" })}
+                    className={`cursor-pointer rounded-xl border p-4 transition-all relative ${
+                      settings?.ai_routing_strategy === "free_only_round_robin"
+                        ? "border-primary bg-primary/10 shadow-sm"
+                        : "border-border hover:border-border/80 bg-background/50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-semibold">100% Free Providers Only</span>
+                      </div>
+                      {settings?.ai_routing_strategy === "free_only_round_robin" && (
+                        <CheckCircle2 className="h-4 w-4 text-primary" />
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Restricts Round-Robin strictly to zero-cost providers (Groq, Gemini, SambaNova, Together, DeepSeek, Cerebras, GitHub). Zero billing costs guaranteed.
+                    </p>
+                  </div>
+
+                  <div
+                    onClick={() => setSettings({ ...settings, ai_routing_strategy: "fallback_chain" })}
+                    className={`cursor-pointer rounded-xl border p-4 transition-all relative ${
+                      settings?.ai_routing_strategy === "fallback_chain"
+                        ? "border-primary bg-primary/10 shadow-sm"
+                        : "border-border hover:border-border/80 bg-background/50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Layers className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-semibold">Priority Fallback Chain</span>
+                      </div>
+                      {settings?.ai_routing_strategy === "fallback_chain" && (
+                        <CheckCircle2 className="h-4 w-4 text-primary" />
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Always uses your chosen primary provider first. Only fails over sequentially if the primary returns an error or is unreachable.
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5 flex items-center gap-2">
-                  <Key className="h-3.5 w-3.5" /> Anthropic API Key
-                </label>
-                <Input
-                  type="password"
-                  placeholder="sk-ant-..."
-                  value={settings?.anthropic_api_key || ""}
-                  onChange={(e) => setSettings({ ...settings, anthropic_api_key: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5 flex items-center gap-2">
-                  <Key className="h-3.5 w-3.5" /> Groq API Key
-                </label>
-                <Input
-                  type="password"
-                  placeholder="gsk_..."
-                  value={settings?.groq_api_key || ""}
-                  onChange={(e) => setSettings({ ...settings, groq_api_key: e.target.value })}
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={handleSave} disabled={saving}>
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CheckCircle2 className="h-4 w-4 mr-1" />}
-                  Save
-                </Button>
-                <Button
-                  variant="outline"
-                  disabled={saving}
-                  onClick={async () => {
-                    setSaving(true);
-                    try {
-                      await handleSave();
-                      await api.post("/admin/reload-infrastructure");
-                      setSaveMessage("AI keys saved & infrastructure reloaded!");
-                      setTimeout(() => setSaveMessage(""), 3000);
-                    } catch (err: any) {
-                      setError(err.response?.data?.detail || "Failed to reload infrastructure");
-                    } finally {
-                      setSaving(false);
-                    }
-                  }}
-                >
-                  Save & Reload AI Engine
-                </Button>
+
+              {/* Primary Provider & Model Selectors */}
+              <div className="grid sm:grid-cols-2 gap-4 pt-2">
+                <div>
+                  <label className="block text-xs font-medium mb-1.5 text-foreground">Default Primary Provider</label>
+                  <select
+                    className="w-full h-10 px-3 rounded-md bg-background border border-border text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    value={settings?.default_ai_provider || "groq"}
+                    onChange={(e) => setSettings({ ...settings, default_ai_provider: e.target.value })}
+                  >
+                    <optgroup label="Free Tier & Fast Clouds">
+                      <option value="groq">Groq (Ultra-Fast LPU)</option>
+                      <option value="sambanova">SambaNova Cloud (Llama 3.3 / DeepSeek)</option>
+                      <option value="cerebras">Cerebras (2000 t/s Wafer Scale)</option>
+                      <option value="google_gemini">Google Gemini (Gemini 2.0 / 1.5 Flash)</option>
+                      <option value="github">GitHub Models (Free GPT-4o / Llama 3.3)</option>
+                      <option value="deepseek">DeepSeek Official (V3 / R1)</option>
+                      <option value="together">Together AI (Open Weights)</option>
+                      <option value="siliconflow">SiliconFlow (Qwen / DeepSeek)</option>
+                      <option value="nvidia_nim">NVIDIA NIM (Microservices)</option>
+                      <option value="cloudflare_workers_ai">Cloudflare Workers AI</option>
+                      <option value="huggingface">Hugging Face Serverless</option>
+                      <option value="ollama">Ollama (Local / Self-Hosted)</option>
+                    </optgroup>
+                    <optgroup label="Commercial Providers">
+                      <option value="openai">OpenAI (GPT-4o / GPT-4o-mini)</option>
+                      <option value="anthropic">Anthropic (Claude 3.5 Sonnet / Haiku)</option>
+                      <option value="openrouter">OpenRouter (100+ Models Aggregator)</option>
+                      <option value="mistral_ai">Mistral AI (Small / Nemo)</option>
+                      <option value="cohere">Cohere (Command R+)</option>
+                    </optgroup>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1.5 text-foreground">Default Primary Model Name</label>
+                  <Input
+                    placeholder="e.g. llama-3.3-70b-versatile or gpt-4o-mini"
+                    value={settings?.default_ai_model || ""}
+                    onChange={(e) => setSettings({ ...settings, default_ai_model: e.target.value })}
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
+
+          {/* Section 1: Free Tier & Open Cloud Providers */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-semibold text-foreground">Free Tier & Open Cloud Providers (12 Services)</h3>
+              </div>
+              <Badge variant="outline" className="bg-success/10 text-success border-success/30 text-[11px]">
+                Zero Cost Ready
+              </Badge>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Groq */}
+              <Card className="border-border shadow-sm hover:border-primary/40 transition-colors">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Zap className="h-4 w-4 text-primary" />
+                      Groq Cloud (LPU Instant)
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
+                      🚀 Ultra Fast (Free)
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2.5">
+                  <p className="text-xs text-muted-foreground">
+                    Hardware-accelerated inference with Llama 3.3 70B & DeepSeek R1 Distill.
+                  </p>
+                  <div>
+                    <label className="block text-[11px] font-medium mb-1 text-foreground">API Key</label>
+                    <Input
+                      type="password"
+                      placeholder="gsk_..."
+                      value={settings?.groq_api_key || ""}
+                      onChange={(e) => setSettings({ ...settings, groq_api_key: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex justify-between items-center pt-1 text-[11px]">
+                    <span className="text-muted-foreground">Models: llama-3.3-70b, mixtral</span>
+                    <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                      <span>Get Free Key</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* SambaNova */}
+              <Card className="border-border shadow-sm hover:border-primary/40 transition-colors">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Cpu className="h-4 w-4 text-primary" />
+                      SambaNova Cloud
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
+                      ⚡ High Speed (Free)
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2.5">
+                  <p className="text-xs text-muted-foreground">
+                    Full precision Meta-Llama-3.3-70B and DeepSeek R1 running on SN40L chips.
+                  </p>
+                  <div>
+                    <label className="block text-[11px] font-medium mb-1 text-foreground">API Key</label>
+                    <Input
+                      type="password"
+                      placeholder="samba_..."
+                      value={settings?.sambanova_api_key || ""}
+                      onChange={(e) => setSettings({ ...settings, sambanova_api_key: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex justify-between items-center pt-1 text-[11px]">
+                    <span className="text-muted-foreground">Models: Meta-Llama-3.3-70B</span>
+                    <a href="https://cloud.sambanova.ai" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                      <span>Get Free Key</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Google Gemini */}
+              <Card className="border-border shadow-sm hover:border-primary/40 transition-colors">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Brain className="h-4 w-4 text-primary" />
+                      Google Gemini AI Studio
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
+                      🆓 15 RPM Free Tier
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2.5">
+                  <p className="text-xs text-muted-foreground">
+                    Massive 1M+ token context with Gemini 2.0 Flash & Gemini 1.5 Flash.
+                  </p>
+                  <div>
+                    <label className="block text-[11px] font-medium mb-1 text-foreground">API Key</label>
+                    <Input
+                      type="password"
+                      placeholder="AIzaSy..."
+                      value={settings?.gemini_api_key || ""}
+                      onChange={(e) => setSettings({ ...settings, gemini_api_key: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex justify-between items-center pt-1 text-[11px]">
+                    <span className="text-muted-foreground">Models: gemini-2.0-flash, 1.5-flash</span>
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                      <span>Get Free Key</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* DeepSeek */}
+              <Card className="border-border shadow-sm hover:border-primary/40 transition-colors">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Bot className="h-4 w-4 text-primary" />
+                      DeepSeek Official
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
+                      🧠 DeepSeek V3 / R1
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2.5">
+                  <p className="text-xs text-muted-foreground">
+                    DeepSeek V3 chat and DeepSeek R1 deep reasoning API endpoint.
+                  </p>
+                  <div>
+                    <label className="block text-[11px] font-medium mb-1 text-foreground">API Key</label>
+                    <Input
+                      type="password"
+                      placeholder="sk-..."
+                      value={settings?.deepseek_api_key || ""}
+                      onChange={(e) => setSettings({ ...settings, deepseek_api_key: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex justify-between items-center pt-1 text-[11px]">
+                    <span className="text-muted-foreground">Models: deepseek-chat, deepseek-reasoner</span>
+                    <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                      <span>Get API Key</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* GitHub Models */}
+              <Card className="border-border shadow-sm hover:border-primary/40 transition-colors">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-primary" />
+                      GitHub Models
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
+                      🐙 Free via GitHub PAT
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2.5">
+                  <p className="text-xs text-muted-foreground">
+                    Free access to GPT-4o, GPT-4o-mini, and Llama 3.3 via Azure GitHub Models.
+                  </p>
+                  <div>
+                    <label className="block text-[11px] font-medium mb-1 text-foreground">GitHub Personal Access Token (PAT)</label>
+                    <Input
+                      type="password"
+                      placeholder="ghp_..."
+                      value={settings?.github_token || ""}
+                      onChange={(e) => setSettings({ ...settings, github_token: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex justify-between items-center pt-1 text-[11px]">
+                    <span className="text-muted-foreground">Models: gpt-4o-mini, Llama-3.1-70B</span>
+                    <a href="https://github.com/settings/tokens" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                      <span>Create Token</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Cerebras */}
+              <Card className="border-border shadow-sm hover:border-primary/40 transition-colors">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Zap className="h-4 w-4 text-primary" />
+                      Cerebras Wafer-Scale
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
+                      ⚡ 2,000+ Tokens/sec
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2.5">
+                  <p className="text-xs text-muted-foreground">
+                    World record inference speeds on wafer-scale clusters for Llama 3.1 & 3.3.
+                  </p>
+                  <div>
+                    <label className="block text-[11px] font-medium mb-1 text-foreground">API Key</label>
+                    <Input
+                      type="password"
+                      placeholder="csk-..."
+                      value={settings?.cerebras_api_key || ""}
+                      onChange={(e) => setSettings({ ...settings, cerebras_api_key: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex justify-between items-center pt-1 text-[11px]">
+                    <span className="text-muted-foreground">Models: llama3.3-70b, llama3.1-8b</span>
+                    <a href="https://cloud.cerebras.ai" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                      <span>Get Free Key</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Together AI */}
+              <Card className="border-border shadow-sm hover:border-primary/40 transition-colors">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                      Together AI
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
+                      ✨ Free Trial Credits
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2.5">
+                  <p className="text-xs text-muted-foreground">
+                    High speed open source inference for Qwen 2.5, DeepSeek R1, and Llama 3.3.
+                  </p>
+                  <div>
+                    <label className="block text-[11px] font-medium mb-1 text-foreground">API Key</label>
+                    <Input
+                      type="password"
+                      placeholder="together_api_key..."
+                      value={settings?.together_api_key || ""}
+                      onChange={(e) => setSettings({ ...settings, together_api_key: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex justify-between items-center pt-1 text-[11px]">
+                    <span className="text-muted-foreground">Models: Llama-3.3-70B-Turbo, DeepSeek-R1</span>
+                    <a href="https://api.together.xyz/settings/api-keys" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                      <span>Get API Key</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* SiliconFlow */}
+              <Card className="border-border shadow-sm hover:border-primary/40 transition-colors">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Server className="h-4 w-4 text-primary" />
+                      SiliconFlow
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
+                      🇨🇳 Free Qwen & DeepSeek
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2.5">
+                  <p className="text-xs text-muted-foreground">
+                    Generous free credits for Qwen 2.5 7B/72B and DeepSeek V3/R1.
+                  </p>
+                  <div>
+                    <label className="block text-[11px] font-medium mb-1 text-foreground">API Key</label>
+                    <Input
+                      type="password"
+                      placeholder="sk-..."
+                      value={settings?.siliconflow_api_key || ""}
+                      onChange={(e) => setSettings({ ...settings, siliconflow_api_key: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex justify-between items-center pt-1 text-[11px]">
+                    <span className="text-muted-foreground">Models: Qwen2.5-7B-Instruct, DeepSeek-V3</span>
+                    <a href="https://cloud.siliconflow.cn/account/ak" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                      <span>Get Free Key</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* NVIDIA NIM */}
+              <Card className="border-border shadow-sm hover:border-primary/40 transition-colors">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Cpu className="h-4 w-4 text-primary" />
+                      NVIDIA NIM Microservices
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
+                      🟢 1000 Free Credits
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2.5">
+                  <p className="text-xs text-muted-foreground">
+                    Enterprise GPU-optimized inference for Nemotron, Llama 3.1, and Mixtral.
+                  </p>
+                  <div>
+                    <label className="block text-[11px] font-medium mb-1 text-foreground">API Key</label>
+                    <Input
+                      type="password"
+                      placeholder="nvapi-..."
+                      value={settings?.nvidia_nim_api_key || ""}
+                      onChange={(e) => setSettings({ ...settings, nvidia_nim_api_key: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex justify-between items-center pt-1 text-[11px]">
+                    <span className="text-muted-foreground">Models: llama-3.1-8b-instruct, nemotron</span>
+                    <a href="https://build.nvidia.com" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                      <span>Get NVIDIA Key</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Cloudflare Workers AI */}
+              <Card className="border-border shadow-sm hover:border-primary/40 transition-colors">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-primary" />
+                      Cloudflare Workers AI
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
+                      🌐 10k Neurons/Day Free
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2.5">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[11px] font-medium mb-1 text-foreground">API Token</label>
+                      <Input
+                        type="password"
+                        placeholder="cf_token_..."
+                        value={settings?.cloudflare_api_token || ""}
+                        onChange={(e) => setSettings({ ...settings, cloudflare_api_token: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-medium mb-1 text-foreground">Account ID</label>
+                      <Input
+                        placeholder="cf_account_id..."
+                        value={settings?.cloudflare_account_id || ""}
+                        onChange={(e) => setSettings({ ...settings, cloudflare_account_id: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center pt-1 text-[11px]">
+                    <span className="text-muted-foreground">Models: @cf/meta/llama-3.1-8b-instruct</span>
+                    <a href="https://dash.cloudflare.com" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                      <span>Get CF Token</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Hugging Face */}
+              <Card className="border-border shadow-sm hover:border-primary/40 transition-colors">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Bot className="h-4 w-4 text-primary" />
+                      Hugging Face Serverless
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
+                      🤗 Free Inference API
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2.5">
+                  <p className="text-xs text-muted-foreground">
+                    Access open source repositories and serverless inference checkpoints.
+                  </p>
+                  <div>
+                    <label className="block text-[11px] font-medium mb-1 text-foreground">User Access Token</label>
+                    <Input
+                      type="password"
+                      placeholder="hf_..."
+                      value={settings?.huggingface_api_key || ""}
+                      onChange={(e) => setSettings({ ...settings, huggingface_api_key: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex justify-between items-center pt-1 text-[11px]">
+                    <span className="text-muted-foreground">Models: meta-llama/Llama-3.1-8B-Instruct</span>
+                    <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                      <span>Create Token</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Ollama Local */}
+              <Card className="border-border shadow-sm hover:border-primary/40 transition-colors">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Shield className="h-4 w-4 text-primary" />
+                      Ollama (Local / Self-Hosted)
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
+                      🔒 100% Offline & Private
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2.5">
+                  <p className="text-xs text-muted-foreground">
+                    Self-hosted LLMs running inside your container or on-prem GPU.
+                  </p>
+                  <div>
+                    <label className="block text-[11px] font-medium mb-1 text-foreground">Endpoint URL</label>
+                    <Input
+                      placeholder="http://localhost:11434"
+                      value={settings?.ollama_base_url || "http://localhost:11434"}
+                      onChange={(e) => setSettings({ ...settings, ollama_base_url: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex justify-between items-center pt-1 text-[11px]">
+                    <span className="text-muted-foreground">Models: llama3.2, mistral, qwen2.5</span>
+                    <a href="https://ollama.com" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                      <span>Documentation</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Section 2: Commercial & Premium Tier Providers */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Key className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-semibold text-foreground">Commercial & Multi-Model Providers (5 Services)</h3>
+              </div>
+              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-[11px]">
+                Paid / Pay-As-You-Go
+              </Badge>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* OpenAI */}
+              <Card className="border-border shadow-sm">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Key className="h-4 w-4 text-primary" />
+                      OpenAI
+                    </CardTitle>
+                    <Badge variant="outline" className="text-[10px]">GPT-4o</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Input
+                    type="password"
+                    placeholder="sk-proj-..."
+                    value={settings?.openai_api_key || ""}
+                    onChange={(e) => setSettings({ ...settings, openai_api_key: e.target.value })}
+                  />
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-muted-foreground">Models: gpt-4o, gpt-4o-mini</span>
+                    <a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                      <span>API Keys</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Anthropic */}
+              <Card className="border-border shadow-sm">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Key className="h-4 w-4 text-primary" />
+                      Anthropic Claude
+                    </CardTitle>
+                    <Badge variant="outline" className="text-[10px]">Claude 3.5</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Input
+                    type="password"
+                    placeholder="sk-ant-..."
+                    value={settings?.anthropic_api_key || ""}
+                    onChange={(e) => setSettings({ ...settings, anthropic_api_key: e.target.value })}
+                  />
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-muted-foreground">Models: claude-3-5-sonnet</span>
+                    <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                      <span>API Keys</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* OpenRouter */}
+              <Card className="border-border shadow-sm">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Key className="h-4 w-4 text-primary" />
+                      OpenRouter
+                    </CardTitle>
+                    <Badge variant="outline" className="text-[10px]">100+ Models</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Input
+                    type="password"
+                    placeholder="sk-or-v1-..."
+                    value={settings?.openrouter_api_key || ""}
+                    onChange={(e) => setSettings({ ...settings, openrouter_api_key: e.target.value })}
+                  />
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-muted-foreground">Models: openrouter/auto</span>
+                    <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                      <span>API Keys</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Mistral AI */}
+              <Card className="border-border shadow-sm">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Key className="h-4 w-4 text-primary" />
+                      Mistral AI
+                    </CardTitle>
+                    <Badge variant="outline" className="text-[10px]">Mistral</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Input
+                    type="password"
+                    placeholder="mistral_key_..."
+                    value={settings?.mistral_api_key || ""}
+                    onChange={(e) => setSettings({ ...settings, mistral_api_key: e.target.value })}
+                  />
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-muted-foreground">Models: mistral-small-latest</span>
+                    <a href="https://console.mistral.ai/api-keys" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                      <span>API Keys</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Cohere */}
+              <Card className="border-border shadow-sm">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Key className="h-4 w-4 text-primary" />
+                      Cohere Command
+                    </CardTitle>
+                    <Badge variant="outline" className="text-[10px]">RAG</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Input
+                    type="password"
+                    placeholder="cohere_key_..."
+                    value={settings?.cohere_api_key || ""}
+                    onChange={(e) => setSettings({ ...settings, cohere_api_key: e.target.value })}
+                  />
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-muted-foreground">Models: command-r, command-r-plus</span>
+                    <a href="https://dashboard.cohere.com/api-keys" target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                      <span>API Keys</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Action Bar */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+            <p className="text-xs text-muted-foreground">
+              All credentials are encrypted with AES-256 before storage. Changes take effect across all active Telegram automation agents immediately upon reload.
+            </p>
+            <div className="flex gap-2.5 shrink-0">
+              <Button onClick={handleSave} disabled={saving} className="bg-primary text-primary-foreground hover:opacity-90">
+                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CheckCircle2 className="h-4 w-4 mr-1.5" />}
+                Save AI Configuration
+              </Button>
+              <Button
+                variant="outline"
+                disabled={saving}
+                onClick={async () => {
+                  setSaving(true);
+                  try {
+                    await handleSave();
+                    await api.post("/admin/reload-infrastructure");
+                    setSaveMessage("AI Provider keys saved & Round-Robin engine reloaded successfully!");
+                    setTimeout(() => setSaveMessage(""), 3500);
+                  } catch (err: any) {
+                    setError(err.response?.data?.detail || "Failed to reload infrastructure");
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+              >
+                <RefreshCw className="h-4 w-4 mr-1.5" />
+                Save & Reload Engine
+              </Button>
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="pricing" className="space-y-4">

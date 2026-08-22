@@ -30,11 +30,24 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
     huggingface_api_key: Optional[str] = None
     github_token: Optional[str] = None
+    gemini_api_key: Optional[str] = None
+    deepseek_api_key: Optional[str] = None
+    together_api_key: Optional[str] = None
+    sambanova_api_key: Optional[str] = None
+    cerebras_api_key: Optional[str] = None
+    siliconflow_api_key: Optional[str] = None
+    nvidia_nim_api_key: Optional[str] = None
+    openrouter_api_key: Optional[str] = None
+    cloudflare_api_token: Optional[str] = None
+    cloudflare_account_id: Optional[str] = None
+    mistral_api_key: Optional[str] = None
+    cohere_api_key: Optional[str] = None
 
-    # AI Defaults
-    default_ai_provider: str = "openai"
-    default_ai_model: str = "gpt-4o-mini"
-    ai_fallback_chain: str = "openai,anthropic,groq,ollama"
+    # AI Defaults & Routing
+    default_ai_provider: str = "groq"
+    default_ai_model: str = "llama-3.3-70b-versatile"
+    ai_routing_strategy: str = "round_robin"
+    ai_fallback_chain: str = "groq,sambanova,cerebras,google_gemini,github,deepseek,siliconflow,together,nvidia_nim,cloudflare_workers_ai,huggingface,ollama,openai,anthropic"
 
     # Rate Limiting
     rate_limit_requests_per_minute: int = 60

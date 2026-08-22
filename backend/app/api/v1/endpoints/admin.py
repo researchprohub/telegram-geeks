@@ -125,12 +125,31 @@ class SystemSettings(BaseModel):
     wallet_usdt_trc20: str = "TQQcN4KhNKc6c4BPWzCDjhNm4YPGSWLrqi"
     wallet_usdt_erc20: str = "0x96d294E27D4Bb2959897aC11FFCE03606324380B"
     wallet_ton: str = "EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N"
-    # Gateway & AI Keys
+    # Gateway & AI Keys & Routing
     nowpayments_api_key: Optional[str] = None
     oxapay_api_key: Optional[str] = None
+    default_ai_provider: str = "groq"
+    default_ai_model: str = "llama-3.3-70b-versatile"
+    ai_routing_strategy: str = "round_robin"  # 'round_robin' | 'fallback_chain' | 'free_only_round_robin'
+    ai_round_robin_enabled: bool = True
     openai_api_key: Optional[str] = None
     anthropic_api_key: Optional[str] = None
     groq_api_key: Optional[str] = None
+    gemini_api_key: Optional[str] = None
+    deepseek_api_key: Optional[str] = None
+    together_api_key: Optional[str] = None
+    sambanova_api_key: Optional[str] = None
+    github_token: Optional[str] = None
+    cerebras_api_key: Optional[str] = None
+    siliconflow_api_key: Optional[str] = None
+    nvidia_nim_api_key: Optional[str] = None
+    openrouter_api_key: Optional[str] = None
+    cloudflare_api_token: Optional[str] = None
+    cloudflare_account_id: Optional[str] = None
+    mistral_api_key: Optional[str] = None
+    cohere_api_key: Optional[str] = None
+    huggingface_api_key: Optional[str] = None
+    ollama_base_url: str = "http://localhost:11434"
     polling_interval: int = 30
     telegram_api_id: int = 12345678
     telegram_api_hash: str = "your_api_hash"
@@ -863,13 +882,33 @@ def _build_system_settings_obj(raw: dict) -> SystemSettings:
         wallet_ton=raw.get("wallet_ton") or "EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N",
         nowpayments_api_key=raw.get("nowpayments_api_key") or None,
         oxapay_api_key=raw.get("oxapay_api_key") or None,
+        default_ai_provider=raw.get("default_ai_provider") or "groq",
+        default_ai_model=raw.get("default_ai_model") or "llama-3.3-70b-versatile",
+        ai_routing_strategy=raw.get("ai_routing_strategy") or "round_robin",
+        ai_round_robin_enabled=str(raw.get("ai_round_robin_enabled", "true")).lower() in ("true", "1", "yes"),
         polling_interval=int(raw.get("polling_interval") or 30),
         telegram_api_id=int(raw.get("telegram_api_id") or 12345678),
         telegram_api_hash=raw.get("telegram_api_hash") or "your_api_hash",
         session_storage_path=raw.get("session_storage_path") or "./sessions",
+        # All AI Provider API Keys
         openai_api_key=raw.get("openai_api_key") or None,
         anthropic_api_key=raw.get("anthropic_api_key") or None,
         groq_api_key=raw.get("groq_api_key") or None,
+        gemini_api_key=raw.get("gemini_api_key") or None,
+        deepseek_api_key=raw.get("deepseek_api_key") or None,
+        together_api_key=raw.get("together_api_key") or None,
+        sambanova_api_key=raw.get("sambanova_api_key") or None,
+        github_token=raw.get("github_token") or None,
+        cerebras_api_key=raw.get("cerebras_api_key") or None,
+        siliconflow_api_key=raw.get("siliconflow_api_key") or None,
+        nvidia_nim_api_key=raw.get("nvidia_nim_api_key") or None,
+        openrouter_api_key=raw.get("openrouter_api_key") or None,
+        cloudflare_api_token=raw.get("cloudflare_api_token") or None,
+        cloudflare_account_id=raw.get("cloudflare_account_id") or None,
+        mistral_api_key=raw.get("mistral_api_key") or None,
+        cohere_api_key=raw.get("cohere_api_key") or None,
+        huggingface_api_key=raw.get("huggingface_api_key") or None,
+        ollama_base_url=raw.get("ollama_base_url") or "http://localhost:11434",
         # Email settings
         email_provider=raw.get("email_provider") or "disabled",
         email_from_name=raw.get("email_from_name") or "TelegramGeeks Pro",
@@ -908,7 +947,7 @@ async def reload_infrastructure(
     _admin: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    """Reload infrastructure with updated Telegram API settings from DB."""
+    """Reload infrastructure with updated Telegram API settings and AI providers from DB."""
     from app.services.infrastructure import Infrastructure
     from app.services.module_dispatcher import dispatcher
 
@@ -925,11 +964,26 @@ async def reload_infrastructure(
             telegram_api_id=int(raw.get("telegram_api_id", 12345678)),
             telegram_api_hash=raw.get("telegram_api_hash", "your_api_hash"),
             session_storage_path=raw.get("session_storage_path", "./sessions"),
-            ai_provider=raw.get("default_ai_provider", "openai"),
-            ai_model=raw.get("default_ai_model", "gpt-4o-mini"),
+            ai_provider=raw.get("default_ai_provider", "groq"),
+            ai_model=raw.get("default_ai_model", "llama-3.3-70b-versatile"),
+            ai_routing_strategy=raw.get("ai_routing_strategy", "round_robin"),
             openai_api_key=raw.get("openai_api_key"),
             anthropic_api_key=raw.get("anthropic_api_key"),
             groq_api_key=raw.get("groq_api_key"),
+            gemini_api_key=raw.get("gemini_api_key"),
+            deepseek_api_key=raw.get("deepseek_api_key"),
+            together_api_key=raw.get("together_api_key"),
+            sambanova_api_key=raw.get("sambanova_api_key"),
+            github_token=raw.get("github_token"),
+            cerebras_api_key=raw.get("cerebras_api_key"),
+            siliconflow_api_key=raw.get("siliconflow_api_key"),
+            nvidia_nim_api_key=raw.get("nvidia_nim_api_key"),
+            openrouter_api_key=raw.get("openrouter_api_key"),
+            cloudflare_api_token=raw.get("cloudflare_api_token"),
+            cloudflare_account_id=raw.get("cloudflare_account_id"),
+            mistral_api_key=raw.get("mistral_api_key"),
+            cohere_api_key=raw.get("cohere_api_key"),
+            huggingface_api_key=raw.get("huggingface_api_key"),
             ollama_base_url=raw.get("ollama_base_url", "http://localhost:11434"),
             sms_api_keys={},
         )
