@@ -173,7 +173,8 @@ class TelegramWebService:
                     if d.message.date:
                         last_date = d.message.date.isoformat()
 
-                has_photo = bool(getattr(entity, "photo", None))
+                photo_obj = getattr(entity, "photo", None)
+                has_photo = bool(photo_obj and not isinstance(photo_obj, (types.ChatPhotoEmpty, types.UserProfilePhotoEmpty)))
 
                 dialog_list.append({
                     "id": d.id,

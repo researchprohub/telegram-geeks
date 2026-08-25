@@ -7,7 +7,7 @@ import {
   LogOut, Shield, Sparkles, Copy, Check, MessageCircle, Hash, Smile,
   Paperclip, Download, Globe, Heart, Flame, ThumbsUp, PartyPopper,
   Settings, Image, Video, FileText, X, Archive, ChevronRight, Share2,
-  Lock, Eye, Volume2, UserCheck, Smartphone
+  Lock, Eye, Volume2, UserCheck, Smartphone, ClipboardCopy, Play
 } from "lucide-react";
 import api from "@/lib/api";
 
@@ -69,6 +69,13 @@ const COMMON_EMOJIS = [
 ];
 
 const QUICK_REACTIONS = ["❤️", "👍", "🔥", "👏", "🎉", "🤩", "💩", "🙏", "⚡", "🥰"];
+
+const formatFileSize = (bytes?: number | null) => {
+  if (!bytes) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
 
 /**
  * Authenticated Image Component
@@ -143,6 +150,124 @@ function AuthenticatedImage({
   );
 }
 
+/**
+ * Authenticated Video Component
+ * Renders an inline playable video player with poster preview, controls, and direct download.
+ */
+function AuthenticatedVideo({
+  src,
+  fileName,
+  fileSize,
+  dialogId,
+  messageId,
+  onDownload,
+  isDownloading,
+}: {
+  src: string;
+  fileName: string;
+  fileSize?: number | null;
+  dialogId: number | string;
+  messageId: number;
+  onDownload: () => void;
+  isDownloading: boolean;
+}) {
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    setHasError(false);
+
+    api
+      .get(src, { responseType: "blob" })
+      .then((res) => {
+        if (isMounted) {
+          const url = URL.createObjectURL(res.data);
+          setBlobUrl(url);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setHasError(true);
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl);
+      }
+    };
+  }, [src]);
+
+  if (loading) {
+    return (
+      <div className="w-full h-44 bg-secondary/80 rounded-xl flex flex-col items-center justify-center gap-2 animate-pulse">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <span className="text-[10px] text-muted-foreground font-mono">Loading video stream...</span>
+      </div>
+    );
+  }
+
+  if (hasError || !blobUrl) {
+    return (
+      <div className="flex items-center justify-between gap-3 p-2 bg-secondary/40 rounded-xl">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary shrink-0">
+            <Video className="h-4 w-4" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-bold truncate">{fileName}</p>
+            <p className="text-[9px] opacity-75 font-mono">{formatFileSize(fileSize)}</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={onDownload}
+          disabled={isDownloading}
+          className="p-1.5 rounded-lg bg-secondary hover:bg-card text-foreground transition-colors shrink-0"
+        >
+          {isDownloading ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+          ) : (
+            <Download className="h-3.5 w-3.5" />
+          )}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl overflow-hidden bg-black/70 relative space-y-1">
+      <video
+        controls
+        src={blobUrl}
+        className="w-full max-h-72 object-contain rounded-lg bg-black"
+      />
+      <div className="flex items-center justify-between px-2 py-1 text-[10px] text-white/80 bg-black/40">
+        <span className="truncate font-mono">{fileName}</span>
+        <button
+          type="button"
+          onClick={onDownload}
+          disabled={isDownloading}
+          className="p-1 rounded hover:bg-white/10 text-white flex items-center gap-1 font-bold transition-colors"
+        >
+          {isDownloading ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <Download className="h-3 w-3" />
+          )}
+          <span>Save</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function TelegramWebClient({
   accountId,
   accountPhone,
@@ -194,6 +319,7 @@ export default function TelegramWebClient({
 
   const [attachModalOpen, setAttachModalOpen] = useState(false);
   const [attachFile, setAttachFile] = useState<File | null>(null);
+  const [attachPreviewUrl, setAttachPreviewUrl] = useState<string | null>(null);
   const [attachCaption, setAttachCaption] = useState("");
   const [sendingAttachment, setSendingAttachment] = useState(false);
 
@@ -203,6 +329,7 @@ export default function TelegramWebClient({
   const [downloadingMsgId, setDownloadingMsgId] = useState<number | null>(null);
 
   const [copiedId, setCopiedId] = useState(false);
+  const [copiedTextToast, setCopiedTextToast] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [outgoingTranslating, setOutgoingTranslating] = useState(false);
 
@@ -227,6 +354,16 @@ export default function TelegramWebClient({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    if (attachFile && attachFile.type.startsWith("image/")) {
+      const url = URL.createObjectURL(attachFile);
+      setAttachPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setAttachPreviewUrl(null);
+    }
+  }, [attachFile]);
 
   const fetchDialogs = async () => {
     try {
@@ -393,6 +530,35 @@ export default function TelegramWebClient({
     }
   };
 
+  /**
+   * Clipboard Paste Handler
+   * Automatically captures pasted images or files and opens the attachment modal.
+   */
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (items) {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.kind === "file") {
+          const file = item.getAsFile();
+          if (file) {
+            e.preventDefault();
+            setAttachFile(file);
+            setAttachModalOpen(true);
+            return;
+          }
+        }
+      }
+    }
+  };
+
+  const handleCopyText = (text: string) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopiedTextToast(true);
+    setTimeout(() => setCopiedTextToast(false), 1500);
+  };
+
   const handleSendAttachment = async () => {
     if (!attachFile || !selectedDialog) return;
     setSendingAttachment(true);
@@ -533,13 +699,6 @@ export default function TelegramWebClient({
     );
   });
 
-  const formatFileSize = (bytes?: number | null) => {
-    if (!bytes) return "";
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
   const formatTime = (isoString?: string | null) => {
     if (!isoString) return "";
     try {
@@ -621,7 +780,10 @@ export default function TelegramWebClient({
   };
 
   return (
-    <div className="flex flex-col h-[780px] bg-card rounded-2xl border border-border overflow-hidden shadow-xl">
+    <div
+      onPaste={handlePaste}
+      className="flex flex-col h-[780px] bg-card rounded-2xl border border-border overflow-hidden shadow-xl"
+    >
       {/* 🧭 Top Station Bar */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-secondary/70 border-b border-border text-xs">
         <div className="flex items-center gap-3">
@@ -665,6 +827,12 @@ export default function TelegramWebClient({
         </div>
 
         <div className="flex items-center gap-2">
+          {copiedTextToast && (
+            <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[10px] font-bold animate-in fade-in">
+              ✓ Copied to clipboard!
+            </span>
+          )}
+
           <button
             onClick={fetchStories}
             className="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/10 to-rose-500/10 hover:from-amber-500/20 hover:to-rose-500/20 border border-amber-500/20 text-amber-500 text-[11px] font-bold flex items-center gap-1.5 transition-all"
@@ -1028,7 +1196,7 @@ export default function TelegramWebClient({
                           isOut ? "items-end" : "items-start"
                         }`}
                       >
-                        {/* Floating Quick Reactions Toolbar */}
+                        {/* Floating Quick Reactions & Action Toolbar */}
                         {isHovered && (
                           <div
                             className={`absolute -top-7 z-20 flex items-center gap-1 p-1 rounded-full bg-card border border-border shadow-lg backdrop-blur-md animate-in fade-in zoom-in-95 duration-100 ${
@@ -1044,6 +1212,15 @@ export default function TelegramWebClient({
                                 {emoji}
                               </button>
                             ))}
+                            {m.text && (
+                              <button
+                                onClick={() => handleCopyText(m.text)}
+                                className="px-1.5 py-0.5 rounded-full hover:bg-secondary text-[10px] font-bold text-muted-foreground hover:text-foreground flex items-center gap-0.5"
+                                title="Copy Text"
+                              >
+                                <ClipboardCopy className="h-3 w-3" />
+                              </button>
+                            )}
                             <button
                               onClick={() => handleTranslateMessage(m.id, m.text)}
                               className="px-2 py-0.5 rounded-full hover:bg-secondary text-[10px] font-bold text-primary flex items-center gap-0.5"
@@ -1069,15 +1246,15 @@ export default function TelegramWebClient({
                             </p>
                           )}
 
-                          {/* Media Preview / Attachments */}
+                          {/* Media Preview: Videos, Photos & Documents */}
                           {m.media && (
                             <div className="rounded-xl overflow-hidden bg-black/10 border border-white/10 p-2 space-y-1.5">
                               {m.media.type === "photo" ? (
-                                <div className="cursor-pointer group/photo relative rounded-lg overflow-hidden max-h-60">
+                                <div className="cursor-pointer group/photo relative rounded-lg overflow-hidden flex items-center justify-center bg-black/20">
                                   <AuthenticatedImage
                                     src={`/accounts/${accountId}/dialogs/${selectedDialog.id}/messages/${m.id}/media`}
                                     alt={m.media.file_name}
-                                    className="w-full object-cover group-hover/photo:scale-105 transition-transform"
+                                    className="max-h-80 max-w-full w-auto object-contain rounded-lg group-hover/photo:scale-[1.02] transition-transform"
                                     onClick={() =>
                                       setActiveMediaPreview(
                                         `/accounts/${accountId}/dialogs/${selectedDialog.id}/messages/${m.id}/media`
@@ -1085,15 +1262,27 @@ export default function TelegramWebClient({
                                     }
                                   />
                                 </div>
+                              ) : m.media.type === "video" ? (
+                                <AuthenticatedVideo
+                                  src={`/accounts/${accountId}/dialogs/${selectedDialog.id}/messages/${m.id}/media`}
+                                  fileName={m.media.file_name}
+                                  fileSize={m.media.file_size}
+                                  dialogId={selectedDialog.id}
+                                  messageId={m.id}
+                                  onDownload={() =>
+                                    handleDownloadMedia(
+                                      selectedDialog.id,
+                                      m.id,
+                                      m.media?.file_name || `video_${m.id}.mp4`
+                                    )
+                                  }
+                                  isDownloading={downloadingMsgId === m.id}
+                                />
                               ) : (
                                 <div className="flex items-center justify-between gap-3 p-1">
                                   <div className="flex items-center gap-2 min-w-0">
                                     <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary shrink-0">
-                                      {m.media.type === "video" ? (
-                                        <Video className="h-4 w-4" />
-                                      ) : (
-                                        <FileText className="h-4 w-4" />
-                                      )}
+                                      <FileText className="h-4 w-4" />
                                     </div>
                                     <div className="min-w-0">
                                       <p className="text-xs font-bold truncate">
@@ -1216,7 +1405,7 @@ export default function TelegramWebClient({
                       : "Rewrite, translate and correct text with AI"}
                   </button>
                   <span className="text-[10px] text-muted-foreground">
-                    Press Enter to send, Shift+Enter for new line
+                    Paste images/files directly (Ctrl+V) or type message
                   </span>
                 </div>
 
@@ -1376,7 +1565,10 @@ export default function TelegramWebClient({
                 <Paperclip className="h-4 w-4 text-primary" /> Send File / Media
               </h3>
               <button
-                onClick={() => setAttachModalOpen(false)}
+                onClick={() => {
+                  setAttachModalOpen(false);
+                  setAttachFile(null);
+                }}
                 className="text-muted-foreground hover:text-foreground"
               >
                 <X className="h-4 w-4" />
@@ -1391,18 +1583,38 @@ export default function TelegramWebClient({
                 className="hidden"
               />
 
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="p-6 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center text-center cursor-pointer hover:bg-secondary/40 transition-colors"
-              >
-                <Image className="h-8 w-8 text-primary mb-2 opacity-80" />
-                <p className="text-xs font-bold text-foreground">
-                  {attachFile ? attachFile.name : "Click to select a Photo, Document, or Video"}
-                </p>
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  {attachFile ? formatFileSize(attachFile.size) : "Supports JPG, PNG, MP4, PDF, TXT, ZIP"}
-                </p>
-              </div>
+              {attachPreviewUrl ? (
+                <div className="relative rounded-xl overflow-hidden max-h-56 bg-black/40 border border-border flex items-center justify-center">
+                  <img
+                    src={attachPreviewUrl}
+                    alt="Pasted/Selected media"
+                    className="max-h-56 w-auto object-contain rounded-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAttachFile(null);
+                      setAttachPreviewUrl(null);
+                    }}
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-black/80"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-6 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center text-center cursor-pointer hover:bg-secondary/40 transition-colors"
+                >
+                  <Image className="h-8 w-8 text-primary mb-2 opacity-80" />
+                  <p className="text-xs font-bold text-foreground">
+                    {attachFile ? attachFile.name : "Click to select or Paste (Ctrl+V) Image / File"}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    {attachFile ? formatFileSize(attachFile.size) : "Supports JPG, PNG, MP4, PDF, TXT, ZIP"}
+                  </p>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-bold text-muted-foreground mb-1 uppercase">
@@ -1421,7 +1633,10 @@ export default function TelegramWebClient({
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => setAttachModalOpen(false)}
+                onClick={() => {
+                  setAttachModalOpen(false);
+                  setAttachFile(null);
+                }}
                 className="px-4 py-2 rounded-xl bg-secondary text-foreground text-xs font-bold hover:bg-card"
               >
                 Cancel
