@@ -27,44 +27,9 @@ def main():
 
     echo ""
     echo "=== REBUILDING AND RESTARTING DOCKER CONTAINERS ==="
-    docker compose -f docker-compose.prod.yml build telegramgeeks-frontend
-    docker compose -f docker-compose.prod.yml up -d
-    docker compose -f docker-compose.prod.yml restart telegramgeeks-backend
-    sleep 6
-
-    echo ""
-    echo "=== SEEDING PARTNERS IN POSTGRESQL ==="
-    docker compose -f docker-compose.prod.yml exec -T telegramgeeks-backend python -c "
-import asyncio
-from app.db.session import async_session_factory
-from app.models import Partner
-from app.data.default_partners import DEFAULT_PARTNERS
-from sqlalchemy import select
-
-async def main():
-    async with async_session_factory() as session:
-        r = await session.execute(select(Partner))
-        existing = r.scalars().all()
-        print(\"Current partners in DB:\", len(existing))
-        if len(existing) < 100:
-            for p in existing:
-                await session.delete(p)
-            await session.flush()
-            for item in DEFAULT_PARTNERS:
-                session.add(Partner(
-                    name=item['name'],
-                    img=item['img'],
-                    href=item.get('href', ''),
-                    category=item.get('category', 'proxies'),
-                    sort_order=item.get('sort_order', 0),
-                ))
-            await session.commit()
-            print(\"Successfully seeded default partners into production DB!\")
-        else:
-            print(\"Partners table is already fully seeded with 124 partners.\")
-
-asyncio.run(main())
-"
+    docker compose -f docker-compose.prod.yml build telegramgeeks-backend telegramgeeks-frontend
+    docker compose -f docker-compose.prod.yml up -d --force-recreate
+    sleep 8
 
     echo ""
     echo "=== RUNNING CONTAINERS ==="
@@ -72,38 +37,42 @@ asyncio.run(main())
 
     echo ""
     echo "=== NGINX CONFIG RELOAD ==="
-    cp /opt/telegramgeeks/nginx/telegramgeekspro.conf /etc/nginx/sites-available/telegramgeekspro
-    ln -sf /etc/nginx/sites-available/telegramgeekspro /etc/nginx/sites-enabled/telegramgeekspro
+    if [ -f /opt/telegramgeeks/nginx/telegramgeekspro.conf ]; then
+        cp /opt/telegramgeeks/nginx/telegramgeekspro.conf /etc/nginx/sites-available/telegramgeekspro
+        ln -sf /etc/nginx/sites-available/telegramgeekspro /etc/nginx/sites-enabled/telegramgeekspro
+    fi
     nginx -t && systemctl reload nginx
 
     echo ""
-    echo "=== BACKEND HEALTH & PARTNERS CHECK ==="
-    curl -s http://127.0.0.1:8002/api/v1/partners | python3 -c "import json, sys; data=json.load(sys.stdin); print('Live partners API returns count:', len(data))"
+    echo "=== BACKEND HEALTH & QR DEPENDENCIES CHECK ==="
+    docker compose -f docker-compose.prod.yml exec -T telegramgeeks-backend python -c "
+import qrcode
+from telethon import TelegramClient
+print('Telethon and QRCode libraries successfully loaded inside Docker backend!')
+"
 
     echo ""
     echo "=== FRONTEND HEALTH CHECK (Port 3001) ==="
-    curl -s -I http://127.0.0.1:3001/partner | head -n 5 || true
+    curl -I -s http://127.0.0.1:3001/login | head -n 6
 
     echo ""
     echo "=== HOST NGINX PUBLIC ENDPOINT CHECK ==="
-    curl -s -I -k https://127.0.0.1/partner -H "Host: telegramgeekspro.com" | head -n 5 || true
-    curl -s -I -k https://127.0.0.1/manuals/invayt-v2 -H "Host: telegramgeekspro.com" | head -n 5 || true
+    curl -I -s https://telegramgeekspro.com/login | head -n 6
+    curl -I -s https://telegramgeekspro.com/dashboard/accounts | head -n 6
     """
 
-    stdin, stdout, stderr = ssh.exec_command(cmd, timeout=600)
+    stdin, stdout, stderr = ssh.exec_command(cmd, get_pty=True)
 
-    while True:
-        line = stdout.readline()
-        if not line:
-            break
+    for line in iter(stdout.readline, ""):
         print(line, end="")
 
     err = stderr.read().decode('utf-8', errors='replace')
     if err.strip():
-        print("\n[STDERR]\n", err)
+        print("\n[STDERR]")
+        print(err)
 
     ssh.close()
     print("\nVPS Fast Deployment Finished Successfully!")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

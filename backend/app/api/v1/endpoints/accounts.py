@@ -409,12 +409,26 @@ def _new_client(api_id: int, api_hash: str):
 
 def _make_svg_data_uri(url: str) -> str:
     import base64, io
-    import qrcode
-    import qrcode.image.svg
-    img = qrcode.make(url, image_factory=qrcode.image.svg.SvgPathImage)
-    buf = io.BytesIO()
-    img.save(buf)
-    return "data:image/svg+xml;base64," + base64.b64encode(buf.getvalue()).decode()
+    try:
+        import qrcode
+        import qrcode.image.svg
+        img = qrcode.make(url, image_factory=qrcode.image.svg.SvgPathImage)
+        buf = io.BytesIO()
+        img.save(buf)
+        return "data:image/svg+xml;base64," + base64.b64encode(buf.getvalue()).decode()
+    except Exception as e:
+        logger.warning(f"qrcode svg failed, trying standard png: {e}")
+        try:
+            import qrcode
+            img = qrcode.make(url)
+            buf = io.BytesIO()
+            img.save(buf, format="PNG")
+            return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
+        except Exception as e2:
+            logger.error(f"QR generation failed completely: {e2}")
+            # Fallback to direct URL encode or quick SVG placeholder
+            encoded_url = base64.b64encode(url.encode()).decode()
+            return f"data:text/plain;base64,{encoded_url}"
 
 
 async def _drop_entry(entry_id: str):
@@ -505,16 +519,17 @@ async def qr_login_start(
         }
         return {
             "login_id": entry_id,
+            "login_url": qr.url,
             "qr_data_uri": _make_svg_data_uri(qr.url),
             "instructions": "Scan with Telegram > Settings > Devices > Link Desktop Device",
         }
     except ApiIdInvalidError:
         await _safe_disconnect(client)
         raise HTTPException(status_code=400, detail="Invalid API ID / Hash from my.telegram.org")
-    except Exception:
+    except Exception as exc:
         await _safe_disconnect(client)
-        logger.exception("QR login start failed")
-        raise HTTPException(status_code=500, detail="QR login failed — check API ID / Hash")
+        logger.exception(f"QR login start failed: {exc}")
+        raise HTTPException(status_code=500, detail=f"QR login failed: {str(exc) or 'check API ID / Hash'}")
 
 
 @router.get("/login/qr/status/{entry_id}", tags=["Accounts"])
