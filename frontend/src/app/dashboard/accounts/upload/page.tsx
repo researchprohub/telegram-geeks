@@ -137,11 +137,16 @@ export default function TDataUploadPage() {
       if (data.status === "awaiting_password") { setQrStatus("awaiting_password"); return; }
       if (data.status === "authorized") {
         setQrStatus("authorized");
-        setLoginAccount({ account_id: data.account_id, phone: data.phone });
+        setLoginAccount({
+          account_id: data.account_id,
+          phone: data.phone,
+          first_name: data.first_name,
+          username: data.username,
+        } as any);
         return;
       }
       setQrStatus("pending");
-      setTimeout(() => pollQr(loginId), 2000);
+      setTimeout(() => pollQr(loginId), 1500);
     } catch (e: any) {
       setQrStatus("error");
       setQrMsg(e.response?.data?.detail || "QR login session expired");

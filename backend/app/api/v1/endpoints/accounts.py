@@ -433,11 +433,16 @@ def _make_svg_data_uri(url: str) -> str:
 
 async def _drop_entry(entry_id: str):
     entry = _login_store.pop(entry_id, None)
-    if entry and entry.get("_client"):
-        try:
-            await entry["_client"].disconnect()
-        except Exception:
-            pass
+    if entry:
+        task = entry.get("_task")
+        if task and not task.done():
+            task.cancel()
+        client = entry.get("_client")
+        if client:
+            try:
+                await client.disconnect()
+            except Exception:
+                pass
 
 
 async def _safe_disconnect(client):
@@ -523,6 +528,55 @@ async def _finalize_login(db: AsyncSession, user_id: int, client, phone: str, ap
     }
 
 
+async def _run_qr_wait_loop(entry_id: str, user_id: int, client, qr, api_id: int, api_hash: str):
+    """Continuous background listener that maintains the active event handler until QR scan is approved."""
+    from telethon.errors import SessionPasswordNeededError
+    try:
+        # Wait up to 180 seconds or until token expires
+        user = await qr.wait(timeout=180)
+        logger.info(f"QR scan event received for entry {entry_id}, user={user}")
+
+        from app.db.session import async_session_factory
+        async with async_session_factory() as session:
+            result = await _finalize_login(
+                session, user_id, client,
+                "", api_id, api_hash,
+            )
+            entry = _login_store.get(entry_id)
+            if entry:
+                entry["status"] = "authorized"
+                entry["account_data"] = result
+    except SessionPasswordNeededError:
+        logger.info(f"QR login for entry {entry_id} requires 2FA password")
+        entry = _login_store.get(entry_id)
+        if entry:
+            entry["status"] = "awaiting_password"
+    except asyncio.CancelledError:
+        logger.debug(f"QR wait task cancelled for {entry_id}")
+    except Exception as e:
+        logger.warning(f"QR wait loop exception for {entry_id}: {e}")
+        # Always check if client became authorized despite exception
+        try:
+            if await client.is_user_authorized():
+                from app.db.session import async_session_factory
+                async with async_session_factory() as session:
+                    result = await _finalize_login(
+                        session, user_id, client,
+                        "", api_id, api_hash,
+                    )
+                    entry = _login_store.get(entry_id)
+                    if entry:
+                        entry["status"] = "authorized"
+                        entry["account_data"] = result
+                        return
+        except Exception as fe:
+            logger.error(f"Finalize in error handler failed: {fe}")
+        entry = _login_store.get(entry_id)
+        if entry and entry.get("status") != "authorized":
+            entry["status"] = "error"
+            entry["error"] = str(e)
+
+
 class LoginApiIn(BaseModel):
     api_id: int
     api_hash: str
@@ -549,17 +603,27 @@ async def qr_login_start(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_tenant),
 ):
-    """Start a QR login — returns a QR to scan with the Telegram app."""
+    """Start a QR login — returns a QR to scan with the Telegram app and spawns background listener."""
     from telethon.errors import ApiIdInvalidError
     entry_id = uuid.uuid4().hex
     client = _new_client(body.api_id, body.api_hash)
     try:
         await client.connect()
         qr = await client.qr_login()
+        task = asyncio.create_task(
+            _run_qr_wait_loop(entry_id, current_user.id, client, qr, body.api_id, body.api_hash)
+        )
         _login_store[entry_id] = {
-            "_client": client, "qr": qr,
-            "api_id": body.api_id, "api_hash": body.api_hash,
-            "method": "qr", "user_id": current_user.id,
+            "_client": client,
+            "qr": qr,
+            "_task": task,
+            "api_id": body.api_id,
+            "api_hash": body.api_hash,
+            "method": "qr",
+            "user_id": current_user.id,
+            "status": "pending",
+            "account_data": None,
+            "error": None,
             "created": datetime.utcnow(),
         }
         return {
@@ -583,49 +647,36 @@ async def qr_login_status(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_tenant),
 ):
-    """Poll QR scan status. Returns authorized once the session is persisted."""
-    from telethon.errors import SessionPasswordNeededError
+    """Poll QR scan status (non-blocking). Returns authorized once the background listener persists the session."""
     entry = _get_entry(entry_id, current_user.id)
-    client, qr = entry["_client"], entry["qr"]
+    status = entry.get("status", "pending")
 
-    # 1. Quick check: Is client already authorized?
-    try:
-        if await client.is_user_authorized():
-            result = await _finalize_login(
-                db, current_user.id, client,
-                entry.get("phone", ""), entry["api_id"], entry["api_hash"],
-            )
-            await _drop_entry(entry_id)
-            return {"status": "authorized", **result}
-    except Exception as e:
-        logger.debug(f"Pre-check authorization: {e}")
+    if status == "authorized":
+        data = entry.get("account_data") or {}
+        await _drop_entry(entry_id)
+        return {"status": "authorized", **data}
 
-    # 2. Wait for QR scan event
-    try:
-        user_res = await qr.wait(poll_interval=1.5, timeout=5)
-        if user_res or await client.is_user_authorized():
-            result = await _finalize_login(
-                db, current_user.id, client,
-                entry.get("phone", ""), entry["api_id"], entry["api_hash"],
-            )
-            await _drop_entry(entry_id)
-            return {"status": "authorized", **result}
-    except SessionPasswordNeededError:
+    if status == "awaiting_password":
         return {"status": "awaiting_password", "login_id": entry_id}
-    except Exception as e:
-        logger.debug(f"QR wait exception (normal during polling): {e}")
 
-    # 3. Post-check: Double-check authorization after wait
-    try:
-        if await client.is_user_authorized():
-            result = await _finalize_login(
-                db, current_user.id, client,
-                entry.get("phone", ""), entry["api_id"], entry["api_hash"],
-            )
-            await _drop_entry(entry_id)
-            return {"status": "authorized", **result}
-    except Exception as e:
-        logger.debug(f"Post-check authorization: {e}")
+    if status == "error":
+        err_msg = entry.get("error", "QR login failed")
+        await _drop_entry(entry_id)
+        raise HTTPException(status_code=400, detail=err_msg)
+
+    # Fast inline fallback: check if client is already authorized
+    client = entry.get("_client")
+    if client:
+        try:
+            if await client.is_user_authorized():
+                result = await _finalize_login(
+                    db, current_user.id, client,
+                    entry.get("phone", ""), entry["api_id"], entry["api_hash"],
+                )
+                await _drop_entry(entry_id)
+                return {"status": "authorized", **result}
+        except Exception as e:
+            logger.debug(f"Direct authorization check: {e}")
 
     return {"status": "pending", "login_id": entry_id}
 

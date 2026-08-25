@@ -51,7 +51,7 @@ export default function QrLoginPage() {
       } catch (err: any) {
         // polling interval
       }
-    }, 2000);
+    }, 1500);
   };
 
   const requestQr = async () => {
