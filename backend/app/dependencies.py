@@ -19,8 +19,17 @@ async def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """Extract user from httpOnly cookie or Authorization header."""
-    token = request.cookies.get("access_token")
+    """Extract user from Authorization header, httpOnly cookie, or query param."""
+    token = None
+    if credentials and credentials.credentials:
+        token = credentials.credentials
+    elif request.cookies.get("access_token"):
+        token = request.cookies.get("access_token")
+    elif request.query_params.get("token"):
+        token = request.query_params.get("token")
+    elif request.query_params.get("access_token"):
+        token = request.query_params.get("access_token")
+
     if token:
         payload = decode_access_token(token)
         if payload and payload.get("sub"):
@@ -29,14 +38,7 @@ async def get_current_user(
             user = result.scalar_one_or_none()
             if user and user.is_active:
                 return user
-    if credentials:
-        payload = decode_access_token(credentials.credentials)
-        if payload and payload.get("sub"):
-            from sqlalchemy import select
-            result = await db.execute(select(User).where(User.id == int(payload["sub"])))
-            user = result.scalar_one_or_none()
-            if user and user.is_active:
-                return user
+
     raise AuthenticationError("Authentication required")
 
 

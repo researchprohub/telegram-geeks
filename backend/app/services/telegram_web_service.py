@@ -24,6 +24,7 @@ DEFAULT_API_HASH = os.getenv("TELEGRAM_API_HASH", "b18441a1ff607e10a989891a5462e
 
 # In-memory avatar & media cache for fast serving
 _avatar_cache: Dict[str, bytes] = {}
+_media_cache: Dict[str, tuple[bytes, str, str]] = {}
 
 
 class TelegramWebService:
@@ -230,7 +231,10 @@ class TelegramWebService:
         try:
             await client.connect()
             target_entity = int(dialog_id) if str(dialog_id).lstrip("-").isdigit() else dialog_id
-            entity = await client.get_input_entity(target_entity)
+            try:
+                entity = await client.get_entity(target_entity)
+            except Exception:
+                entity = await client.get_input_entity(target_entity)
             buf = io.BytesIO()
             res = await client.download_profile_photo(entity, file=buf, download_big=False)
             if res:
@@ -369,6 +373,10 @@ class TelegramWebService:
         message_id: int,
     ) -> Optional[tuple[bytes, str, str]]:
         """Download media file bytes, returning (bytes, filename, mime_type)."""
+        cache_key = f"{account.id}_{dialog_id}_{message_id}"
+        if cache_key in _media_cache:
+            return _media_cache[cache_key]
+
         client = cls.get_client(account)
         if not client:
             return None
@@ -376,7 +384,10 @@ class TelegramWebService:
         try:
             await client.connect()
             target_entity = int(dialog_id) if str(dialog_id).lstrip("-").isdigit() else dialog_id
-            entity = await client.get_input_entity(target_entity)
+            try:
+                entity = await client.get_entity(target_entity)
+            except Exception:
+                entity = await client.get_input_entity(target_entity)
             message = await client.get_messages(entity, ids=message_id)
 
             if not message or not message.media:
@@ -397,10 +408,16 @@ class TelegramWebService:
                     for attr in message.document.attributes:
                         if isinstance(attr, types.DocumentAttributeFilename):
                             filename = attr.file_name
-                if hasattr(message.document, "mime_type"):
+                        elif isinstance(attr, types.DocumentAttributeVideo):
+                            filename = f"video_{message_id}.mp4"
+                            mime_type = "video/mp4"
+                if hasattr(message.document, "mime_type") and message.document.mime_type:
                     mime_type = message.document.mime_type
 
-            return file_bytes, filename, mime_type
+            result = (file_bytes, filename, mime_type)
+            if len(file_bytes) > 0:
+                _media_cache[cache_key] = result
+            return result
         except Exception as e:
             logger.exception(f"Failed to download media for msg {message_id}: {e}")
             return None

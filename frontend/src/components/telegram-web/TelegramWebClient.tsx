@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Search, RefreshCw, Send, Users, MessageSquare, Radio, Bot, Pin,
   CheckCircle2, AlertTriangle, Loader2, ArrowLeft, Plus, ExternalLink,
@@ -70,6 +70,79 @@ const COMMON_EMOJIS = [
 
 const QUICK_REACTIONS = ["❤️", "👍", "🔥", "👏", "🎉", "🤩", "💩", "🙏", "⚡", "🥰"];
 
+/**
+ * Authenticated Image Component
+ * Loads binary images via axios `api` using Authorization headers,
+ * caching as local Blob URLs to bypass browser unauthenticated img limitations.
+ */
+function AuthenticatedImage({
+  src,
+  alt,
+  className,
+  fallback,
+  onClick,
+}: {
+  src: string;
+  alt?: string;
+  className?: string;
+  fallback?: React.ReactNode;
+  onClick?: () => void;
+}) {
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    setHasError(false);
+
+    api
+      .get(src, { responseType: "blob" })
+      .then((res) => {
+        if (isMounted) {
+          const url = URL.createObjectURL(res.data);
+          setBlobUrl(url);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setHasError(true);
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl);
+      }
+    };
+  }, [src]);
+
+  if (loading) {
+    return (
+      <div className={`${className} bg-secondary/80 flex items-center justify-center animate-pulse`}>
+        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (hasError || !blobUrl) {
+    return fallback ? <>{fallback}</> : null;
+  }
+
+  return (
+    <img
+      src={blobUrl}
+      alt={alt || ""}
+      className={className}
+      onClick={onClick}
+    />
+  );
+}
+
 export default function TelegramWebClient({
   accountId,
   accountPhone,
@@ -127,6 +200,7 @@ export default function TelegramWebClient({
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [hoveredMsgId, setHoveredMsgId] = useState<number | null>(null);
   const [activeMediaPreview, setActiveMediaPreview] = useState<string | null>(null);
+  const [downloadingMsgId, setDownloadingMsgId] = useState<number | null>(null);
 
   const [copiedId, setCopiedId] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -221,6 +295,27 @@ export default function TelegramWebClient({
       setErrorMsg("Failed to send message: " + (err.response?.data?.detail || err.message));
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleDownloadMedia = async (dialogId: number | string, messageId: number, filename: string) => {
+    try {
+      setDownloadingMsgId(messageId);
+      const res = await api.get(`/accounts/${accountId}/dialogs/${dialogId}/messages/${messageId}/media`, {
+        responseType: "blob",
+      });
+      const blobUrl = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err: any) {
+      setErrorMsg("Download failed: " + (err.response?.data?.detail || err.message));
+    } finally {
+      setDownloadingMsgId(null);
     }
   };
 
@@ -732,22 +827,29 @@ export default function TelegramWebClient({
                     <div className="relative shrink-0">
                       <div className="h-10 w-10 rounded-full overflow-hidden bg-secondary relative flex items-center justify-center text-white font-bold text-xs shadow-xs">
                         {d.has_photo ? (
-                          <img
-                            src={`/api/v1/accounts/${accountId}/dialogs/${d.id}/avatar`}
+                          <AuthenticatedImage
+                            src={`/accounts/${accountId}/dialogs/${d.id}/avatar`}
                             alt={d.title}
                             className="h-full w-full object-cover"
-                            onError={(e) => {
-                              (e.target as HTMLElement).style.display = "none";
-                            }}
+                            fallback={
+                              <div
+                                className={`h-full w-full bg-gradient-to-tr ${getGradient(
+                                  d.id
+                                )} flex items-center justify-center text-white font-bold`}
+                              >
+                                {getInitials(d.title)}
+                              </div>
+                            }
                           />
-                        ) : null}
-                        <div
-                          className={`absolute inset-0 bg-gradient-to-tr ${getGradient(
-                            d.id
-                          )} flex items-center justify-center text-white font-bold -z-10`}
-                        >
-                          {getInitials(d.title)}
-                        </div>
+                        ) : (
+                          <div
+                            className={`h-full w-full bg-gradient-to-tr ${getGradient(
+                              d.id
+                            )} flex items-center justify-center text-white font-bold`}
+                          >
+                            {getInitials(d.title)}
+                          </div>
+                        )}
                       </div>
                       {d.type === "bot" && (
                         <div className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-purple-500 text-white flex items-center justify-center text-[8px] font-bold">
@@ -812,22 +914,29 @@ export default function TelegramWebClient({
                 <div className="flex items-center gap-3">
                   <div className="h-9 w-9 rounded-full overflow-hidden bg-secondary relative flex items-center justify-center text-white font-bold text-xs shadow-xs">
                     {selectedDialog.has_photo ? (
-                      <img
-                        src={`/api/v1/accounts/${accountId}/dialogs/${selectedDialog.id}/avatar`}
+                      <AuthenticatedImage
+                        src={`/accounts/${accountId}/dialogs/${selectedDialog.id}/avatar`}
                         alt={selectedDialog.title}
                         className="h-full w-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLElement).style.display = "none";
-                        }}
+                        fallback={
+                          <div
+                            className={`h-full w-full bg-gradient-to-tr ${getGradient(
+                              selectedDialog.id
+                            )} flex items-center justify-center text-white font-bold`}
+                          >
+                            {getInitials(selectedDialog.title)}
+                          </div>
+                        }
                       />
-                    ) : null}
-                    <div
-                      className={`absolute inset-0 bg-gradient-to-tr ${getGradient(
-                        selectedDialog.id
-                      )} flex items-center justify-center text-white font-bold -z-10`}
-                    >
-                      {getInitials(selectedDialog.title)}
-                    </div>
+                    ) : (
+                      <div
+                        className={`h-full w-full bg-gradient-to-tr ${getGradient(
+                          selectedDialog.id
+                        )} flex items-center justify-center text-white font-bold`}
+                      >
+                        {getInitials(selectedDialog.title)}
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -964,22 +1073,17 @@ export default function TelegramWebClient({
                           {m.media && (
                             <div className="rounded-xl overflow-hidden bg-black/10 border border-white/10 p-2 space-y-1.5">
                               {m.media.type === "photo" ? (
-                                <div
-                                  onClick={() =>
-                                    setActiveMediaPreview(
-                                      `/api/v1/accounts/${accountId}/dialogs/${selectedDialog.id}/messages/${m.id}/media`
-                                    )
-                                  }
-                                  className="cursor-pointer group/photo relative rounded-lg overflow-hidden max-h-60"
-                                >
-                                  <img
-                                    src={`/api/v1/accounts/${accountId}/dialogs/${selectedDialog.id}/messages/${m.id}/media`}
+                                <div className="cursor-pointer group/photo relative rounded-lg overflow-hidden max-h-60">
+                                  <AuthenticatedImage
+                                    src={`/accounts/${accountId}/dialogs/${selectedDialog.id}/messages/${m.id}/media`}
                                     alt={m.media.file_name}
                                     className="w-full object-cover group-hover/photo:scale-105 transition-transform"
+                                    onClick={() =>
+                                      setActiveMediaPreview(
+                                        `/accounts/${accountId}/dialogs/${selectedDialog.id}/messages/${m.id}/media`
+                                      )
+                                    }
                                   />
-                                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/photo:opacity-100 flex items-center justify-center text-white transition-opacity">
-                                    <Eye className="h-5 w-5" />
-                                  </div>
                                 </div>
                               ) : (
                                 <div className="flex items-center justify-between gap-3 p-1">
@@ -1000,20 +1104,31 @@ export default function TelegramWebClient({
                                       </p>
                                     </div>
                                   </div>
-                                  <a
-                                    href={`/api/v1/accounts/${accountId}/dialogs/${selectedDialog.id}/messages/${m.id}/media`}
-                                    download={m.media.file_name}
-                                    className="p-1.5 rounded-lg bg-secondary hover:bg-card text-foreground transition-colors shrink-0"
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleDownloadMedia(
+                                        selectedDialog.id,
+                                        m.id,
+                                        m.media?.file_name || `file_${m.id}`
+                                      )
+                                    }
+                                    disabled={downloadingMsgId === m.id}
+                                    className="p-1.5 rounded-lg bg-secondary hover:bg-card text-foreground transition-colors shrink-0 disabled:opacity-50"
                                     title="Download File"
                                   >
-                                    <Download className="h-3.5 w-3.5" />
-                                  </a>
+                                    {downloadingMsgId === m.id ? (
+                                      <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                                    ) : (
+                                      <Download className="h-3.5 w-3.5" />
+                                    )}
+                                  </button>
                                 </div>
                               )}
                             </div>
                           )}
 
-                          {/* Message Text */}
+                          {/* Message Text with Clickable Links */}
                           {m.text && (
                             <div className="whitespace-pre-wrap leading-relaxed break-words">
                               {renderClickableContent(m.text, isOut)}
@@ -1559,7 +1674,7 @@ export default function TelegramWebClient({
           className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 cursor-zoom-out"
         >
           <div className="relative max-w-4xl max-h-[85vh] rounded-2xl overflow-hidden shadow-2xl">
-            <img
+            <AuthenticatedImage
               src={activeMediaPreview}
               alt="Media Preview"
               className="max-h-[85vh] w-auto object-contain"
