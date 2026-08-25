@@ -2,7 +2,7 @@ import asyncio
 import uuid
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response, UploadFile, File, Form
 from pydantic import BaseModel
 from loguru import logger
 from sqlalchemy import select, func, update as sa_update
@@ -900,4 +900,217 @@ async def leave_dialog(
     if not result.get("success"):
         raise HTTPException(status_code=400, detail=result.get("error", "Failed to leave chat"))
     return result
+
+
+@router.get("/{account_id}/dialogs/{dialog_id}/avatar", tags=["Accounts"])
+async def get_dialog_avatar(
+    account_id: int,
+    dialog_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Fetch and return binary profile picture / avatar for a chat or channel."""
+    from app.services.telegram_web_service import TelegramWebService
+    acc = await db.get(Account, account_id)
+    if not acc:
+        raise HTTPException(status_code=404, detail="Account not found")
+    await _require_own_account(db, acc, current_user)
+
+    img_bytes = await TelegramWebService.get_avatar(acc, dialog_id=dialog_id)
+    if not img_bytes:
+        raise HTTPException(status_code=404, detail="No avatar available")
+
+    return Response(content=img_bytes, media_type="image/jpeg")
+
+
+@router.get("/{account_id}/dialogs/{dialog_id}/messages/{message_id}/media", tags=["Accounts"])
+async def download_dialog_media(
+    account_id: int,
+    dialog_id: str,
+    message_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Download attached photo, document, video, or audio from a message."""
+    from app.services.telegram_web_service import TelegramWebService
+    acc = await db.get(Account, account_id)
+    if not acc:
+        raise HTTPException(status_code=404, detail="Account not found")
+    await _require_own_account(db, acc, current_user)
+
+    media_data = await TelegramWebService.download_media(acc, dialog_id=dialog_id, message_id=message_id)
+    if not media_data:
+        raise HTTPException(status_code=404, detail="Media not found or download failed")
+
+    file_bytes, filename, mime_type = media_data
+    return Response(
+        content=file_bytes,
+        media_type=mime_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+class ReactMessageIn(BaseModel):
+    emoji: str
+
+
+@router.post("/{account_id}/dialogs/{dialog_id}/messages/{message_id}/react", tags=["Accounts"])
+async def react_to_message(
+    account_id: int,
+    dialog_id: str,
+    message_id: int,
+    body: ReactMessageIn,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Send an emoji reaction to a specific message."""
+    from app.services.telegram_web_service import TelegramWebService
+    acc = await db.get(Account, account_id)
+    if not acc:
+        raise HTTPException(status_code=404, detail="Account not found")
+    await _require_own_account(db, acc, current_user)
+
+    result = await TelegramWebService.send_reaction(acc, dialog_id=dialog_id, message_id=message_id, emoji=body.emoji)
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Failed to send reaction"))
+    return result
+
+
+@router.post("/{account_id}/dialogs/{dialog_id}/send-media", tags=["Accounts"])
+async def send_dialog_media(
+    account_id: int,
+    dialog_id: str,
+    file: UploadFile = File(...),
+    caption: Optional[str] = Form(None),
+    reply_to: Optional[int] = Form(None),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Send a file, document, photo, or video attachment to a chat."""
+    from app.services.telegram_web_service import TelegramWebService
+    acc = await db.get(Account, account_id)
+    if not acc:
+        raise HTTPException(status_code=404, detail="Account not found")
+    await _require_own_account(db, acc, current_user)
+
+    file_bytes = await file.read()
+    filename = file.filename or "attachment"
+
+    result = await TelegramWebService.send_media(
+        acc,
+        dialog_id=dialog_id,
+        file_bytes=file_bytes,
+        filename=filename,
+        caption=caption,
+        reply_to=reply_to,
+    )
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Failed to send media"))
+    return result
+
+
+class TranslateIn(BaseModel):
+    text: str
+    target_lang: Optional[str] = "en"
+
+
+@router.post("/translate", tags=["Accounts"])
+async def translate_chat_text(
+    body: TranslateIn,
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Translate chat text into requested language."""
+    from app.services.telegram_web_service import TelegramWebService
+    translated = TelegramWebService.translate_text(body.text, target_lang=body.target_lang or "en")
+    return {"original": body.text, "translated": translated, "target_lang": body.target_lang or "en"}
+
+
+@router.get("/{account_id}/stories", tags=["Accounts"])
+async def get_account_stories(
+    account_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Retrieve active Telegram stories for this account."""
+    from app.services.telegram_web_service import TelegramWebService
+    acc = await db.get(Account, account_id)
+    if not acc:
+        raise HTTPException(status_code=404, detail="Account not found")
+    await _require_own_account(db, acc, current_user)
+
+    return await TelegramWebService.get_stories(acc)
+
+
+@router.post("/{account_id}/stories/upload", tags=["Accounts"])
+async def upload_account_story(
+    account_id: int,
+    file: UploadFile = File(...),
+    caption: Optional[str] = Form(None),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Upload and publish a new Telegram story."""
+    from app.services.telegram_web_service import TelegramWebService
+    acc = await db.get(Account, account_id)
+    if not acc:
+        raise HTTPException(status_code=404, detail="Account not found")
+    await _require_own_account(db, acc, current_user)
+
+    file_bytes = await file.read()
+    filename = file.filename or "story.jpg"
+
+    result = await TelegramWebService.upload_story(acc, file_bytes=file_bytes, filename=filename, caption=caption)
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Story upload failed"))
+    return result
+
+
+@router.get("/{account_id}/telegram-settings", tags=["Accounts"])
+async def get_telegram_settings(
+    account_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Fetch Telegram profile info, bio, username, and privacy details."""
+    from app.services.telegram_web_service import TelegramWebService
+    acc = await db.get(Account, account_id)
+    if not acc:
+        raise HTTPException(status_code=404, detail="Account not found")
+    await _require_own_account(db, acc, current_user)
+
+    return await TelegramWebService.get_telegram_settings(acc)
+
+
+class UpdateTelegramProfileIn(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    bio: Optional[str] = None
+    username: Optional[str] = None
+
+
+@router.post("/{account_id}/telegram-settings/update", tags=["Accounts"])
+async def update_telegram_settings(
+    account_id: int,
+    body: UpdateTelegramProfileIn,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Update Telegram first name, last name, bio, or username."""
+    from app.services.telegram_web_service import TelegramWebService
+    acc = await db.get(Account, account_id)
+    if not acc:
+        raise HTTPException(status_code=404, detail="Account not found")
+    await _require_own_account(db, acc, current_user)
+
+    result = await TelegramWebService.update_telegram_profile(
+        acc,
+        first_name=body.first_name,
+        last_name=body.last_name,
+        bio=body.bio,
+        username=body.username,
+    )
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Profile update failed"))
+    return result
+
 
