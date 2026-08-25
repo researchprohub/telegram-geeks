@@ -348,9 +348,8 @@ async def lifespan(app: FastAPI):
         """Periodic proxy health check every 5 min."""
         while True:
             try:
-                from app.api.v1.endpoints.proxies import _pool
-                if _pool:
-                    await _pool.run_health_checks()
+                from app.services.proxy_service import ProxyService
+                await ProxyService.test_all(concurrency=10)
             except Exception as e:
                 logger.warning(f"Proxy health check error: {e}")
             await asyncio.sleep(300)
