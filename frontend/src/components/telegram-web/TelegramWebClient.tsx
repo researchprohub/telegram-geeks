@@ -9,7 +9,7 @@ import {
   Settings, Image, Video, FileText, X, Archive, ChevronRight, Share2,
   Lock, Eye, Volume2, UserCheck, Smartphone, ClipboardCopy, Play
 } from "lucide-react";
-import api from "@/lib/api";
+import api, { mediaApi } from "@/lib/api";
 
 interface Dialog {
   id: number;
@@ -104,7 +104,7 @@ function AuthenticatedImage({
     setLoading(true);
     setHasError(false);
 
-    api
+    mediaApi
       .get(src, { responseType: "blob" })
       .then((res) => {
         if (isMounted) {
@@ -180,7 +180,7 @@ function AuthenticatedVideo({
     setLoading(true);
     setHasError(false);
 
-    api
+    mediaApi
       .get(src, { responseType: "blob" })
       .then((res) => {
         if (isMounted) {
@@ -438,7 +438,7 @@ export default function TelegramWebClient({
   const handleDownloadMedia = async (dialogId: number | string, messageId: number, filename: string) => {
     try {
       setDownloadingMsgId(messageId);
-      const res = await api.get(`/accounts/${accountId}/dialogs/${dialogId}/messages/${messageId}/media`, {
+      const res = await mediaApi.get(`/accounts/${accountId}/dialogs/${dialogId}/messages/${messageId}/media`, {
         responseType: "blob",
       });
       const blobUrl = window.URL.createObjectURL(new Blob([res.data]));
@@ -968,7 +968,7 @@ export default function TelegramWebClient({
           )}
 
           {/* Dialogs List */}
-          <div className="flex-1 overflow-y-auto divide-y divide-border/40">
+          <div className="flex-1 overflow-y-auto divide-y divide-border/40 scrollbar-none no-scrollbar">
             {loadingDialogs ? (
               <div className="p-8 flex flex-col items-center justify-center text-muted-foreground text-xs gap-2">
                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
@@ -993,7 +993,7 @@ export default function TelegramWebClient({
                   >
                     {/* Display Photo Avatar */}
                     <div className="relative shrink-0">
-                      <div className="h-10 w-10 rounded-full overflow-hidden bg-secondary relative flex items-center justify-center text-white font-bold text-xs shadow-xs">
+                      <div className="h-12 w-12 rounded-full overflow-hidden bg-secondary relative flex items-center justify-center text-white font-bold text-sm shadow-xs">
                         {d.has_photo ? (
                           <AuthenticatedImage
                             src={`/accounts/${accountId}/dialogs/${d.id}/avatar`}
@@ -1020,46 +1020,46 @@ export default function TelegramWebClient({
                         )}
                       </div>
                       {d.type === "bot" && (
-                        <div className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-purple-500 text-white flex items-center justify-center text-[8px] font-bold">
+                        <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-purple-500 text-white flex items-center justify-center text-[9px] font-bold">
                           B
                         </div>
                       )}
                     </div>
 
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 flex flex-col justify-center">
                       <div className="flex items-center justify-between gap-1 mb-0.5">
                         <div className="flex items-center gap-1 min-w-0">
                           <span
-                            className={`text-xs font-bold truncate ${
+                            className={`text-sm font-bold truncate ${
                               isSelected ? "text-primary" : "text-foreground"
                             }`}
                           >
                             {d.title}
                           </span>
                           {d.is_verified && (
-                            <CheckCircle2 className="h-3 w-3 text-primary shrink-0" />
+                            <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
                           )}
                         </div>
                         {d.last_message_date && (
-                          <span className="text-[10px] text-muted-foreground shrink-0 font-mono">
+                          <span className="text-xs text-muted-foreground shrink-0 font-mono">
                             {formatTime(d.last_message_date)}
                           </span>
                         )}
                       </div>
 
-                      <p className="text-[11px] text-muted-foreground truncate">
+                      <p className="text-xs text-muted-foreground truncate leading-tight">
                         {d.last_message || "No messages yet"}
                       </p>
 
-                      <div className="flex items-center justify-between gap-1 mt-1">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/70">
+                      <div className="flex items-center justify-between gap-1 mt-1.5">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
                           {d.type} {d.participants_count ? `• ${d.participants_count}` : ""}
                         </span>
 
                         <div className="flex items-center gap-1">
-                          {d.pinned && <Pin className="h-3 w-3 text-muted-foreground rotate-45" />}
+                          {d.pinned && <Pin className="h-3.5 w-3.5 text-muted-foreground rotate-45" />}
                           {d.unread_count > 0 && (
-                            <span className="px-1.5 py-0.2 rounded-full bg-emerald-500 text-white text-[10px] font-bold">
+                            <span className="px-1.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-bold leading-none flex items-center justify-center min-w-[18px]">
                               {d.unread_count > 99 ? "99+" : d.unread_count}
                             </span>
                           )}
@@ -1080,7 +1080,7 @@ export default function TelegramWebClient({
               {/* Chat Header */}
               <div className="px-4 py-2.5 bg-card/80 border-b border-border/80 flex items-center justify-between backdrop-blur-xs">
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-full overflow-hidden bg-secondary relative flex items-center justify-center text-white font-bold text-xs shadow-xs">
+                  <div className="h-10 w-10 rounded-full overflow-hidden bg-secondary relative flex items-center justify-center text-white font-bold text-sm shadow-xs">
                     {selectedDialog.has_photo ? (
                       <AuthenticatedImage
                         src={`/accounts/${accountId}/dialogs/${selectedDialog.id}/avatar`}
@@ -1109,14 +1109,14 @@ export default function TelegramWebClient({
 
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <h3 className="text-xs font-bold text-foreground">{selectedDialog.title}</h3>
+                      <h3 className="text-sm font-bold text-foreground">{selectedDialog.title}</h3>
                       {selectedDialog.username && (
-                        <span className="text-[11px] text-primary font-mono">
+                        <span className="text-xs text-primary font-mono">
                           @{selectedDialog.username}
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] text-muted-foreground capitalize">
+                    <p className="text-xs text-muted-foreground capitalize leading-tight mt-0.5">
                       {selectedDialog.type}{" "}
                       {selectedDialog.participants_count
                         ? `• ${selectedDialog.participants_count.toLocaleString()} members`
@@ -1166,7 +1166,7 @@ export default function TelegramWebClient({
 
               {/* Message Stream */}
               <div
-                className="flex-1 overflow-y-auto p-4 space-y-3"
+                className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-none no-scrollbar"
                 style={{
                   backgroundImage:
                     "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0)",
@@ -1179,7 +1179,7 @@ export default function TelegramWebClient({
                     <span>Loading message history...</span>
                   </div>
                 ) : messages.length === 0 ? (
-                  <div className="h-full flex items-center justify-center text-muted-foreground text-xs">
+                  <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
                     No messages yet in this chat.
                   </div>
                 ) : (
@@ -1192,59 +1192,68 @@ export default function TelegramWebClient({
                         key={m.id}
                         onMouseEnter={() => setHoveredMsgId(m.id)}
                         onMouseLeave={() => setHoveredMsgId(null)}
-                        className={`flex flex-col group relative ${
-                          isOut ? "items-end" : "items-start"
+                        className={`flex w-full group relative mt-1 ${
+                          isOut ? "justify-end" : "justify-start"
                         }`}
                       >
-                        {/* Floating Quick Reactions & Action Toolbar */}
-                        {isHovered && (
-                          <div
-                            className={`absolute -top-7 z-20 flex items-center gap-1 p-1 rounded-full bg-card border border-border shadow-lg backdrop-blur-md animate-in fade-in zoom-in-95 duration-100 ${
-                              isOut ? "right-2" : "left-2"
-                            }`}
-                          >
-                            {QUICK_REACTIONS.map((emoji) => (
-                              <button
-                                key={emoji}
-                                onClick={() => handleSendReaction(m.id, emoji)}
-                                className="h-6 w-6 rounded-full hover:bg-secondary flex items-center justify-center text-xs hover:scale-125 transition-transform"
-                              >
-                                {emoji}
-                              </button>
-                            ))}
-                            {m.text && (
-                              <button
-                                onClick={() => handleCopyText(m.text)}
-                                className="px-1.5 py-0.5 rounded-full hover:bg-secondary text-[10px] font-bold text-muted-foreground hover:text-foreground flex items-center gap-0.5"
-                                title="Copy Text"
-                              >
-                                <ClipboardCopy className="h-3 w-3" />
-                              </button>
-                            )}
-                            <button
-                              onClick={() => handleTranslateMessage(m.id, m.text)}
-                              className="px-2 py-0.5 rounded-full hover:bg-secondary text-[10px] font-bold text-primary flex items-center gap-0.5"
-                              title="Translate Message"
-                            >
-                              <Globe className="h-3 w-3" />
-                              Translate
-                            </button>
+                        {!isOut && (
+                          <div className="flex-shrink-0 mr-2 flex items-end pb-[20px]">
+                            <div className="h-8 w-8 rounded-full overflow-hidden bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-[10px]">
+                              {m.sender_name ? m.sender_name.charAt(0).toUpperCase() : <UserCheck className="h-4 w-4" />}
+                            </div>
                           </div>
                         )}
 
-                        <div
-                          className={`max-w-[78%] rounded-2xl px-3.5 py-2 text-xs shadow-xs relative space-y-1.5 ${
-                            isOut
-                              ? "bg-primary text-primary-foreground rounded-br-xs"
-                              : "bg-card border border-border text-foreground rounded-bl-xs"
-                          }`}
-                        >
-                          {/* Sender Name */}
-                          {!isOut && m.sender_name && (
-                            <p className="text-[10px] font-bold text-primary truncate">
-                              {m.sender_name}
-                            </p>
+                        <div className={`flex flex-col relative max-w-[85%] ${isOut ? "items-end" : "items-start"}`}>
+                          {/* Floating Quick Reactions & Action Toolbar */}
+                          {isHovered && (
+                            <div
+                              className={`absolute -top-7 z-20 flex items-center gap-1 p-1 rounded-full bg-card border border-border shadow-lg backdrop-blur-md animate-in fade-in zoom-in-95 duration-100 ${
+                                isOut ? "right-2" : "left-2"
+                              }`}
+                            >
+                              {QUICK_REACTIONS.map((emoji) => (
+                                <button
+                                  key={emoji}
+                                  onClick={() => handleSendReaction(m.id, emoji)}
+                                  className="h-6 w-6 rounded-full hover:bg-secondary flex items-center justify-center text-xs hover:scale-125 transition-transform"
+                                >
+                                  {emoji}
+                                </button>
+                              ))}
+                              {m.text && (
+                                <button
+                                  onClick={() => handleCopyText(m.text)}
+                                  className="px-1.5 py-0.5 rounded-full hover:bg-secondary text-[10px] font-bold text-muted-foreground hover:text-foreground flex items-center gap-0.5"
+                                  title="Copy Text"
+                                >
+                                  <ClipboardCopy className="h-3 w-3" />
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleTranslateMessage(m.id, m.text)}
+                                className="px-2 py-0.5 rounded-full hover:bg-secondary text-[10px] font-bold text-primary flex items-center gap-0.5"
+                                title="Translate Message"
+                              >
+                                <Globe className="h-3 w-3" />
+                                Translate
+                              </button>
+                            </div>
                           )}
+
+                          <div
+                            className={`rounded-2xl px-3.5 py-2 text-[14px] shadow-sm relative space-y-1.5 ${
+                              isOut
+                                ? "bg-primary text-primary-foreground rounded-br-sm"
+                                : "bg-card border border-border text-foreground rounded-bl-sm"
+                            }`}
+                          >
+                            {/* Sender Name */}
+                            {!isOut && m.sender_name && (
+                              <p className="text-xs font-bold text-primary truncate mb-1">
+                                {m.sender_name}
+                              </p>
+                            )}
 
                           {/* Media Preview: Videos, Photos & Documents */}
                           {m.media && (
@@ -1382,6 +1391,7 @@ export default function TelegramWebClient({
                             ))}
                           </div>
                         )}
+                        </div>
                       </div>
                     );
                   })
@@ -1456,13 +1466,13 @@ export default function TelegramWebClient({
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
                     placeholder={`Message ${selectedDialog.title}...`}
-                    className="flex-1 bg-secondary border border-border rounded-xl px-4 py-2 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/40"
+                    className="flex-1 bg-secondary border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/40"
                   />
 
                   <button
                     type="submit"
                     disabled={sending || !messageText.trim()}
-                    className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold flex items-center gap-1.5 shadow-xs hover:opacity-90 disabled:opacity-50 transition-opacity"
+                    className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold flex items-center gap-1.5 shadow-sm hover:opacity-90 disabled:opacity-50 transition-opacity"
                   >
                     {sending ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />

@@ -52,6 +52,23 @@ api.interceptors.response.use(
   }
 );
 
+// Dedicated media client with extended timeout for MTProto relay downloads
+// (avatars, photos, videos can take 30-60+ seconds to relay through Telegram servers)
+export const mediaApi = axios.create({
+  baseURL: typeof window === "undefined" && process.env.BACKEND_URL
+    ? `${process.env.BACKEND_URL}/api/v1`
+    : (typeof window !== "undefined" && process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL : '/api/v1'),
+  timeout: 120000,
+});
+
+mediaApi.interceptors.request.use((config) => {
+  const authToken = getStoredToken();
+  if (authToken && !config.headers["Authorization"]) {
+    config.headers["Authorization"] = `Bearer ${authToken}`;
+  }
+  return config;
+});
+
 export default api;
 
 // ─── API Methods ───────────────────────────────────────────────
