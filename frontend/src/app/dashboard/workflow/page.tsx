@@ -375,6 +375,93 @@ export default function MasterWorkflowPage() {
         </div>
       </div>
 
+      {/* 🧭 Guided Operations & Strategy Blueprints */}
+      <div className="bg-card rounded-2xl border border-border p-5 shadow-xs space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-bold text-foreground">Interactive Guided Operational Blueprints</h3>
+          </div>
+          <span className="text-[11px] text-muted-foreground">
+            Select a strategy to pre-load stages and safe parameters
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div
+            onClick={() => {
+              setActiveStageId("stage-4");
+              setSpintaxText("{Hi|Hello|Hey} {friend|there}! Exclusive community update.");
+            }}
+            className="p-4 rounded-xl border border-border/80 bg-secondary/30 hover:bg-secondary/60 hover:border-primary/50 cursor-pointer transition-all space-y-1.5 group"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                🎯 Cold Outreach & Lead Flow
+              </span>
+              <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-primary/10 text-primary font-bold">
+                Stages 3 → 4
+              </span>
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Scrape active members from competitor channels → filter by gender & last seen → send randomized Spintax DMs.
+            </p>
+            <div className="flex items-center gap-1.5 text-[10px] text-primary font-bold pt-1">
+              <span>Open Guided Workflow</span>
+              <ArrowRight className="h-3 w-3" />
+            </div>
+          </div>
+
+          <div
+            onClick={() => {
+              setActiveStageId("stage-5");
+              setTargetGroupLink("https://t.me/CryptoAlphaGems");
+            }}
+            className="p-4 rounded-xl border border-border/80 bg-secondary/30 hover:bg-secondary/60 hover:border-primary/50 cursor-pointer transition-all space-y-1.5 group"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                👥 Group Growth & Community Hijack
+              </span>
+              <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 font-bold">
+                Stages 3 → 5
+              </span>
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Extract user IDs from public channels → validate spam status → invite via Admin V2 promotion with safe 50-cap daily guard.
+            </p>
+            <div className="flex items-center gap-1.5 text-[10px] text-primary font-bold pt-1">
+              <span>Open Guided Workflow</span>
+              <ArrowRight className="h-3 w-3" />
+            </div>
+          </div>
+
+          <div
+            onClick={() => {
+              setActiveStageId("stage-2");
+              setWarmDays(14);
+            }}
+            className="p-4 rounded-xl border border-border/80 bg-secondary/30 hover:bg-secondary/60 hover:border-primary/50 cursor-pointer transition-all space-y-1.5 group"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                🛡️ Account Maturation & Trust Max
+              </span>
+              <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 font-bold">
+                Stages 1 → 2
+              </span>
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Generate real hardware signatures → automate mutual P2P dialogs & story posts → elevate trust score to 100/100.
+            </p>
+            <div className="flex items-center gap-1.5 text-[10px] text-primary font-bold pt-1">
+              <span>Open Guided Workflow</span>
+              <ArrowRight className="h-3 w-3" />
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Real-time Platform Telemetry Cards */}
       {telemetry && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">

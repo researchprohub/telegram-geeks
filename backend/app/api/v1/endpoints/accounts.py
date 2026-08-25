@@ -1,7 +1,6 @@
-"""Account management endpoints — real DB CRUD with tenant isolation."""
-
 import asyncio
 import uuid
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel

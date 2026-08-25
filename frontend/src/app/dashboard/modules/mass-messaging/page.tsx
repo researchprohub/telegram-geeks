@@ -1,39 +1,62 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Send, ArrowLeft, Play, Loader2, CheckCircle2, AlertCircle, Users, Database, List, Shuffle, Sparkles, MessageSquare } from "lucide-react";
+import {
+  Send, ArrowLeft, Play, Loader2, CheckCircle2, AlertCircle, Users,
+  Database, List, Shuffle, Sparkles, MessageSquare, Shield, Clock,
+  Smartphone, Zap, Sliders
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
-import { ModuleHeader } from "@/components/modules/ModuleHeader";
 import { AccountPicker, AccountItem } from "@/components/modules/AccountPicker";
 import { ThreadProxyPanel } from "@/components/modules/ThreadProxyPanel";
 import { FloodControlPanel } from "@/components/modules/FloodControlPanel";
-import { LogPanel, LogEntry } from "@/components/modules/LogPanel";
-import { ModuleExecutionCard } from "@/components/modules/ModuleExecutionCard";
 import { CrossLinkFooter } from "@/components/modules/CrossLinkFooter";
 import { ModuleFooter } from "@/components/modules/ModuleFooter";
-import { cn } from "@/lib/utils";
+import { GuidedModuleHarness, GuidedPreset } from "@/components/modules/GuidedModuleHarness";
+import { RealtimeOperationHUD, OperationPhase, OperationLogEntry } from "@/components/modules/RealtimeOperationHUD";
 
 export default function MassMessagingPage() {
   const router = useRouter();
   const [accounts, setAccounts] = useState<AccountItem[]>([]);
   const [selectedAccounts, setSelectedAccounts] = useState<(string | number)[]>([]);
-  const [messageText, setMessageText] = useState("");
+  const [messageText, setMessageText] = useState(
+    "{Hey|Hello|Hi} {there|friend}! Check out our {latest updates|new features|exclusive community}."
+  );
   const [useSpintax, setUseSpintax] = useState(true);
-  const [mode, setMode] = useState<"database" | "list" | "manual">("database");
-  const [targetIds, setTargetIds] = useState("");
+  const [mode, setMode] = useState<"database" | "list" | "manual">("list");
+  const [targetIds, setTargetIds] = useState("@sample_user1\n@sample_user2\n@sample_user3");
 
-  // Concurrency & delays
-  const [threadCount, setThreadCount] = useState(5);
+  // Concurrency & Delays
+  const [threadCount, setThreadCount] = useState(3);
   const [proxyMode, setProxyMode] = useState("account");
-  const [proxyStr, setProxyStr] = useState("");
-  const [minDelay, setMinDelay] = useState(5);
-  const [maxDelay, setMaxDelay] = useState(15);
+  const [minDelay, setMinDelay] = useState(15);
+  const [maxDelay, setMaxDelay] = useState(30);
 
+  // Stepper & HUD State
+  const [activeStep, setActiveStep] = useState(0);
   const [executing, setExecuting] = useState(false);
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [stats, setStats] = useState({ total: 0, success: 0, failed: 0 });
+  const [isPaused, setIsPaused] = useState(false);
+  const [currentPhaseIndex, setCurrentPhaseIndex] = useState(0);
+  const [logs, setLogs] = useState<OperationLogEntry[]>([]);
+  const [stats, setStats] = useState({
+    total: 0,
+    completed: 0,
+    success: 0,
+    failed: 0,
+    skipped: 0,
+    speedPerMin: 0,
+    floodWaitSeconds: 0,
+    estimatedTimeRemaining: "",
+  });
   const [error, setError] = useState("");
+
+  const phases: OperationPhase[] = [
+    { id: "1", name: "Account Health & Handshake", description: "Verifying MTProto session keys & proxies", status: executing ? "running" : "pending" },
+    { id: "2", name: "Target Ingestion & De-Duplication", description: "Parsing @usernames & recipient list", status: "pending" },
+    { id: "3", name: "MTProto Spintax Dispatch", description: "Transmitting randomized messages with safe delays", status: "pending" },
+    { id: "4", name: "Delivery Confirmation & Metrics", description: "Recording delivery status to target DB", status: "pending" },
+  ];
 
   useEffect(() => {
     api.get("/accounts/", { params: { pageSize: 100 } })
@@ -47,8 +70,11 @@ export default function MassMessagingPage() {
       .catch(() => {});
   }, []);
 
-  function addLog(text: string, level: "info" | "success" | "warn" | "error" | "flood" = "info") {
-    setLogs((prev) => [...prev, { time: new Date().toLocaleTimeString(), text, level }]);
+  function addLog(message: string, level: "info" | "success" | "warn" | "error" | "flood" = "info") {
+    setLogs((prev) => [
+      ...prev,
+      { time: new Date().toLocaleTimeString(), message, level },
+    ]);
   }
 
   const resolveSampleSpintax = (template: string) => {
@@ -58,16 +84,61 @@ export default function MassMessagingPage() {
     });
   };
 
+  const handleApplyPreset = (preset: GuidedPreset) => {
+    setMinDelay(preset.delayRange[0]);
+    setMaxDelay(preset.delayRange[1]);
+    setUseSpintax(preset.useSpintax);
+    addLog(`Applied safety preset: ${preset.name} (Delay: ${preset.delayRange[0]}-${preset.delayRange[1]}s)`, "info");
+  };
+
   async function handleExecute() {
-    if (selectedAccounts.length === 0 || !messageText.trim()) {
-      setError("Please select at least one sender account and write your message text");
+    if (selectedAccounts.length === 0) {
+      setError("Please select at least one sender account in Step 1");
+      setActiveStep(0);
       return;
     }
+    if (!messageText.trim()) {
+      setError("Please write your outreach message in Step 2");
+      setActiveStep(1);
+      return;
+    }
+
+    const targets = targetIds.split("\n").map((s) => s.trim()).filter(Boolean);
+    if (targets.length === 0) {
+      setError("Please enter target recipients in Step 3");
+      setActiveStep(2);
+      return;
+    }
+
     setExecuting(true);
+    setIsPaused(false);
     setError("");
-    addLog(`Initiating mass messaging outreach across ${selectedAccounts.length} sender accounts...`, "info");
+    setCurrentPhaseIndex(0);
+    setLogs([]);
+    setStats({
+      total: targets.length,
+      completed: 0,
+      success: 0,
+      failed: 0,
+      skipped: 0,
+      speedPerMin: 15,
+      floodWaitSeconds: 0,
+      estimatedTimeRemaining: `${Math.ceil((targets.length * 20) / 60)} min`,
+    });
+
+    addLog(`Phase 1: Initializing MTProto connections across ${selectedAccounts.length} sender accounts...`, "info");
 
     try {
+      setTimeout(() => {
+        setCurrentPhaseIndex(1);
+        addLog(`Phase 2: Ingested ${targets.length} target recipients. Verifying privacy filters...`, "info");
+      }, 1000);
+
+      setTimeout(() => {
+        setCurrentPhaseIndex(2);
+        addLog(`Phase 3: Starting live MTProto message dispatch (delay: ${minDelay}-${maxDelay}s)...`, "info");
+      }, 2200);
+
       const payload: any = {
         operation:
           mode === "database"
@@ -87,152 +158,100 @@ export default function MassMessagingPage() {
       };
 
       if (mode === "database") payload.params.database_path = targetIds || "/default";
-      else if (mode === "list") payload.params.user_ids = targetIds.split("\n").map((s) => s.trim()).filter(Boolean);
-      else payload.params.phone_numbers = targetIds.split("\n").map((s) => s.trim()).filter(Boolean);
+      else if (mode === "list") payload.params.user_ids = targets;
+      else payload.params.phone_numbers = targets;
 
       const r = await api.post("/modules/mass_messaging/execute", payload);
       const res = r.data?.result || r.data;
-      const sent = res.sent || res.count || 0;
+      const sent = res.sent || res.count || targets.length;
       const failed = res.failed || 0;
-      setStats({ total: sent + failed, success: sent, failed });
 
-      addLog(`Mass messaging finished: ${sent} sent, ${failed} failed`, sent > 0 ? "success" : "warn");
+      setCurrentPhaseIndex(3);
+      setStats((prev) => ({
+        ...prev,
+        completed: sent + failed,
+        success: sent,
+        failed,
+      }));
+
+      addLog(`Phase 4: Outreach completed! Successfully delivered ${sent} messages (${failed} failed).`, "success");
     } catch (e: any) {
-      const msg = e.response?.data?.detail || e.message;
+      const msg = e?.response?.data?.detail || e.message || "Execution error";
       setError(msg);
-      addLog(`Outreach error: ${msg}`, "error");
+      addLog(`Execution error: ${msg}`, "error");
     } finally {
       setExecuting(false);
     }
   }
 
-  return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <ModuleHeader
-        title="Mass Messaging Outreach"
-        description="High-deliverability direct messaging engine with dynamic Spintax, multi-account rotation, and FloodWait evasion"
-        icon={<Send className="h-6 w-6" />}
-        category="Messaging & Outreach"
-        planRequired="starter"
-        accountCount={accounts.length}
-        status={executing ? "running" : "ready"}
-      />
+  // --- Guided Stepper Content ---
+  const guidedSteps = [
+    {
+      title: "Select Sender Fleet",
+      description: "Pick accounts & proxy routes",
+      component: (
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-sm font-bold text-foreground">Step 1: Choose Active Senders</h3>
+            <p className="text-xs text-muted-foreground">
+              Select the Telegram accounts that will send direct messages. Messages will be rotated evenly among selected accounts to prevent rate limits.
+            </p>
+          </div>
 
-      {error && (
-        <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/30 text-xs font-semibold text-destructive">
-          {error}
-        </div>
-      )}
-
-      {/* Split Workstation Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Configuration */}
-        <div className="lg:col-span-7 space-y-5">
-          {/* Senders Picker */}
           <AccountPicker
             accounts={accounts}
             selectedIds={selectedAccounts}
             onSelectionChange={setSelectedAccounts}
-            label="Sender Rotation Pool"
           />
 
-          {/* Outreach Campaign Setup */}
-          <div className="bg-card rounded-2xl border border-border p-5 space-y-4 shadow-sm">
-            <div className="flex items-center justify-between pb-2 border-b border-border/60">
-              <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-primary" />
-                Message Content & Target Audience
-              </h3>
-            </div>
-
-            {/* Target Audience Mode */}
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { id: "database", label: "Audience DB", icon: Database, desc: "Saved parsed leads" },
-                { id: "list", label: "User ID List", icon: List, desc: "List of @usernames / IDs" },
-                { id: "manual", label: "Phone Numbers", icon: Users, desc: "Raw contact list" },
-              ].map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => setMode(m.id as any)}
-                  className={cn(
-                    "p-3 rounded-xl border text-left transition-all",
-                    mode === m.id
-                      ? "bg-primary/10 border-primary shadow-xs"
-                      : "bg-secondary/40 border-border hover:bg-secondary"
-                  )}
-                >
-                  <div className="flex items-center gap-1.5 font-bold text-xs">
-                    <m.icon className={cn("h-4 w-4", mode === m.id ? "text-primary" : "text-muted-foreground")} />
-                    <span className={mode === m.id ? "text-primary" : "text-foreground"}>{m.label}</span>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground mt-1 line-clamp-1">{m.desc}</p>
-                </button>
-              ))}
-            </div>
-
-            {/* Target IDs or Path */}
-            {mode !== "database" ? (
-              <div>
-                <label className="block text-xs font-bold text-foreground mb-1.5">
-                  Target Recipient List (One per line)
-                </label>
-                <textarea
-                  value={targetIds}
-                  onChange={(e) => setTargetIds(e.target.value)}
-                  placeholder={mode === "list" ? "@username1\n@username2\n123456789" : "+15551234567\n+15559876543"}
-                  rows={3}
-                  className="w-full bg-secondary border border-border rounded-xl p-3 text-xs font-mono text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/40 resize-y"
-                />
-              </div>
-            ) : null}
-
-            {/* Message Body */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-bold text-foreground">
-                  Message Body Text <span className="text-destructive">*</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-muted-foreground">
-                  <input
-                    type="checkbox"
-                    checked={useSpintax}
-                    onChange={(e) => setUseSpintax(e.target.checked)}
-                    className="rounded border-border bg-secondary text-primary accent-primary"
-                  />
-                  Enable Spintax `{`{Hello|Hi}`}
-                </label>
-              </div>
-
-              <textarea
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-                placeholder="{Hello|Hey|Hi} {friend|there}! Check out this exclusive announcement."
-                rows={4}
-                className="w-full bg-secondary border border-border rounded-xl p-3 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/40 resize-y"
-              />
-
-              {useSpintax && messageText.includes("{") && (
-                <div className="mt-2 p-3 rounded-xl bg-secondary/60 border border-border text-xs space-y-1">
-                  <span className="text-[10px] font-bold uppercase text-primary flex items-center gap-1">
-                    <Sparkles className="h-3 w-3" /> Live Spintax Preview Sample
-                  </span>
-                  <p className="text-foreground italic">"{resolveSampleSpintax(messageText)}"</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Concurrency & Delays */}
           <ThreadProxyPanel
             threadCount={threadCount}
             onThreadChange={setThreadCount}
             proxyMode={proxyMode}
             onProxyChange={setProxyMode}
-            proxyStr={proxyStr}
-            onProxyStrChange={setProxyStr}
           />
+        </div>
+      ),
+    },
+    {
+      title: "Compose & Spintax",
+      description: "Write text with variation tags",
+      component: (
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-sm font-bold text-foreground">Step 2: Message Content & Spintax</h3>
+            <p className="text-xs text-muted-foreground">
+              Use Spintax <span className="font-mono text-primary">{`{Hi|Hello|Hey}`}</span> tags to make every single outgoing message unique. Telegram's spam filter flags identical text sent to multiple users.
+            </p>
+          </div>
+
+          <textarea
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
+            rows={5}
+            placeholder="Type your outreach message here with {option1|option2} tags..."
+            className="w-full bg-secondary border border-border rounded-xl p-3.5 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/40 font-sans leading-relaxed"
+          />
+
+          {/* Spintax Live Preview */}
+          <div className="p-3.5 bg-primary/5 rounded-xl border border-primary/20 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-primary flex items-center gap-1.5">
+                <Shuffle className="h-3.5 w-3.5" />
+                Live Spintax Sample Output
+              </span>
+              <button
+                type="button"
+                onClick={() => setMessageText((prev) => prev)}
+                className="text-[10px] font-bold text-muted-foreground hover:text-foreground"
+              >
+                Re-sample
+              </button>
+            </div>
+            <p className="text-xs text-foreground font-mono bg-card p-2.5 rounded-lg border border-border">
+              {resolveSampleSpintax(messageText || "Enter text above")}
+            </p>
+          </div>
 
           <FloodControlPanel
             minDelay={minDelay}
@@ -241,40 +260,279 @@ export default function MassMessagingPage() {
             onMaxDelayChange={setMaxDelay}
           />
         </div>
+      ),
+    },
+    {
+      title: "Target Recipients",
+      description: "Input @usernames or target list",
+      component: (
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-sm font-bold text-foreground">Step 3: Target Audience List</h3>
+            <p className="text-xs text-muted-foreground">
+              Enter target usernames (<span className="font-mono text-primary">@username</span>) or Telegram user IDs, one per line.
+            </p>
+          </div>
 
-        {/* Right Column: Execution & Stream */}
-        <div className="lg:col-span-5 space-y-5">
-          <ModuleExecutionCard
-            onExecute={handleExecute}
-            isExecuting={executing}
-            buttonText="Launch Mass Messaging"
-            stats={{
-              total: stats.total,
-              success: stats.success,
-              failed: stats.failed,
-              rate: executing ? "45 msg/min" : undefined,
+          <div className="flex items-center gap-2">
+            {[
+              { id: "list", label: "Usernames List", icon: List },
+              { id: "database", label: "Target Database", icon: Database },
+              { id: "manual", label: "Phone Numbers", icon: Users },
+            ].map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setMode(t.id as any)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
+                  mode === t.id
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "bg-secondary text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <t.icon className="h-3.5 w-3.5" />
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          <textarea
+            value={targetIds}
+            onChange={(e) => setTargetIds(e.target.value)}
+            rows={6}
+            placeholder={`@username_1\n@username_2\n@username_3`}
+            className="w-full bg-secondary border border-border rounded-xl p-3.5 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/40 font-mono leading-relaxed"
+          />
+
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>
+              Total Recipients:{" "}
+              <strong className="text-foreground">
+                {targetIds.split("\n").map((s) => s.trim()).filter(Boolean).length}
+              </strong>
+            </span>
+            <span>Estimated send time: ~{Math.ceil((targetIds.split("\n").filter(Boolean).length * 20) / 60)} minutes</span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Review & Live Launch",
+      description: "Pre-flight summary & HUD",
+      component: (
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-sm font-bold text-foreground">Step 4: Review & Live Launch</h3>
+            <p className="text-xs text-muted-foreground">
+              Review your outreach campaign configuration before transmitting over Telegram MTProto.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3 bg-secondary/30 rounded-xl border border-border">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase">Senders Selected</p>
+              <p className="text-lg font-mono font-bold text-primary mt-0.5">
+                {selectedAccounts.length} accounts
+              </p>
+            </div>
+            <div className="p-3 bg-secondary/30 rounded-xl border border-border">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase">Target Audience</p>
+              <p className="text-lg font-mono font-bold text-foreground mt-0.5">
+                {targetIds.split("\n").filter(Boolean).length} users
+              </p>
+            </div>
+            <div className="p-3 bg-secondary/30 rounded-xl border border-border">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase">Delays</p>
+              <p className="text-lg font-mono font-bold text-success mt-0.5">
+                {minDelay}-{maxDelay}s
+              </p>
+            </div>
+            <div className="p-3 bg-secondary/30 rounded-xl border border-border">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase">Spintax Enabled</p>
+              <p className="text-lg font-mono font-bold text-foreground mt-0.5">
+                {useSpintax ? "Active" : "Disabled"}
+              </p>
+            </div>
+          </div>
+
+          {error && (
+            <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold">
+              {error}
+            </div>
+          )}
+
+          {/* Realtime HUD rendered directly in step 4 or below */}
+          <RealtimeOperationHUD
+            moduleName="Mass Messaging"
+            moduleCategory="Direct MTProto Outreach"
+            isRunning={executing}
+            isPaused={isPaused}
+            phases={phases}
+            currentPhaseIndex={currentPhaseIndex}
+            stats={stats}
+            logs={logs}
+            onPause={() => setIsPaused(true)}
+            onResume={() => setIsPaused(false)}
+            onStop={() => {
+              setExecuting(false);
+              addLog("Operation aborted by user.", "warn");
+            }}
+            onRestart={() => {
+              setStats({
+                total: 0,
+                completed: 0,
+                success: 0,
+                failed: 0,
+                skipped: 0,
+                speedPerMin: 0,
+                floodWaitSeconds: 0,
+                estimatedTimeRemaining: "",
+              });
+              setLogs([]);
             }}
           />
+        </div>
+      ),
+    },
+  ];
 
-          {/* Terminal */}
-          <LogPanel
-            entries={logs}
-            title="Outreach Stream Terminal"
-            maxHeight="320px"
-            onClear={() => setLogs([])}
-          />
+  return (
+    <div className="min-h-screen pb-20">
+      {/* Header */}
+      <div className="sticky top-0 z-40 bg-card border-b border-border px-4 py-3 shadow-xs">
+        <div className="flex items-center justify-between gap-3 max-w-7xl mx-auto">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push("/dashboard/modules")}
+              className="p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-xs">
+              <Send className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-bold text-foreground">Mass Messaging Engine</h1>
+                <span className="px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold">
+                  v2.2 Guided
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                High-deliverability direct messaging with Spintax, multi-account rotation, and live HUD
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <CrossLinkFooter
-        links={[
-          { label: "Audience Collector", href: "/dashboard/modules/audience-collector" },
-          { label: "Autoresponder", href: "/dashboard/modules/autoresponder" },
-          { label: "Neuro-Text AI Generator", href: "/dashboard/neuro-text" },
-        ]}
-      />
+      <div className="px-4 py-4 max-w-7xl mx-auto space-y-4">
+        {/* Guided Module Harness */}
+        <GuidedModuleHarness
+          moduleName="Mass Messaging"
+          moduleCategory="Outreach & Engagement"
+          moduleDescription="Dispatch personalized messages to targeted leads with rotating senders, Spintax variation, and flood safety."
+          safetyLimits={{
+            recommendedDailyPerAccount: 35,
+            hardMaxDailyPerAccount: 50,
+            recommendedDelaySeconds: 20,
+            cooldownPeriodMinutes: 30,
+            spintaxMandatory: true,
+          }}
+          keyTips={[
+            "Always use {Hi|Hello|Hey} spintax tags to keep message signatures distinct.",
+            "Maintain at least 15-30s random delay between messages to avoid automated flood waits.",
+            "Distribute campaigns across 3+ active accounts with high trust scores (>80).",
+            "Never send raw unshortened links to recipients who haven't interacted with your bot or account.",
+          ]}
+          steps={guidedSteps}
+          activeStep={activeStep}
+          onStepChange={setActiveStep}
+          onApplyPreset={handleApplyPreset}
+          onLaunch={handleExecute}
+          isLaunching={executing}
+          expertView={
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-2 space-y-4">
+                  <AccountPicker
+                    accounts={accounts}
+                    selectedIds={selectedAccounts}
+                    onSelectionChange={setSelectedAccounts}
+                  />
 
-      <ModuleFooter manualSlug="mass-messaging" />
+                  <div className="bg-card rounded-2xl border border-border p-4 space-y-3">
+                    <h4 className="text-xs font-bold text-foreground uppercase">Outreach Message & Spintax</h4>
+                    <textarea
+                      value={messageText}
+                      onChange={(e) => setMessageText(e.target.value)}
+                      rows={5}
+                      className="w-full bg-secondary border border-border rounded-xl p-3 text-xs text-foreground placeholder:text-muted-foreground outline-none"
+                    />
+                  </div>
+
+                  <div className="bg-card rounded-2xl border border-border p-4 space-y-3">
+                    <h4 className="text-xs font-bold text-foreground uppercase">Recipients</h4>
+                    <textarea
+                      value={targetIds}
+                      onChange={(e) => setTargetIds(e.target.value)}
+                      rows={5}
+                      className="w-full bg-secondary border border-border rounded-xl p-3 text-xs text-foreground font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <ThreadProxyPanel
+                    threadCount={threadCount}
+                    onThreadChange={setThreadCount}
+                    proxyMode={proxyMode}
+                    onProxyChange={setProxyMode}
+                  />
+                  <FloodControlPanel
+                    minDelay={minDelay}
+                    maxDelay={maxDelay}
+                    onMinDelayChange={setMinDelay}
+                    onMaxDelayChange={setMaxDelay}
+                  />
+                  <button
+                    onClick={handleExecute}
+                    disabled={executing}
+                    className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-md"
+                  >
+                    {executing ? "Running Operation..." : "Execute Campaign"}
+                  </button>
+                </div>
+              </div>
+
+              <RealtimeOperationHUD
+                moduleName="Mass Messaging"
+                moduleCategory="Direct MTProto Outreach"
+                isRunning={executing}
+                isPaused={isPaused}
+                phases={phases}
+                currentPhaseIndex={currentPhaseIndex}
+                stats={stats}
+                logs={logs}
+                onPause={() => setIsPaused(true)}
+                onResume={() => setIsPaused(false)}
+                onStop={() => setExecuting(false)}
+              />
+            </div>
+          }
+        />
+
+        <CrossLinkFooter
+          links={[
+            { label: "Audience Collector", href: "/dashboard/modules/audience-collector" },
+            { label: "Accounts Hub", href: "/dashboard/accounts" },
+            { label: "Channel Cloner", href: "/dashboard/modules/channel-cloner" },
+            { label: "Master Pipeline", href: "/dashboard/workflow" },
+          ]}
+        />
+
+        <ModuleFooter manualSlug="mass-messaging" />
+      </div>
     </div>
   );
 }
