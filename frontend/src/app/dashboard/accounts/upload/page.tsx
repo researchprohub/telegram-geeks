@@ -3,16 +3,14 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Upload, FileArchive, CheckCircle, AlertCircle, Loader2, Info, ArrowLeft, QrCode, Phone, Files, Bot, Settings, ExternalLink } from "lucide-react";
+import { Upload, FileArchive, CheckCircle2, AlertCircle, Loader2, Info, ArrowLeft, QrCode, Phone, Files, Bot, Settings, ExternalLink, RefreshCw, Key, ShieldCheck, Sparkles } from "lucide-react";
 import api from "@/lib/api";
+import { ModuleHeader } from "@/components/modules/ModuleHeader";
+import { cn } from "@/lib/utils";
 
 export default function TDataUploadPage() {
   const router = useRouter();
-  const [tab, setTab] = useState<"qr" | "phone" | "tdata">("tdata");
+  const [tab, setTab] = useState<"qr" | "phone" | "tdata">("qr");
 
   // shared API credentials (loaded from Settings or localStorage)
   const [apiId, setApiId] = useState("2040");
@@ -63,13 +61,13 @@ export default function TDataUploadPage() {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragActive(false);
-    const droppedFiles = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.zip'));
+    const droppedFiles = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.zip') || f.name.endsWith('.session') || f.name.endsWith('.json'));
     setFiles(prev => [...prev, ...droppedFiles]);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const selectedFiles = Array.from(e.target.files).filter(f => f.name.endsWith('.zip'));
+      const selectedFiles = Array.from(e.target.files).filter(f => f.name.endsWith('.zip') || f.name.endsWith('.session') || f.name.endsWith('.json'));
       setFiles(prev => [...prev, ...selectedFiles]);
     }
   };
@@ -100,42 +98,33 @@ export default function TDataUploadPage() {
         failed: data.failed || 0,
         errors: [],
       });
-    } catch (error) {
+    } catch (error: any) {
       setResult({
         uploaded: 0,
         failed: files.length,
-        errors: [error instanceof Error ? error.message : "Unknown error"],
+        errors: [error.response?.data?.detail || (error instanceof Error ? error.message : "Upload failed")],
       });
     } finally {
       setUploading(false);
     }
   };
 
-  const loginReq = async (url: string, opts?: RequestInit) => {
-    const res = await fetch(url, {
-      headers: { "Content-Type": "application/json" },
-      ...opts,
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.detail || "Request failed");
-    return data;
-  };
-
   const startQr = async () => {
     if (!apiId || !apiHash) return;
     setQrBusy(true); setQrMsg(""); setQrDataUri(""); setQrStatus("idle"); setLoginAccount(null);
     try {
-      const data = await loginReq("/api/accounts/login/qr/start", {
-        method: "POST",
-        body: JSON.stringify({ api_id: Number(apiId), api_hash: apiHash }),
+      const res = await api.post("/accounts/login/qr/start", {
+        api_id: Number(apiId),
+        api_hash: apiHash,
       });
+      const data = res.data;
       setQrLoginId(data.login_id);
       setQrDataUri(data.qr_data_uri);
       setQrStatus("pending");
       pollQr(data.login_id);
-    } catch (e) {
+    } catch (e: any) {
       setQrStatus("error");
-      setQrMsg(e instanceof Error ? e.message : "Failed to start QR login");
+      setQrMsg(e.response?.data?.detail || (e instanceof Error ? e.message : "Failed to start QR login"));
     } finally {
       setQrBusy(false);
     }
@@ -143,7 +132,8 @@ export default function TDataUploadPage() {
 
   const pollQr = async (loginId: string) => {
     try {
-      const data = await loginReq(`/api/accounts/login/qr/status/${loginId}`);
+      const res = await api.get(`/accounts/login/qr/status/${loginId}`);
+      const data = res.data;
       if (data.status === "awaiting_password") { setQrStatus("awaiting_password"); return; }
       if (data.status === "authorized") {
         setQrStatus("authorized");
@@ -152,23 +142,23 @@ export default function TDataUploadPage() {
       }
       setQrStatus("pending");
       setTimeout(() => pollQr(loginId), 2000);
-    } catch {
+    } catch (e: any) {
       setQrStatus("error");
-      setQrMsg("QR login failed");
+      setQrMsg(e.response?.data?.detail || "QR login session expired");
     }
   };
 
   const submitQrPassword = async () => {
     try {
-      const data = await loginReq(`/api/accounts/login/qr/password/${qrLoginId}`, {
-        method: "POST",
-        body: JSON.stringify({ password: qrPassword }),
+      const res = await api.post(`/accounts/login/qr/password/${qrLoginId}`, {
+        password: qrPassword,
       });
+      const data = res.data;
       setQrStatus("authorized");
       setLoginAccount({ account_id: data.account_id, phone: data.phone });
-    } catch {
+    } catch (e: any) {
       setQrStatus("awaiting_password");
-      setQrMsg("Invalid 2FA password");
+      setQrMsg(e.response?.data?.detail || "Invalid 2FA password");
     }
   };
 
@@ -176,16 +166,18 @@ export default function TDataUploadPage() {
     if (!apiId || !apiHash || !phone) return;
     setPhoneBusy(true); setPhoneMsg(""); setPhoneStep("idle"); setLoginAccount(null);
     try {
-      const data = await loginReq("/api/accounts/login/phone/send-code", {
-        method: "POST",
-        body: JSON.stringify({ api_id: Number(apiId), api_hash: apiHash, phone }),
+      const res = await api.post("/accounts/login/phone/send-code", {
+        api_id: Number(apiId),
+        api_hash: apiHash,
+        phone,
       });
+      const data = res.data;
       setPhoneLoginId(data.login_id);
       setPhoneStep("code_sent");
-      setPhoneMsg(`Code sent to ${phone}`);
-    } catch (e) {
+      setPhoneMsg(`Login code dispatched to ${phone}`);
+    } catch (e: any) {
       setPhoneStep("error");
-      setPhoneMsg(e instanceof Error ? e.message : "Failed to send code");
+      setPhoneMsg(e.response?.data?.detail || (e instanceof Error ? e.message : "Failed to send code"));
     } finally {
       setPhoneBusy(false);
     }
@@ -193,315 +185,395 @@ export default function TDataUploadPage() {
 
   const verifyPhoneCode = async () => {
     try {
-      const data = await loginReq(`/api/accounts/login/phone/verify/${phoneLoginId}`, {
-        method: "POST",
-        body: JSON.stringify({ code: phoneCode, password: phonePassword || undefined }),
+      const res = await api.post(`/accounts/login/phone/verify/${phoneLoginId}`, {
+        code: phoneCode,
+        password: phonePassword || undefined,
       });
+      const data = res.data;
       if (data.status === "awaiting_password") { setPhoneStep("awaiting_password"); return; }
       setPhoneStep("authorized");
       setLoginAccount({ account_id: data.account_id, phone: data.phone });
-    } catch (e) {
+    } catch (e: any) {
       setPhoneStep("error");
-      setPhoneMsg(e instanceof Error ? e.message : "Verification failed");
+      setPhoneMsg(e.response?.data?.detail || (e instanceof Error ? e.message : "Verification failed"));
     }
   };
 
   return (
-    <div className="min-h-screen pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-card border-b border-border px-4 py-3">
-        <div className="flex items-center gap-3">
+    <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <ModuleHeader
+        title="Import & Authorize Accounts"
+        description="Connect Telegram accounts via Instant QR Code scan, Phone OTP SMS, or bulk TData Portable ZIP archives"
+        icon={<Upload className="h-6 w-6" />}
+        category="Account Operations"
+        planRequired="starter"
+        status="ready"
+      />
+
+      {/* Method Tabs */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { id: "qr", label: "QR Code Scan", icon: QrCode, desc: "Instant mobile link via Telegram app camera" },
+          { id: "phone", label: "Phone SMS OTP", icon: Phone, desc: "Interactive phone number verification" },
+          { id: "tdata", label: "TData Portable ZIP", icon: FileArchive, desc: "Bulk upload Telegram Desktop folders" },
+        ].map((m) => (
           <button
-            onClick={() => router.push("/dashboard/accounts")}
-            className="p-1 rounded-lg hover:bg-secondary transition-colors"
+            key={m.id}
+            type="button"
+            onClick={() => setTab(m.id as any)}
+            className={cn(
+              "p-4 rounded-2xl border text-left transition-all",
+              tab === m.id
+                ? "bg-primary/10 border-primary shadow-xs"
+                : "bg-secondary/40 border-border hover:bg-secondary"
+            )}
           >
-            <ArrowLeft className="h-5 w-5 text-foreground" />
+            <div className="flex items-center gap-2 font-bold text-xs">
+              <m.icon className={cn("h-4 w-4", tab === m.id ? "text-primary" : "text-muted-foreground")} />
+              <span className={tab === m.id ? "text-primary" : "text-foreground"}>{m.label}</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1 line-clamp-1">{m.desc}</p>
           </button>
-          <div>
-            <h1 className="text-lg font-bold text-foreground">Import TData Accounts</h1>
-            <p className="text-xs text-muted-foreground">Upload Telegram Desktop session files</p>
-          </div>
-        </div>
+        ))}
       </div>
 
-      <div className="px-4 py-4 space-y-4">
-        {/* Info Banner */}
-        <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20">
-          <CardContent className="pt-4 pb-4 flex gap-3">
-            <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-            <div>
-              <h4 className="font-semibold text-blue-900 dark:text-blue-300 text-sm">What is TData?</h4>
-              <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">
-                TData is the Telegram Desktop Portable format. Upload your existing Telegram Desktop session files to import accounts.
-                Each ZIP file can contain multiple accounts.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Method Tabs */}
-        <div className="grid grid-cols-3 gap-2">
-          <Button
-            variant={tab === "qr" ? "default" : "outline"}
-            className="justify-center gap-2"
-            onClick={() => setTab("qr")}
-          >
-            <QrCode className="h-4 w-4" /> QR Code
-          </Button>
-          <Button
-            variant={tab === "phone" ? "default" : "outline"}
-            className="justify-center gap-2"
-            onClick={() => setTab("phone")}
-          >
-            <Phone className="h-4 w-4" /> Phone
-          </Button>
-          <Button
-            variant={tab === "tdata" ? "default" : "outline"}
-            className="justify-center gap-2"
-            onClick={() => setTab("tdata")}
-          >
-            <Files className="h-4 w-4" /> TData ZIP
-          </Button>
-        </div>
-
-        {/* API Credentials Status Notice */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-card border border-border text-xs">
-          <div className="flex items-center gap-2.5">
-            <div className="h-7 w-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-              <Bot className="h-4 w-4" />
-            </div>
-            <div>
-              <div className="font-semibold text-foreground flex items-center gap-1.5">
-                Telegram API Credentials Configured
-                {customCredsActive ? (
-                  <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/20 px-1.5 py-0">Custom</Badge>
-                ) : (
-                  <Badge variant="outline" className="text-[10px] bg-secondary text-muted-foreground border-border px-1.5 py-0">Default System App</Badge>
-                )}
-              </div>
-              <p className="text-muted-foreground text-[11px]">
-                App ID: <span className="font-mono text-foreground">{apiId || "2040"}</span> • Hash: <span className="font-mono text-foreground">••••••••</span>
-              </p>
-            </div>
+      {/* API Credentials Bar */}
+      <div className="bg-card rounded-2xl border border-border p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+            <Key className="h-4 w-4" />
           </div>
-          <Link
-            href="/dashboard/settings"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 border border-border text-foreground font-medium text-xs transition-colors"
-          >
-            <Settings className="h-3.5 w-3.5 text-primary" />
-            Manage in Settings
-            <ExternalLink className="h-3 w-3 text-muted-foreground ml-0.5" />
-          </Link>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-foreground">Telegram MTProto Credentials</span>
+              <span className="px-2 py-0.5 rounded-md bg-secondary text-primary font-mono text-[10px] font-bold border border-border">
+                {customCredsActive ? "Custom Configured" : "Default App Config"}
+              </span>
+            </div>
+            <p className="text-[11px] font-mono text-muted-foreground mt-0.5">
+              App ID: <span className="text-foreground font-bold">{apiId}</span> · Hash: <span className="text-foreground font-bold">{apiHash.slice(0, 6)}••••••••</span>
+            </p>
+          </div>
         </div>
 
-        {/* QR Login */}
-        {tab === "qr" && (
-          <Card className="border-border shadow-sm">
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Sign in via QR Code</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-xs text-muted-foreground">
-                Uses the API ID / Hash above. Scan the QR with your Telegram app
-                (<span className="text-primary">Settings {'>'} Devices {'>'} Link Desktop Device</span>).
-              </p>
-
-              {!qrDataUri ? (
-                <Button onClick={startQr} disabled={!apiId || !apiHash || qrBusy} className="w-full">
-                  {qrBusy ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Starting...</> : <><QrCode className="h-4 w-4 mr-2" /> Generate QR Code</>}
-                </Button>
-              ) : (
-                <div className="flex flex-col items-center gap-3">
-                  {qrDataUri && <img src={qrDataUri} alt="Login QR Code" className="w-56 h-56 rounded-lg border border-border bg-white p-2" />}
-                  <p className="text-sm text-foreground">Scan this QR with your Telegram app</p>
-                </div>
-              )}
-
-              {/* 2FA */}
-              {qrStatus === "awaiting_password" && (
-                <div className="space-y-2">
-                  <Input type="password" value={qrPassword} onChange={e => setQrPassword(e.target.value)} placeholder="Two-step verification password" />
-                  <Button onClick={submitQrPassword} className="w-full">Submit Password</Button>
-                </div>
-              )}
-
-              {qrMsg && <p className="text-xs text-destructive">{qrMsg}</p>}
-
-              {qrStatus === "pending" && !qrMsg && (
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Loader2 className="h-3 w-3 animate-spin" /> Waiting for scan...
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Phone Login */}
-        {tab === "phone" && (
-          <Card className="border-border shadow-sm">
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Sign in via Phone Number</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-xs text-muted-foreground">
-                Enter your phone number in international format, then enter the code Telegram sends you.
-              </p>
-
-              {phoneStep === "idle" && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium mb-1.5">Phone number</label>
-                    <Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1234567890" />
-                  </div>
-                  <Button onClick={sendPhoneCode} disabled={!apiId || !apiHash || !phone || phoneBusy} className="w-full">
-                    {phoneBusy ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending...</> : <>Send Code</>}
-                  </Button>
-                </>
-              )}
-
-              {(phoneStep === "code_sent" || phoneStep === "awaiting_password") && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium mb-1.5">Login code</label>
-                    <Input value={phoneCode} onChange={e => setPhoneCode(e.target.value)} placeholder="12345" />
-                  </div>
-                  {phoneStep === "awaiting_password" && (
-                    <div>
-                      <label className="block text-sm font-medium mb-1.5">Two-step verification password</label>
-                      <Input type="password" value={phonePassword} onChange={e => setPhonePassword(e.target.value)} placeholder="2FA password" />
-                    </div>
-                  )}
-                  <Button onClick={verifyPhoneCode} disabled={!phoneCode || (phoneStep === "awaiting_password" && !phonePassword)} className="w-full">
-                    Verify Code
-                  </Button>
-                  {phoneStep === "awaiting_password" && (
-                    <p className="text-xs text-muted-foreground">This account has two-step verification enabled.</p>
-                  )}
-                </>
-              )}
-
-              {phoneMsg && <p className="text-xs text-destructive">{phoneMsg}</p>}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Logged in account banner */}
-        {loginAccount && (
-          <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20">
-            <CardContent className="pt-4 pb-4 flex items-center gap-3">
-              <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400 shrink-0" />
-              <div className="flex-1">
-                <h4 className="font-semibold text-sm">Account added!</h4>
-                <p className="text-xs text-muted-foreground">{loginAccount.phone} imported as #{loginAccount.account_id}</p>
-              </div>
-              <Button onClick={() => router.push("/dashboard/accounts")} size="sm">View Accounts</Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* TData upload */}
-        {tab === "tdata" && (<>
-        {/* File Upload */}
-        <Card className="border-border shadow-sm">
-          <CardHeader className="pb-2"><CardTitle className="text-sm">Upload TData Files</CardTitle></CardHeader>
-          <CardContent>
-            <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${dragActive ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}
-              onDragOver={e => { e.preventDefault(); setDragActive(true); }}
-              onDragLeave={() => setDragActive(false)}
-              onDrop={handleDrop}
-              onClick={() => document.getElementById("file-input")?.click()}
-            >
-              <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <p className="font-medium text-foreground text-sm">Drop TData ZIP files here</p>
-              <p className="text-xs text-muted-foreground mt-1">or click to browse</p>
-              <input
-                id="file-input"
-                type="file"
-                multiple
-                accept=".zip"
-                className="hidden"
-                onChange={handleFileSelect}
-              />
-            </div>
-
-            {/* Selected Files */}
-            {files.length > 0 && (
-              <div className="mt-4 space-y-2">
-                <p className="text-sm font-medium text-foreground">{files.length} file(s) selected</p>
-                {files.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <FileArchive className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                      <span className="text-sm truncate">{file.name}</span>
-                      <span className="text-xs text-muted-foreground flex-shrink-0">({(file.size / 1024).toFixed(1)} KB)</span>
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={() => removeFile(index)}>
-                      <span className="text-red-500 text-lg leading-none">×</span>
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Upload Button */}
-        <Button
-          onClick={handleSubmit}
-          disabled={!apiId || !apiHash || files.length === 0 || uploading}
-          className="w-full"
+        <Link
+          href="/dashboard/settings"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-secondary hover:bg-secondary/80 border border-border text-xs font-bold text-muted-foreground hover:text-foreground transition-all"
         >
-          {uploading ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Uploading...
-            </>
-          ) : (
-            <>
-              <Upload className="h-4 w-4 mr-2" /> Import Accounts ({files.length})
-            </>
-          )}
-        </Button>
+          <Settings className="h-3.5 w-3.5" />
+          Configure in Settings
+          <ExternalLink className="h-3 w-3" />
+        </Link>
+      </div>
 
-        {/* Results */}
-        {result && (
-          <Card className={result.uploaded > 0 ? "border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20" : "border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20"}>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center gap-3 mb-3">
-                {result.uploaded > 0 ? (
-                  <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
-                ) : (
-                  <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
-                )}
+      {/* Tab 1: QR Code */}
+      {tab === "qr" && (
+        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm space-y-5 max-w-2xl mx-auto">
+          <div className="text-center space-y-1">
+            <h3 className="text-base font-bold text-foreground">Sign In via Instant QR Code</h3>
+            <p className="text-xs text-muted-foreground">
+              Scan with your Telegram app (<span className="text-primary font-medium">Settings → Devices → Link Desktop Device</span>)
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center justify-center p-6 bg-secondary/30 rounded-2xl border border-border/80 min-h-[260px]">
+            {qrBusy ? (
+              <div className="flex flex-col items-center gap-3 py-8">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                <p className="text-xs font-medium text-muted-foreground">Requesting QR from Telegram MTProto...</p>
+              </div>
+            ) : qrStatus === "pending" && qrDataUri ? (
+              <div className="flex flex-col items-center gap-4 animate-in fade-in zoom-in-95 duration-200">
+                <div className="p-4 bg-white rounded-2xl shadow-lg border border-border">
+                  <img src={qrDataUri} alt="Telegram QR Code" className="w-52 h-52 object-contain" />
+                </div>
+                <div className="flex items-center gap-2 text-xs font-bold text-primary">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Awaiting scan from mobile device...
+                </div>
+              </div>
+            ) : qrStatus === "awaiting_password" ? (
+              <div className="w-full max-w-sm space-y-4 text-center">
+                <div className="inline-flex p-3 rounded-2xl bg-primary/10 text-primary">
+                  <Key className="h-6 w-6" />
+                </div>
+                <h4 className="text-sm font-bold text-foreground">Cloud 2FA Password Required</h4>
+                <input
+                  type="password"
+                  value={qrPassword}
+                  onChange={(e) => setQrPassword(e.target.value)}
+                  placeholder="Enter 2FA password"
+                  className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/40"
+                />
+                <button
+                  type="button"
+                  onClick={submitQrPassword}
+                  className="w-full bg-primary text-primary-foreground font-bold py-2.5 rounded-xl text-xs hover:opacity-90 transition-opacity"
+                >
+                  Submit 2FA Password
+                </button>
+              </div>
+            ) : qrStatus === "authorized" ? (
+              <div className="flex flex-col items-center gap-3 py-6 text-center">
+                <div className="h-14 w-14 rounded-2xl bg-success/15 border border-success/30 flex items-center justify-center text-success">
+                  <CheckCircle2 className="h-8 w-8" />
+                </div>
                 <div>
-                  <h4 className="font-semibold text-sm">
-                    {result.uploaded > 0 ? "Import Successful!" : "Import Failed"}
-                  </h4>
-                  <p className="text-xs text-muted-foreground">
-                    {result.uploaded} account(s) imported, {result.failed} failed
+                  <h4 className="text-sm font-bold text-foreground">Account Successfully Connected!</h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Phone: <span className="font-mono text-primary font-bold">{loginAccount?.phone || "Authorized"}</span>
                   </p>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => router.push("/dashboard/accounts")}
+                  className="mt-2 px-5 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs"
+                >
+                  View in Accounts Hub
+                </button>
               </div>
-
-              {result.errors.length > 0 && (
-                <div className="space-y-2 mb-3">
-                  <p className="font-medium text-sm text-red-700 dark:text-red-400">Errors:</p>
-                  {result.errors.map((error, i) => (
-                    <p key={i} className="text-xs text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/40 p-2 rounded">
-                      {error}
-                    </p>
-                  ))}
+            ) : (
+              <div className="flex flex-col items-center gap-4 py-4 text-center">
+                <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                  <QrCode className="h-8 w-8" />
                 </div>
-              )}
-
-              {result.uploaded > 0 && (
-                <div className="flex gap-2">
-                  <Button onClick={() => router.push("/dashboard/accounts")} className="flex-1">
-                    View Imported Accounts
-                  </Button>
+                <div>
+                  <p className="text-xs font-bold text-foreground">Ready to generate QR session token</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Click below to generate a new QR token for scanning</p>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-        </>)}
-      </div>
+                <button
+                  type="button"
+                  onClick={startQr}
+                  disabled={qrBusy}
+                  className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-md shadow-primary/20 hover:opacity-90 transition-opacity inline-flex items-center gap-2"
+                >
+                  <QrCode className="h-4 w-4" />
+                  Generate QR Code
+                </button>
+              </div>
+            )}
+          </div>
+
+          {qrMsg && (
+            <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/30 text-xs font-semibold text-destructive text-center">
+              {qrMsg}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab 2: Phone Number */}
+      {tab === "phone" && (
+        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm space-y-5 max-w-2xl mx-auto">
+          <div className="text-center space-y-1">
+            <h3 className="text-base font-bold text-foreground">Sign In via Phone Number OTP</h3>
+            <p className="text-xs text-muted-foreground">Receive an authentication code in your official Telegram app</p>
+          </div>
+
+          <div className="space-y-4">
+            {phoneStep === "idle" || phoneStep === "error" ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-foreground mb-1.5">
+                    Phone Number (International format with country code)
+                  </label>
+                  <input
+                    type="text"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+15551234567"
+                    className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-xs font-mono text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={sendPhoneCode}
+                  disabled={phoneBusy || !phone}
+                  className="w-full bg-primary text-primary-foreground font-bold py-2.5 rounded-xl text-xs hover:opacity-90 transition-opacity disabled:opacity-50 inline-flex items-center justify-center gap-2"
+                >
+                  {phoneBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Phone className="h-4 w-4" />}
+                  Send Login Code
+                </button>
+              </div>
+            ) : phoneStep === "code_sent" ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-foreground mb-1.5">
+                    Enter Verification Code sent to {phone}
+                  </label>
+                  <input
+                    type="text"
+                    value={phoneCode}
+                    onChange={(e) => setPhoneCode(e.target.value)}
+                    placeholder="12345"
+                    className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-xs font-mono text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={verifyPhoneCode}
+                  disabled={!phoneCode}
+                  className="w-full bg-primary text-primary-foreground font-bold py-2.5 rounded-xl text-xs hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  Verify Code & Connect
+                </button>
+              </div>
+            ) : phoneStep === "awaiting_password" ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-foreground mb-1.5">
+                    Cloud 2FA Password
+                  </label>
+                  <input
+                    type="password"
+                    value={phonePassword}
+                    onChange={(e) => setPhonePassword(e.target.value)}
+                    placeholder="Enter 2FA password"
+                    className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={verifyPhoneCode}
+                  className="w-full bg-primary text-primary-foreground font-bold py-2.5 rounded-xl text-xs hover:opacity-90 transition-opacity"
+                >
+                  Confirm 2FA Password
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-3 py-4 text-center">
+                <div className="h-12 w-12 rounded-2xl bg-success/15 text-success flex items-center justify-center">
+                  <CheckCircle2 className="h-6 w-6" />
+                </div>
+                <h4 className="text-sm font-bold text-foreground">Phone Login Authorized!</h4>
+                <button
+                  type="button"
+                  onClick={() => router.push("/dashboard/accounts")}
+                  className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs"
+                >
+                  View Accounts
+                </button>
+              </div>
+            )}
+
+            {phoneMsg && (
+              <div className={cn(
+                "p-3 rounded-xl border text-xs font-semibold text-center",
+                phoneStep === "error" ? "bg-destructive/10 border-destructive/30 text-destructive" : "bg-success/10 border-success/30 text-success"
+              )}>
+                {phoneMsg}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Tab 3: TData ZIP */}
+      {tab === "tdata" && (
+        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm space-y-5 max-w-2xl mx-auto">
+          <div className="text-center space-y-1">
+            <h3 className="text-base font-bold text-foreground">Upload TData ZIP Portable Archives</h3>
+            <p className="text-xs text-muted-foreground">Import full Telegram Desktop portable folders (.zip) or session files</p>
+          </div>
+
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+            onDragLeave={() => setDragActive(false)}
+            onDrop={handleDrop}
+            onClick={() => document.getElementById("tdata-file-input")?.click()}
+            className={cn(
+              "border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2",
+              dragActive
+                ? "border-primary bg-primary/10 scale-[0.99]"
+                : "border-border hover:border-primary/50 bg-secondary/20"
+            )}
+          >
+            <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+              <Upload className="h-6 w-6" />
+            </div>
+            <div className="space-y-0.5">
+              <p className="font-bold text-xs text-foreground">Drop TData ZIP files or sessions here</p>
+              <p className="text-[10px] text-muted-foreground">Supports .zip (containing tdata folder), .session, and .json</p>
+            </div>
+            <input
+              id="tdata-file-input"
+              type="file"
+              multiple
+              accept=".zip,.session,.json"
+              className="hidden"
+              onChange={handleFileSelect}
+            />
+          </div>
+
+          {files.length > 0 && (
+            <div className="space-y-1.5 max-h-48 overflow-y-auto">
+              {files.map((f, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between p-2.5 bg-secondary/50 rounded-xl border border-border/60 text-xs"
+                >
+                  <div className="flex items-center gap-2 truncate">
+                    <FileArchive className="h-4 w-4 text-primary shrink-0" />
+                    <span className="font-medium text-foreground truncate">{f.name}</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">
+                      ({(f.size / 1024).toFixed(0)} KB)
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeFile(i);
+                    }}
+                    className="text-muted-foreground hover:text-destructive text-sm px-2"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={uploading || files.length === 0}
+            className="w-full bg-primary text-primary-foreground font-bold py-2.5 rounded-xl text-xs hover:opacity-90 transition-opacity disabled:opacity-50 inline-flex items-center justify-center gap-2 shadow-md shadow-primary/20"
+          >
+            {uploading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Importing {files.length} Account(s)...
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4" />
+                Import {files.length} Account(s) to Database
+              </>
+            )}
+          </button>
+
+          {result && (
+            <div className={cn(
+              "p-4 rounded-xl border flex items-start gap-3",
+              result.uploaded > 0 ? "bg-success/10 border-success/30 text-success" : "bg-destructive/10 border-destructive/30 text-destructive"
+            )}>
+              {result.uploaded > 0 ? <CheckCircle2 className="h-5 w-5 shrink-0" /> : <AlertCircle className="h-5 w-5 shrink-0" />}
+              <div className="text-xs">
+                <p className="font-bold">
+                  {result.uploaded > 0 ? "Import Complete" : "Import Failed"}
+                </p>
+                <p className="mt-0.5">
+                  {result.uploaded} accounts successfully imported, {result.failed} failed.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
