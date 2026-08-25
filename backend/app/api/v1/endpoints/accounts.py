@@ -789,3 +789,116 @@ async def phone_login_cancel(
     _get_entry(entry_id, current_user.id)
     await _drop_entry(entry_id)
     return {"status": "cancelled"}
+
+
+# =========================================================================
+# 🌐 TELEGRAM WEB & DIALOGS / MESSAGES ENDPOINTS
+# =========================================================================
+
+class SendDialogMessageIn(BaseModel):
+    text: str
+    reply_to: Optional[int] = None
+
+
+class JoinDialogIn(BaseModel):
+    target: str
+
+
+@router.get("/{account_id}/dialogs", tags=["Accounts"])
+async def get_account_dialogs(
+    account_id: int,
+    folder: str = "all",
+    limit: int = 100,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Retrieve joined dialogs, groups, channels, and chats for an account."""
+    from app.services.telegram_web_service import TelegramWebService
+    acc = await db.get(Account, account_id)
+    if not acc:
+        raise HTTPException(status_code=404, detail="Account not found")
+    await _require_own_account(db, acc, current_user)
+
+    result = await TelegramWebService.get_dialogs(acc, limit=limit, folder_type=folder)
+    return result
+
+
+@router.get("/{account_id}/dialogs/{dialog_id}/messages", tags=["Accounts"])
+async def get_dialog_messages(
+    account_id: int,
+    dialog_id: str,
+    limit: int = 50,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Fetch message history for a specific chat or channel."""
+    from app.services.telegram_web_service import TelegramWebService
+    acc = await db.get(Account, account_id)
+    if not acc:
+        raise HTTPException(status_code=404, detail="Account not found")
+    await _require_own_account(db, acc, current_user)
+
+    result = await TelegramWebService.get_messages(acc, dialog_id=dialog_id, limit=limit)
+    return result
+
+
+@router.post("/{account_id}/dialogs/{dialog_id}/send", tags=["Accounts"])
+async def send_dialog_message(
+    account_id: int,
+    dialog_id: str,
+    body: SendDialogMessageIn,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Send a live message to a chat or channel."""
+    from app.services.telegram_web_service import TelegramWebService
+    acc = await db.get(Account, account_id)
+    if not acc:
+        raise HTTPException(status_code=404, detail="Account not found")
+    await _require_own_account(db, acc, current_user)
+
+    result = await TelegramWebService.send_message(acc, dialog_id=dialog_id, text=body.text, reply_to=body.reply_to)
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Failed to send message"))
+    return result
+
+
+@router.post("/{account_id}/dialogs/join", tags=["Accounts"])
+async def join_dialog(
+    account_id: int,
+    body: JoinDialogIn,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Join a group or channel via username or invite link."""
+    from app.services.telegram_web_service import TelegramWebService
+    acc = await db.get(Account, account_id)
+    if not acc:
+        raise HTTPException(status_code=404, detail="Account not found")
+    await _require_own_account(db, acc, current_user)
+
+    result = await TelegramWebService.join_chat(acc, invite_link_or_username=body.target)
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Failed to join chat"))
+    return result
+
+
+@router.post("/{account_id}/dialogs/{dialog_id}/leave", tags=["Accounts"])
+async def leave_dialog(
+    account_id: int,
+    dialog_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user_tenant),
+):
+    """Leave a group or channel."""
+    from app.services.telegram_web_service import TelegramWebService
+    acc = await db.get(Account, account_id)
+    if not acc:
+        raise HTTPException(status_code=404, detail="Account not found")
+    await _require_own_account(db, acc, current_user)
+
+    result = await TelegramWebService.leave_chat(acc, dialog_id=dialog_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Failed to leave chat"))
+    return result
+
