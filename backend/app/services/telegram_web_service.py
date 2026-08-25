@@ -28,11 +28,16 @@ _media_cache: Dict[str, tuple[bytes, str, str]] = {}
 
 
 class TelegramWebService:
-    @staticmethod
-    def get_client(account: Account) -> Optional[TelegramClient]:
+    _client_pool: Dict[int, TelegramClient] = {}
+
+    @classmethod
+    def get_client(cls, account: Account) -> Optional[TelegramClient]:
         """Create a Telethon TelegramClient from an Account's session string."""
         if not account.session_string:
             return None
+            
+        if account.id in cls._client_pool:
+            return cls._client_pool[account.id]
 
         api_id = account.api_id or DEFAULT_API_ID
         api_hash = account.api_hash or DEFAULT_API_HASH
@@ -59,12 +64,14 @@ class TelegramWebService:
             except Exception:
                 pass
 
-        return TelegramClient(
+        client = TelegramClient(
             StringSession(account.session_string),
             api_id=api_id,
             api_hash=api_hash,
             proxy=proxy,
         )
+        cls._client_pool[account.id] = client
+        return client
 
     @classmethod
     async def get_dialogs(
@@ -84,7 +91,8 @@ class TelegramWebService:
             }
 
         try:
-            await client.connect()
+            if not client.is_connected():
+                await client.connect()
             if not await client.is_user_authorized():
                 return {
                     "stats": {"total": 0, "groups": 0, "channels": 0, "dms": 0, "bots": 0, "unread": 0, "archived": 0},
@@ -212,11 +220,6 @@ class TelegramWebService:
                 "archived_preview": None,
                 "error": str(e),
             }
-        finally:
-            try:
-                await client.disconnect()
-            except Exception:
-                pass
 
     @classmethod
     async def get_avatar(cls, account: Account, dialog_id: int | str) -> Optional[bytes]:
@@ -230,7 +233,8 @@ class TelegramWebService:
             return None
 
         try:
-            await client.connect()
+            if not client.is_connected():
+                await client.connect()
             target_entity = int(dialog_id) if str(dialog_id).lstrip("-").isdigit() else dialog_id
             try:
                 entity = await client.get_entity(target_entity)
@@ -247,11 +251,6 @@ class TelegramWebService:
         except Exception as e:
             logger.debug(f"Could not download avatar for {dialog_id}: {e}")
             return None
-        finally:
-            try:
-                await client.disconnect()
-            except Exception:
-                pass
 
     @classmethod
     async def get_messages(
@@ -266,7 +265,8 @@ class TelegramWebService:
             return {"messages": [], "error": "No session string"}
 
         try:
-            await client.connect()
+            if not client.is_connected():
+                await client.connect()
             target_entity = int(dialog_id) if str(dialog_id).lstrip("-").isdigit() else dialog_id
             entity = await client.get_input_entity(target_entity)
             history = await client.get_messages(entity, limit=limit)
@@ -360,11 +360,6 @@ class TelegramWebService:
         except Exception as e:
             logger.exception(f"Failed to fetch messages for dialog {dialog_id}: {e}")
             return {"messages": [], "error": str(e)}
-        finally:
-            try:
-                await client.disconnect()
-            except Exception:
-                pass
 
     @classmethod
     async def download_media(
@@ -383,7 +378,8 @@ class TelegramWebService:
             return None
 
         try:
-            await client.connect()
+            if not client.is_connected():
+                await client.connect()
             target_entity = int(dialog_id) if str(dialog_id).lstrip("-").isdigit() else dialog_id
             try:
                 entity = await client.get_entity(target_entity)
@@ -422,11 +418,6 @@ class TelegramWebService:
         except Exception as e:
             logger.exception(f"Failed to download media for msg {message_id}: {e}")
             return None
-        finally:
-            try:
-                await client.disconnect()
-            except Exception:
-                pass
 
     @classmethod
     async def send_message(
@@ -442,7 +433,8 @@ class TelegramWebService:
             return {"success": False, "error": "No session string"}
 
         try:
-            await client.connect()
+            if not client.is_connected():
+                await client.connect()
             target_entity = int(dialog_id) if str(dialog_id).lstrip("-").isdigit() else dialog_id
             entity = await client.get_input_entity(target_entity)
             sent = await client.send_message(entity, text, reply_to=reply_to)
@@ -458,11 +450,6 @@ class TelegramWebService:
         except Exception as e:
             logger.exception(f"Failed to send message to dialog {dialog_id}: {e}")
             return {"success": False, "error": str(e)}
-        finally:
-            try:
-                await client.disconnect()
-            except Exception:
-                pass
 
     @classmethod
     async def send_media(
@@ -480,7 +467,8 @@ class TelegramWebService:
             return {"success": False, "error": "No session string"}
 
         try:
-            await client.connect()
+            if not client.is_connected():
+                await client.connect()
             target_entity = int(dialog_id) if str(dialog_id).lstrip("-").isdigit() else dialog_id
             entity = await client.get_input_entity(target_entity)
 
@@ -506,11 +494,6 @@ class TelegramWebService:
         except Exception as e:
             logger.exception(f"Failed to send media to dialog {dialog_id}: {e}")
             return {"success": False, "error": str(e)}
-        finally:
-            try:
-                await client.disconnect()
-            except Exception:
-                pass
 
     @classmethod
     async def send_reaction(
@@ -526,7 +509,8 @@ class TelegramWebService:
             return {"success": False, "error": "No session string"}
 
         try:
-            await client.connect()
+            if not client.is_connected():
+                await client.connect()
             target_entity = int(dialog_id) if str(dialog_id).lstrip("-").isdigit() else dialog_id
             entity = await client.get_input_entity(target_entity)
 
@@ -541,11 +525,6 @@ class TelegramWebService:
         except Exception as e:
             logger.exception(f"Failed to send reaction: {e}")
             return {"success": False, "error": str(e)}
-        finally:
-            try:
-                await client.disconnect()
-            except Exception:
-                pass
 
     @classmethod
     def translate_text(cls, text: str, target_lang: str = "en") -> str:
@@ -578,7 +557,8 @@ class TelegramWebService:
             return {"stories": [], "error": "No session string"}
 
         try:
-            await client.connect()
+            if not client.is_connected():
+                await client.connect()
             me = await client.get_me()
             stories_res = await client(GetPeerStoriesRequest(peer=me))
 
@@ -597,11 +577,6 @@ class TelegramWebService:
         except Exception as e:
             logger.debug(f"Stories fetch error: {e}")
             return {"stories": []}
-        finally:
-            try:
-                await client.disconnect()
-            except Exception:
-                pass
 
     @classmethod
     async def upload_story(
@@ -617,7 +592,8 @@ class TelegramWebService:
             return {"success": False, "error": "No session string"}
 
         try:
-            await client.connect()
+            if not client.is_connected():
+                await client.connect()
             file_stream = io.BytesIO(file_bytes)
             file_stream.name = filename
 
@@ -636,11 +612,6 @@ class TelegramWebService:
         except Exception as e:
             logger.exception(f"Story upload error: {e}")
             return {"success": False, "error": str(e)}
-        finally:
-            try:
-                await client.disconnect()
-            except Exception:
-                pass
 
     @classmethod
     async def get_telegram_settings(cls, account: Account) -> Dict[str, Any]:
@@ -650,7 +621,8 @@ class TelegramWebService:
             return {"error": "No session string"}
 
         try:
-            await client.connect()
+            if not client.is_connected():
+                await client.connect()
             me = await client.get_me()
             full = await client(functions.users.GetFullUserRequest(me))
 
@@ -668,11 +640,6 @@ class TelegramWebService:
         except Exception as e:
             logger.exception(f"Get settings failed: {e}")
             return {"error": str(e)}
-        finally:
-            try:
-                await client.disconnect()
-            except Exception:
-                pass
 
     @classmethod
     async def update_telegram_profile(
@@ -689,7 +656,8 @@ class TelegramWebService:
             return {"success": False, "error": "No session string"}
 
         try:
-            await client.connect()
+            if not client.is_connected():
+                await client.connect()
             if first_name is not None or last_name is not None or bio is not None:
                 await client(
                     UpdateProfileRequest(
@@ -706,11 +674,6 @@ class TelegramWebService:
         except Exception as e:
             logger.exception(f"Update profile failed: {e}")
             return {"success": False, "error": str(e)}
-        finally:
-            try:
-                await client.disconnect()
-            except Exception:
-                pass
 
     @classmethod
     async def join_chat(
@@ -725,7 +688,8 @@ class TelegramWebService:
 
         clean_target = invite_link_or_username.strip()
         try:
-            await client.connect()
+            if not client.is_connected():
+                await client.connect()
             if "t.me/+" in clean_target or "joinchat/" in clean_target:
                 hash_part = clean_target.split("+")[-1].split("/")[-1].strip()
                 await client(ImportChatInviteRequest(hash_part))
@@ -738,11 +702,6 @@ class TelegramWebService:
         except Exception as e:
             logger.exception(f"Failed to join chat {clean_target}: {e}")
             return {"success": False, "error": str(e)}
-        finally:
-            try:
-                await client.disconnect()
-            except Exception:
-                pass
 
     @classmethod
     async def leave_chat(
@@ -756,7 +715,8 @@ class TelegramWebService:
             return {"success": False, "error": "No session string"}
 
         try:
-            await client.connect()
+            if not client.is_connected():
+                await client.connect()
             target_entity = int(dialog_id) if str(dialog_id).lstrip("-").isdigit() else dialog_id
             entity = await client.get_entity(target_entity)
             if isinstance(entity, types.Channel):
@@ -767,8 +727,3 @@ class TelegramWebService:
         except Exception as e:
             logger.exception(f"Failed to leave chat {dialog_id}: {e}")
             return {"success": False, "error": str(e)}
-        finally:
-            try:
-                await client.disconnect()
-            except Exception:
-                pass
