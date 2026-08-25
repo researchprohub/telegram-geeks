@@ -1,5 +1,6 @@
 """Account management endpoints — real DB CRUD with tenant isolation."""
 
+import asyncio
 import uuid
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
