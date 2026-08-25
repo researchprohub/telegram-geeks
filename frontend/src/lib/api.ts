@@ -71,6 +71,50 @@ mediaApi.interceptors.request.use((config) => {
 
 export default api;
 
+/**
+ * Persistently fetch and cache media blobs using the browser Cache API.
+ * This prevents re-downloading heavy videos and images across sessions.
+ */
+export async function getCachedMedia(src: string): Promise<Blob> {
+  if (typeof caches === "undefined" || typeof window === "undefined") {
+    const res = await mediaApi.get(src, { responseType: "blob" });
+    return res.data;
+  }
+
+  const cacheName = "telegram-media-cache-v1";
+  const cache = await caches.open(cacheName);
+  
+  // Ensure the cache key is a valid URL by prepending the origin if it's a relative path
+  const cacheKeyUrl = src.startsWith("http") ? src : `${window.location.origin}${src}`;
+  
+  try {
+    const cachedResponse = await cache.match(cacheKeyUrl);
+    if (cachedResponse) {
+      return await cachedResponse.blob();
+    }
+  } catch (err) {
+    console.warn("Cache match failed, falling back to network", err);
+  }
+
+  const res = await mediaApi.get(src, { responseType: "blob" });
+  const blob = res.data as Blob;
+
+  try {
+    const responseToCache = new Response(blob, {
+      status: 200,
+      headers: {
+        "Content-Type": blob.type || "application/octet-stream",
+        "Cache-Control": "public, max-age=31536000",
+      }
+    });
+    cache.put(cacheKeyUrl, responseToCache).catch(e => console.warn("Cache put error:", e));
+  } catch (err) {
+    console.warn("Could not cache media response", err);
+  }
+
+  return blob;
+}
+
 // ─── API Methods ───────────────────────────────────────────────
 
 export const authApi = {

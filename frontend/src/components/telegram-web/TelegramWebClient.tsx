@@ -9,7 +9,7 @@ import {
   Settings, Image, Video, FileText, X, Archive, ChevronRight, Share2,
   Lock, Eye, Volume2, UserCheck, Smartphone, ClipboardCopy, Play
 } from "lucide-react";
-import api, { mediaApi } from "@/lib/api";
+import api, { mediaApi, getCachedMedia } from "@/lib/api";
 
 interface Dialog {
   id: number;
@@ -104,16 +104,16 @@ function AuthenticatedImage({
     setLoading(true);
     setHasError(false);
 
-    mediaApi
-      .get(src, { responseType: "blob" })
-      .then((res) => {
+    getCachedMedia(src)
+      .then((blob) => {
         if (isMounted) {
-          const url = URL.createObjectURL(res.data);
+          const url = URL.createObjectURL(blob);
           setBlobUrl(url);
           setLoading(false);
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("AuthenticatedImage error:", err);
         if (isMounted) {
           setHasError(true);
           setLoading(false);
@@ -180,16 +180,16 @@ function AuthenticatedVideo({
     setLoading(true);
     setHasError(false);
 
-    mediaApi
-      .get(src, { responseType: "blob" })
-      .then((res) => {
+    getCachedMedia(src)
+      .then((blob) => {
         if (isMounted) {
-          const url = URL.createObjectURL(res.data);
+          const url = URL.createObjectURL(blob);
           setBlobUrl(url);
           setLoading(false);
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("AuthenticatedVideo error:", err);
         if (isMounted) {
           setHasError(true);
           setLoading(false);
@@ -438,10 +438,8 @@ export default function TelegramWebClient({
   const handleDownloadMedia = async (dialogId: number | string, messageId: number, filename: string) => {
     try {
       setDownloadingMsgId(messageId);
-      const res = await mediaApi.get(`/accounts/${accountId}/dialogs/${dialogId}/messages/${messageId}/media`, {
-        responseType: "blob",
-      });
-      const blobUrl = window.URL.createObjectURL(new Blob([res.data]));
+      const blob = await getCachedMedia(`/accounts/${accountId}/dialogs/${dialogId}/messages/${messageId}/media`);
+      const blobUrl = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = blobUrl;
       link.setAttribute("download", filename);
