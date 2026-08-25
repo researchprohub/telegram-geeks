@@ -454,28 +454,73 @@ def _get_entry(entry_id: str, current_user_id: int) -> dict:
     return entry
 
 
-async def _finalize_login(db, user_id, client, phone, api_id, api_hash) -> dict:
+async def _finalize_login(db: AsyncSession, user_id: int, client, phone: str, api_id: int, api_hash: str) -> dict:
     """Persist an authenticated session as an Account row."""
     session_string = client.session.save()
+    me = None
+    try:
+        me = await client.get_me()
+    except Exception as e:
+        logger.warning(f"get_me failed: {e}")
+
+    if not phone and me:
+        phone = getattr(me, "phone", "") or ""
+
     if not phone:
-        try:
-            me = await client.get_me()
-            phone = getattr(me, "phone", "") or ""
-        except Exception:
-            phone = ""
-    if not phone:
-        # phone_number is NOT NULL + unique — reject rather than write a bad row
-        await _safe_disconnect(client)
-        raise HTTPException(status_code=400, detail="Could not determine the account phone number — try the QR method instead")
-    account = Account(
-        user_id=user_id, phone_number=phone,
-        session_string=session_string, status="active",
-        api_id=api_id, api_hash=api_hash,
-    )
-    db.add(account)
+        tg_id = getattr(me, "id", None) if me else None
+        phone = f"+tg_{tg_id}" if tg_id else f"+tg_{uuid.uuid4().hex[:10]}"
+
+    username = getattr(me, "username", None) if me else None
+    first_name = getattr(me, "first_name", None) if me else f"TG User"
+    is_premium = bool(getattr(me, "premium", False)) if me else False
+
+    # Check if account already exists (upsert)
+    existing = await db.execute(select(Account).where(Account.phone_number == phone))
+    account = existing.scalar_one_or_none()
+
+    if account:
+        account.session_string = session_string
+        account.status = "active"
+        account.folder = "active"
+        account.deleted_at = None
+        account.api_id = api_id
+        account.api_hash = api_hash
+        account.user_id = user_id
+        if username:
+            account.username = username
+        if first_name:
+            account.first_name = first_name
+        account.is_premium = is_premium
+        account.updated_at = datetime.utcnow()
+    else:
+        account = Account(
+            user_id=user_id,
+            phone_number=phone,
+            session_string=session_string,
+            status="active",
+            folder="active",
+            api_id=api_id,
+            api_hash=api_hash,
+            username=username,
+            first_name=first_name,
+            is_premium=is_premium,
+            trust_score=100.0,
+            daily_message_count=0,
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+        )
+        db.add(account)
+
     await db.commit()
     await db.refresh(account)
-    return {"account_id": account.id, "phone": phone, "status": "authorized"}
+    logger.info(f"Account {account.id} ({phone}) successfully authenticated and saved!")
+    return {
+        "account_id": account.id,
+        "phone": phone,
+        "username": username,
+        "first_name": first_name,
+        "status": "authorized",
+    }
 
 
 class LoginApiIn(BaseModel):
@@ -542,25 +587,46 @@ async def qr_login_status(
     from telethon.errors import SessionPasswordNeededError
     entry = _get_entry(entry_id, current_user.id)
     client, qr = entry["_client"], entry["qr"]
-    try:
-        await qr.wait(poll_interval=2, timeout=8)
-    except SessionPasswordNeededError:
-        return {"status": "awaiting_password", "login_id": entry_id}
-    except Exception:
-        return {"status": "pending", "login_id": entry_id}
 
-    if await client.is_user_authorized():
-        try:
+    # 1. Quick check: Is client already authorized?
+    try:
+        if await client.is_user_authorized():
             result = await _finalize_login(
                 db, current_user.id, client,
                 entry.get("phone", ""), entry["api_id"], entry["api_hash"],
             )
             await _drop_entry(entry_id)
             return {"status": "authorized", **result}
-        except Exception:
-            logger.exception("QR finalize failed")
+    except Exception as e:
+        logger.debug(f"Pre-check authorization: {e}")
+
+    # 2. Wait for QR scan event
+    try:
+        user_res = await qr.wait(poll_interval=1.5, timeout=5)
+        if user_res or await client.is_user_authorized():
+            result = await _finalize_login(
+                db, current_user.id, client,
+                entry.get("phone", ""), entry["api_id"], entry["api_hash"],
+            )
             await _drop_entry(entry_id)
-            raise HTTPException(status_code=500, detail="Failed to save account after login")
+            return {"status": "authorized", **result}
+    except SessionPasswordNeededError:
+        return {"status": "awaiting_password", "login_id": entry_id}
+    except Exception as e:
+        logger.debug(f"QR wait exception (normal during polling): {e}")
+
+    # 3. Post-check: Double-check authorization after wait
+    try:
+        if await client.is_user_authorized():
+            result = await _finalize_login(
+                db, current_user.id, client,
+                entry.get("phone", ""), entry["api_id"], entry["api_hash"],
+            )
+            await _drop_entry(entry_id)
+            return {"status": "authorized", **result}
+    except Exception as e:
+        logger.debug(f"Post-check authorization: {e}")
+
     return {"status": "pending", "login_id": entry_id}
 
 

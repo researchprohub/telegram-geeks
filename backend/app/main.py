@@ -55,11 +55,14 @@ async def init_database():
         import app.models  # Ensure all models are registered
         await conn.run_sync(Base.metadata.create_all)
 
-        # Ensure newly added columns exist in existing SQLite databases
+        # Ensure newly added columns exist in existing PostgreSQL and SQLite databases
         def sync_columns(connection):
             from sqlalchemy import inspect, text
             inspector = inspect(connection)
             tables = inspector.get_table_names()
+            is_pg = connection.dialect.name == "postgresql"
+            bool_type = "BOOLEAN DEFAULT FALSE" if is_pg else "BOOLEAN DEFAULT 0"
+            dt_type = "TIMESTAMP WITHOUT TIME ZONE" if is_pg else "DATETIME"
 
             if "accounts" in tables:
                 acc_cols = [c["name"] for c in inspector.get_columns("accounts")]
@@ -67,7 +70,7 @@ async def init_database():
                     ("folder", "VARCHAR(30) DEFAULT 'active'"),
                     ("username", "VARCHAR(100)"),
                     ("first_name", "VARCHAR(100)"),
-                    ("is_premium", "BOOLEAN DEFAULT 0"),
+                    ("is_premium", bool_type),
                     ("device_model", "VARCHAR(100)"),
                     ("os_version", "VARCHAR(100)"),
                     ("app_version", "VARCHAR(50)"),
@@ -75,35 +78,47 @@ async def init_database():
                     ("system_lang_code", "VARCHAR(20)"),
                     ("proxy_id", "INTEGER"),
                     ("country", "VARCHAR(4)"),
-                    ("last_check_at", "DATETIME"),
+                    ("last_check_at", dt_type),
+                    ("api_id", "INTEGER"),
+                    ("api_hash", "VARCHAR(64)"),
+                    ("spamblock_until", dt_type),
+                    ("health_check_at", dt_type),
+                    ("health_score", "INTEGER"),
+                    ("dc_id", "INTEGER"),
+                    ("ping_ms", "INTEGER"),
+                    ("last_known_ip", "VARCHAR(45)"),
+                    ("last_proxy", "VARCHAR(200)"),
+                    ("ip_country", "VARCHAR(100)"),
                 ]
                 for col_name, col_type in col_defs:
                     if col_name not in acc_cols:
                         try:
                             connection.execute(text(f"ALTER TABLE accounts ADD COLUMN {col_name} {col_type}"))
-                        except Exception:
-                            pass
+                            logger.info(f"Added column accounts.{col_name}")
+                        except Exception as e:
+                            logger.warning(f"Could not add column accounts.{col_name}: {e}")
 
             if "proxies" in tables:
                 proxy_cols = [c["name"] for c in inspector.get_columns("proxies")]
                 proxy_defs = [
                     ("latency_ms", "INTEGER"),
                     ("fail_count", "INTEGER DEFAULT 0"),
-                    ("added_at", "DATETIME"),
+                    ("added_at", dt_type),
                 ]
                 for col_name, col_type in proxy_defs:
                     if col_name not in proxy_cols:
                         try:
                             connection.execute(text(f"ALTER TABLE proxies ADD COLUMN {col_name} {col_type}"))
-                        except Exception:
-                            pass
+                            logger.info(f"Added column proxies.{col_name}")
+                        except Exception as e:
+                            logger.warning(f"Could not add column proxies.{col_name}: {e}")
 
             if "campaigns" in tables:
                 camp_cols = [c["name"] for c in inspector.get_columns("campaigns")]
                 camp_defs = [
                     ("target_db_id", "INTEGER"),
                     ("message_template", "TEXT"),
-                    ("gpt_spin", "BOOLEAN DEFAULT 0"),
+                    ("gpt_spin", bool_type),
                     ("delay_min", "INTEGER DEFAULT 30"),
                     ("delay_max", "INTEGER DEFAULT 120"),
                     ("max_per_day", "INTEGER DEFAULT 50"),
@@ -111,14 +126,15 @@ async def init_database():
                     ("tone", "VARCHAR(64) DEFAULT 'natural'"),
                     ("sent", "INTEGER DEFAULT 0"),
                     ("failed", "INTEGER DEFAULT 0"),
-                    ("completed_at", "DATETIME"),
+                    ("completed_at", dt_type),
                 ]
                 for col_name, col_type in camp_defs:
                     if col_name not in camp_cols:
                         try:
                             connection.execute(text(f"ALTER TABLE campaigns ADD COLUMN {col_name} {col_type}"))
-                        except Exception:
-                            pass
+                            logger.info(f"Added column campaigns.{col_name}")
+                        except Exception as e:
+                            logger.warning(f"Could not add column campaigns.{col_name}: {e}")
 
             if "campaign_targets" in tables:
                 ct_cols = [c["name"] for c in inspector.get_columns("campaign_targets")]
@@ -126,14 +142,15 @@ async def init_database():
                     ("user_id", "BIGINT"),
                     ("username", "VARCHAR(255)"),
                     ("status", "VARCHAR(64)"),
-                    ("attempted_at", "DATETIME"),
+                    ("attempted_at", dt_type),
                 ]
                 for col_name, col_type in ct_defs:
                     if col_name not in ct_cols:
                         try:
                             connection.execute(text(f"ALTER TABLE campaign_targets ADD COLUMN {col_name} {col_type}"))
-                        except Exception:
-                            pass
+                            logger.info(f"Added column campaign_targets.{col_name}")
+                        except Exception as e:
+                            logger.warning(f"Could not add column campaign_targets.{col_name}: {e}")
 
         await conn.run_sync(sync_columns)
         logger.info("Database initialized (all tables and columns synchronized)")
