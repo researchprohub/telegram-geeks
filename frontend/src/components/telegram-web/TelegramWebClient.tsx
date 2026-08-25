@@ -477,6 +477,54 @@ export default function TelegramWebClient({
     return gradients[Math.abs(id) % gradients.length];
   };
 
+  const renderClickableContent = (text: string, isOut: boolean) => {
+    if (!text) return null;
+    const urlRegex = /(https?:\/\/[^\s]+|t\.me\/[^\s]+|@[a-zA-Z0-9_]{4,})/g;
+    const parts = text.split(urlRegex);
+
+    return (
+      <span>
+        {parts.map((part, index) => {
+          if (!part) return null;
+          if (part.startsWith("http://") || part.startsWith("https://") || part.startsWith("t.me/")) {
+            const href = part.startsWith("http") ? part : `https://${part}`;
+            return (
+              <a
+                key={index}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className={`underline font-semibold break-all hover:opacity-80 transition-opacity ${
+                  isOut ? "text-white hover:text-white/90" : "text-primary hover:text-primary/80"
+                }`}
+              >
+                {part}
+              </a>
+            );
+          } else if (part.startsWith("@") && part.length > 1) {
+            const username = part.slice(1);
+            return (
+              <a
+                key={index}
+                href={`https://t.me/${username}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className={`font-semibold underline hover:opacity-80 transition-opacity ${
+                  isOut ? "text-white/95" : "text-primary"
+                }`}
+              >
+                {part}
+              </a>
+            );
+          }
+          return <span key={index}>{part}</span>;
+        })}
+      </span>
+    );
+  };
+
   return (
     <div className="flex flex-col h-[780px] bg-card rounded-2xl border border-border overflow-hidden shadow-xl">
       {/* 🧭 Top Station Bar */}
@@ -967,9 +1015,9 @@ export default function TelegramWebClient({
 
                           {/* Message Text */}
                           {m.text && (
-                            <p className="whitespace-pre-wrap leading-relaxed break-words">
-                              {m.text}
-                            </p>
+                            <div className="whitespace-pre-wrap leading-relaxed break-words">
+                              {renderClickableContent(m.text, isOut)}
+                            </div>
                           )}
 
                           {/* Inline Translated Text Box */}
@@ -978,7 +1026,9 @@ export default function TelegramWebClient({
                               <div className="flex items-center gap-1 text-[9px] font-bold text-primary uppercase">
                                 <Globe className="h-3 w-3" /> Translated English
                               </div>
-                              <p className="italic">{m.translated_text}</p>
+                              <div className="italic leading-relaxed">
+                                {renderClickableContent(m.translated_text, false)}
+                              </div>
                             </div>
                           )}
 
