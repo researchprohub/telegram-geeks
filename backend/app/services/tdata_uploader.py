@@ -49,16 +49,9 @@ class TDataUploaderService:
     ) -> dict:
         """
         Upload a TData folder (ZIP or extracted).
-
-        TData structure:
-        tdata_folder/
-          data/
-            sessions/
-              +1234567890.session  (session string file)
-              +0987654321.session
-            config.json  (api_id, api_hash, device info)
-            profiles/
-              +1234567890.json  (user profile)
+        Supports:
+          1. Original format (data/sessions/*.session text files + data/config.json)
+          2. Standard Session+JSON format (*.session SQLite files + *.json config)
         """
         results = {
             "uploaded": 0,
@@ -74,44 +67,90 @@ class TDataUploaderService:
             if file_path.endswith('.zip'):
                 await self._extract_zip_safe(file_path, extract_dir)
             else:
-                # Assume it's already extracted — validate safe source path
+                # Assume it's already extracted ? validate safe source path
                 src = Path(file_path).resolve()
                 if not str(src).startswith(str(self.storage_path)):
                     results["errors"].append("Source path outside allowed storage directory")
                     return results
                 await asyncio.to_thread(shutil.copytree, src, extract_dir, dirs_exist_ok=True)
 
-            # Parse TData structure
-            sessions_dir = extract_dir / "data" / "sessions"
-            config_file = extract_dir / "data" / "config.json"
-
-            if not sessions_dir.exists():
-                results["errors"].append("No sessions directory found in TData folder")
+            # Find all .session files
+            session_files = list(extract_dir.rglob("*.session"))
+            if not session_files:
+                results["errors"].append("No .session files found in the archive.")
                 return results
 
-            # Read config
-            api_id = api_id
-            api_hash = api_hash
-            if config_file.exists():
-                def _read_config():
-                    with open(config_file) as f:
-                        return json.load(f)
-                config = await asyncio.to_thread(_read_config)
-                api_id = config.get("api_id", api_id)
-                api_hash = config.get("api_hash", api_hash)
+            # Attempt to find global config for legacy format
+            global_config_file = extract_dir / "data" / "config.json"
+            global_api_id = api_id
+            global_api_hash = api_hash
+            if global_config_file.exists():
+                try:
+                    with open(global_config_file) as f:
+                        config = json.load(f)
+                    global_api_id = config.get("api_id", api_id)
+                    global_api_hash = config.get("api_hash", api_hash)
+                except Exception:
+                    pass
 
             # Process each session file
-            for session_file in sessions_dir.glob("*.session"):
+            for session_file in session_files:
                 try:
-                    session_string = (await asyncio.to_thread(session_file.read_text)).strip()
                     phone_number = session_file.stem
+                    session_string = None
+                    curr_api_id = global_api_id
+                    curr_api_hash = global_api_hash
+                    device_model = "TelegramGeeks"
+                    app_version = "1.0.0"
+
+                    # 1. Look for sidecar JSON for Session+JSON format
+                    sidecar_json = session_file.with_suffix(".json")
+                    if sidecar_json.exists():
+                        try:
+                            with open(sidecar_json) as f:
+                                sconfig = json.load(f)
+                            curr_api_id = sconfig.get("api_id", sconfig.get("app_id", curr_api_id))
+                            curr_api_hash = sconfig.get("api_hash", sconfig.get("app_hash", curr_api_hash))
+                            device_model = sconfig.get("device_model", sconfig.get("device", device_model))
+                            app_version = sconfig.get("app_version", app_version)
+                            if "phone" in sconfig or "phone_number" in sconfig:
+                                phone_number = str(sconfig.get("phone", sconfig.get("phone_number"))).strip("+")
+                        except Exception:
+                            pass
+
+                    # 2. Check if it's an SQLite DB or a String session
+                    with open(session_file, 'rb') as f:
+                        header = f.read(16)
+                    
+                    if header.startswith(b"SQLite format 3"):
+                        # Extract string session from SQLite
+                        def _extract_sqlite(path):
+                            from telethon.sessions import SQLiteSession, StringSession
+                            sql = SQLiteSession(str(path))
+                            if not sql.auth_key:
+                                return None
+                            string_session = StringSession()
+                            string_session.set_dc(sql.dc_id, sql.server_address, sql.port)
+                            string_session.auth_key = sql.auth_key
+                            return string_session.save()
+                        
+                        session_string = await asyncio.to_thread(_extract_sqlite, session_file)
+                        if not session_string:
+                            raise ValueError(f"SQLite DB missing auth_key or unreadable: {session_file.name}")
+                    else:
+                        # Assume text string session
+                        session_string = (await asyncio.to_thread(session_file.read_text)).strip()
+                        if not session_string:
+                            raise ValueError(f"Empty session text file: {session_file.name}")
 
                     account = TDataAccount(
                         account_id=f"td_{phone_number}",
                         phone_number=phone_number,
                         session_string=session_string,
-                        api_id=api_id,
-                        api_hash=api_hash,
+                        api_id=curr_api_id,
+                        api_hash=curr_api_hash,
+                        device_model=device_model,
+                        app_version=app_version,
                         tdata_dir=str(extract_dir),
                         status="warming",
                         created_at=__import__('datetime').datetime.utcnow().isoformat(),
@@ -171,21 +210,14 @@ class TDataUploaderService:
             "sessions_count": 0,
         }
 
-        # Check required directories
-        data_dir = path / "data"
-        sessions_dir = data_dir / "sessions"
-        config_file = data_dir / "config.json"
+        # Check for any .session files
+        session_files = list(path.rglob("*.session"))
 
-        if not sessions_dir.exists():
+        if not session_files:
             result["valid"] = False
-            result["errors"].append("Missing sessions directory")
+            result["errors"].append("Missing .session files in the uploaded archive")
 
-        if not config_file.exists():
-            result["warnings"].append("No config.json found (using defaults)")
-
-        # Count sessions
-        if sessions_dir.exists():
-            result["sessions_count"] = len(list(sessions_dir.glob("*.session")))
+        result["sessions_count"] = len(session_files)
 
         return result
 
