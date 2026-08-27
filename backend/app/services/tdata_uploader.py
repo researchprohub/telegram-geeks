@@ -141,6 +141,7 @@ class TDataUploaderService:
                         def _extract_sqlite(path):
                             import sqlite3
                             from telethon.sessions import StringSession
+                            from telethon.crypto import AuthKey
                             conn = sqlite3.connect(str(path))
                             c = conn.cursor()
                             
@@ -175,6 +176,10 @@ class TDataUploaderService:
                                 
                             if not auth_key:
                                 return None
+                            
+                            # auth_key from SQLite is raw bytes; Telethon needs an AuthKey object
+                            if isinstance(auth_key, bytes):
+                                auth_key = AuthKey(data=auth_key)
                             
                             string_session = StringSession()
                             string_session.set_dc(dc_id, server_address, port)
