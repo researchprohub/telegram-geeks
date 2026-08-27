@@ -105,9 +105,23 @@ class TDataUploaderService:
 
                     # 1. Look for sidecar JSON for Session+JSON format
                     sidecar_json = session_file.with_suffix(".json")
+                    sidecar_no_ext = session_file.with_suffix("") # e.g. 918953639632
+                    
+                    found_sidecar = None
                     if sidecar_json.exists():
+                        found_sidecar = sidecar_json
+                    elif sidecar_no_ext.exists() and sidecar_no_ext.is_file():
+                        # Try reading it to see if it's JSON
                         try:
-                            with open(sidecar_json) as f:
+                            with open(sidecar_no_ext, 'r') as f:
+                                json.load(f)
+                            found_sidecar = sidecar_no_ext
+                        except Exception:
+                            pass
+                            
+                    if found_sidecar:
+                        try:
+                            with open(found_sidecar) as f:
                                 sconfig = json.load(f)
                             curr_api_id = sconfig.get("api_id", sconfig.get("app_id", curr_api_id))
                             curr_api_hash = sconfig.get("api_hash", sconfig.get("app_hash", curr_api_hash))

@@ -124,36 +124,69 @@ async def bulk_upload_tdata(
     Each ZIP file can contain multiple session files.
     """
     temp_files = []
+    skipped_files = []
+
+    logger.info(f"Bulk TData upload: received {len(files)} file(s) from user {user.id}")
 
     for file in files:
-        if not file.filename.endswith(".zip"):
-            continue
+        logger.info(f"Bulk upload: processing file '{file.filename}', content_type='{file.content_type}', size hint={file.size}")
 
-        # Content-type validation
-        if file.content_type and not file.content_type.startswith("application/zip"):
+        if not file.filename or not file.filename.lower().endswith(".zip"):
+            logger.warning(f"Bulk upload: file '{file.filename}' does not end in .zip, skipping")
+            skipped_files.append(f"{file.filename}: not a .zip file")
             continue
 
         # Read and validate size
         content = await file.read()
+        logger.info(f"Bulk upload: read {len(content)} bytes from '{file.filename}'")
+
         if len(content) > MAX_FILE_SIZE:
-            logger.warning(f"Bulk upload: file {file.filename} exceeds 50MB, skipping")
+            logger.warning(f"Bulk upload: file {file.filename} exceeds 50MB ({len(content)} bytes), skipping")
+            skipped_files.append(f"{file.filename}: exceeds 50MB limit")
             continue
 
-        # Magic byte validation
-        if len(content) >= 4 and content[:4] != ZIP_MAGIC:
-            logger.warning(f"Bulk upload: file {file.filename} is not a valid ZIP, skipping")
+        # Magic byte validation (most reliable - ignore content-type entirely)
+        if len(content) < 4 or content[:4] != ZIP_MAGIC:
+            logger.warning(f"Bulk upload: file {file.filename} is not a valid ZIP (magic bytes: {content[:4].hex() if len(content) >= 4 else 'too short'}), skipping")
+            skipped_files.append(f"{file.filename}: not a valid ZIP archive")
             continue
 
         with tempfile.NamedTemporaryFile(delete=False, suffix=".zip") as tmp:
             tmp.write(content)
             temp_files.append(tmp.name)
+            logger.info(f"Bulk upload: saved '{file.filename}' to temp file '{tmp.name}'")
+
+    if not temp_files:
+        logger.error(f"Bulk upload: no valid ZIP files to process. Skipped: {skipped_files}")
+        return BulkUploadResult(
+            total_files=len(files),
+            total_accounts=0,
+            successful=0,
+            failed=len(files),
+            details=[{"error": reason} for reason in skipped_files] if skipped_files else [{"error": "No valid ZIP files found in the upload"}],
+        )
 
     try:
         result = await tdata_uploader.bulk_import_tdata(temp_files, user.id, api_id, api_hash)
+        logger.info(f"Bulk upload result: {result}")
         return result
+    except Exception as e:
+        logger.error(f"Bulk upload fatal error: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return BulkUploadResult(
+            total_files=len(files),
+            total_accounts=0,
+            successful=0,
+            failed=len(files),
+            details=[{"error": str(e)}],
+        )
     finally:
         for tmp in temp_files:
-            os.unlink(tmp)
+            try:
+                os.unlink(tmp)
+            except OSError:
+                pass
 
 
 @router.post("/validate")
