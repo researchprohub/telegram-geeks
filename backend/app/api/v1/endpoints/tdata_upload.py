@@ -7,11 +7,12 @@ from typing import List, Optional
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
 from loguru import logger
 from pydantic import BaseModel, Field
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
 from app.dependencies import get_current_user
-from app.models import User
+from app.models import User, Account
 from app.services.tdata_uploader import TDataUploaderService
 
 router = APIRouter(tags=["Account Upload"])
@@ -168,7 +169,54 @@ async def bulk_upload_tdata(
 
     try:
         result = await tdata_uploader.bulk_import_tdata(temp_files, user.id, api_id, api_hash)
-        logger.info(f"Bulk upload result: {result}")
+        logger.info(f"Bulk upload parse result: total_accounts={result.get('total_accounts')}, successful={result.get('successful')}")
+
+        # Persist parsed accounts to the database
+        saved_count = 0
+        for detail in result.get("details", []):
+            for acct_data in detail.get("accounts", []):
+                phone = acct_data.get("phone_number", "")
+                session_str = acct_data.get("session_string", "")
+                if not phone or not session_str:
+                    continue
+
+                # Check for duplicate
+                existing = await db.execute(
+                    select(Account).where(Account.phone_number == phone)
+                )
+                if existing.scalar_one_or_none():
+                    logger.info(f"Account {phone} already exists, updating session")
+                    existing_acct = (await db.execute(
+                        select(Account).where(Account.phone_number == phone)
+                    )).scalar_one()
+                    existing_acct.session_string = session_str
+                    existing_acct.api_id = acct_data.get("api_id", api_id)
+                    existing_acct.api_hash = acct_data.get("api_hash", api_hash)
+                    existing_acct.device_model = acct_data.get("device_model")
+                    existing_acct.app_version = acct_data.get("app_version")
+                    saved_count += 1
+                    continue
+
+                new_account = Account(
+                    user_id=user.id,
+                    phone_number=phone,
+                    session_string=session_str,
+                    api_id=acct_data.get("api_id", api_id),
+                    api_hash=acct_data.get("api_hash", api_hash),
+                    device_model=acct_data.get("device_model"),
+                    app_version=acct_data.get("app_version"),
+                    status="warming",
+                    trust_score=0.0,
+                    daily_message_count=0,
+                )
+                db.add(new_account)
+                saved_count += 1
+                logger.info(f"Saved account {phone} to database")
+
+        if saved_count > 0:
+            await db.commit()
+            logger.info(f"Committed {saved_count} accounts to database")
+
         return result
     except Exception as e:
         logger.error(f"Bulk upload fatal error: {e}")
