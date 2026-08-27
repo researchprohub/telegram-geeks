@@ -93,10 +93,15 @@ export default function TDataUploadPage() {
       });
 
       const data = response.data;
+      
+      const parsedErrors = data.details
+        ?.filter((d: any) => d.error || (d.errors && d.errors.length > 0))
+        ?.flatMap((d: any) => d.error ? [d.error] : d.errors) || [];
+
       setResult({
         uploaded: data.total_accounts || 0,
         failed: data.failed || 0,
-        errors: [],
+        errors: parsedErrors,
       });
     } catch (error: any) {
       setResult({
@@ -564,16 +569,23 @@ export default function TDataUploadPage() {
           {result && (
             <div className={cn(
               "p-4 rounded-xl border flex items-start gap-3",
-              result.uploaded > 0 ? "bg-success/10 border-success/30 text-success" : "bg-destructive/10 border-destructive/30 text-destructive"
+              result.uploaded > 0 && result.failed === 0 ? "bg-success/10 border-success/30 text-success" : (result.uploaded > 0 ? "bg-warning/10 border-warning/30 text-warning-foreground" : "bg-destructive/10 border-destructive/30 text-destructive")
             )}>
-              {result.uploaded > 0 ? <CheckCircle2 className="h-5 w-5 shrink-0" /> : <AlertCircle className="h-5 w-5 shrink-0" />}
-              <div className="text-xs">
+              {result.uploaded > 0 && result.failed === 0 ? <CheckCircle2 className="h-5 w-5 shrink-0" /> : <AlertCircle className="h-5 w-5 shrink-0" />}
+              <div className="text-xs w-full">
                 <p className="font-bold">
-                  {result.uploaded > 0 ? "Import Complete" : "Import Failed"}
+                  {result.uploaded > 0 && result.failed === 0 ? "Import Complete" : (result.uploaded > 0 ? "Import Partially Complete" : "Import Failed")}
                 </p>
                 <p className="mt-0.5">
                   {result.uploaded} accounts successfully imported, {result.failed} failed.
                 </p>
+                {result.errors && result.errors.length > 0 && (
+                  <ul className="mt-2 pl-4 list-disc space-y-1 text-destructive/90 overflow-hidden break-words max-h-32 overflow-y-auto">
+                    {result.errors.map((err, i) => (
+                      <li key={i}>{err}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
           )}

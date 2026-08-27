@@ -125,13 +125,46 @@ class TDataUploaderService:
                     if header.startswith(b"SQLite format 3"):
                         # Extract string session from SQLite
                         def _extract_sqlite(path):
-                            from telethon.sessions import SQLiteSession, StringSession
-                            sql = SQLiteSession(str(path))
-                            if not sql.auth_key:
+                            import sqlite3
+                            from telethon.sessions import StringSession
+                            conn = sqlite3.connect(str(path))
+                            c = conn.cursor()
+                            
+                            dc_id = None
+                            server_address = '149.154.167.50'
+                            port = 443
+                            auth_key = None
+                            
+                            try:
+                                c.execute("SELECT dc_id, server_address, port, auth_key FROM sessions")
+                                row = c.fetchone()
+                                if row:
+                                    dc_id, server_address, port, auth_key = row
+                            except sqlite3.OperationalError:
+                                try:
+                                    c.execute("SELECT dc_id, auth_key FROM sessions")
+                                    row = c.fetchone()
+                                    if row:
+                                        dc_id, auth_key = row
+                                        dc_ips = {
+                                            1: "149.154.175.50",
+                                            2: "149.154.167.50",
+                                            3: "149.154.175.100",
+                                            4: "149.154.167.91",
+                                            5: "91.108.56.165"
+                                        }
+                                        server_address = dc_ips.get(dc_id, server_address)
+                                except sqlite3.OperationalError:
+                                    pass
+                            finally:
+                                conn.close()
+                                
+                            if not auth_key:
                                 return None
+                            
                             string_session = StringSession()
-                            string_session.set_dc(sql.dc_id, sql.server_address, sql.port)
-                            string_session.auth_key = sql.auth_key
+                            string_session.set_dc(dc_id, server_address, port)
+                            string_session.auth_key = auth_key
                             return string_session.save()
                         
                         session_string = await asyncio.to_thread(_extract_sqlite, session_file)
@@ -160,6 +193,8 @@ class TDataUploaderService:
                     results["uploaded"] += 1
 
                 except Exception as e:
+                    import traceback
+                    logger.error(f"Failed to parse {session_file.name}: {e}\n{traceback.format_exc()}")
                     results["failed"] += 1
                     results["errors"].append(f"Failed to parse {session_file.name}: {e}")
 
@@ -272,6 +307,8 @@ class TDataUploaderService:
                     **file_result,
                 })
             except Exception as e:
+                import traceback
+                logger.error(f"Failed to process zip file {zip_file}: {e}\n{traceback.format_exc()}")
                 results["failed"] += 1
                 results["details"].append({
                     "file": zip_file,
