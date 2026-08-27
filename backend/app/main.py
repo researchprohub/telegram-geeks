@@ -525,7 +525,7 @@ app.include_router(orchestration.router, prefix="/api/v1/orchestration", tags=["
 app.include_router(advanced_analytics.router, prefix="/api/v1/advanced-analytics", tags=["Advanced Analytics"])
 
 # TData Upload
-app.include_router(tdata_upload.router, prefix="/api/v1", tags=["Account Upload"])
+app.include_router(tdata_upload.router, prefix="/api/v1/accounts/upload", tags=["Account Upload"])
 
 # Payments
 app.include_router(payments.router, prefix="/api/v1/payments", tags=["Payments"])
