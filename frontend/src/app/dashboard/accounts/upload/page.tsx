@@ -39,6 +39,8 @@ export default function TDataUploadPage() {
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<null | { uploaded: number; failed: number; errors: string[] }>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [customFirstName, setCustomFirstName] = useState("");
+  const [customUsername, setCustomUsername] = useState("");
 
   // QR state
   const [qrBusy, setQrBusy] = useState(false);
@@ -85,6 +87,8 @@ export default function TDataUploadPage() {
     const formData = new FormData();
     formData.append("api_id", apiId);
     formData.append("api_hash", apiHash);
+    if (customFirstName) formData.append("custom_first_name", customFirstName);
+    if (customUsername) formData.append("custom_username", customUsername);
     files.forEach(file => formData.append("files", file));
 
     try {
@@ -487,6 +491,29 @@ export default function TDataUploadPage() {
           <div className="text-center space-y-1">
             <h3 className="text-base font-bold text-foreground">Upload TData ZIP Portable Archives</h3>
             <p className="text-xs text-muted-foreground">Import full Telegram Desktop portable folders (.zip) or session files</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div>
+              <label className="block text-xs font-bold text-foreground mb-1">Custom Account Name (Optional)</label>
+              <input
+                type="text"
+                value={customFirstName}
+                onChange={(e) => setCustomFirstName(e.target.value)}
+                placeholder="e.g. Sales Bot 1"
+                className="w-full bg-secondary border border-border rounded-xl px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-primary/40"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-foreground mb-1">Custom Username (Optional)</label>
+              <input
+                type="text"
+                value={customUsername}
+                onChange={(e) => setCustomUsername(e.target.value)}
+                placeholder="e.g. salesbot1"
+                className="w-full bg-secondary border border-border rounded-xl px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-primary/40"
+              />
+            </div>
           </div>
 
           <div

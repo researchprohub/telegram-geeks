@@ -76,6 +76,12 @@ async def check_single(db: AsyncSession, account: Account, force: bool = False) 
             if await client.is_user_authenticated():
                 me = await client.get_me()
                 dc_id = me.dc_id if hasattr(me, 'dc_id') else dc_id
+                if hasattr(me, 'first_name') and me.first_name:
+                    account.first_name = me.first_name
+                if hasattr(me, 'username') and me.username:
+                    account.username = me.username
+                if hasattr(me, 'premium') and me.premium is not None:
+                    account.is_premium = bool(me.premium)
                 ping_ms = int((time.monotonic() - start) * 1000)
             else:
                 api_error = "AUTH_KEY_INVALID"

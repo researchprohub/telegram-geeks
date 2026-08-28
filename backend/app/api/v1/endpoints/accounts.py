@@ -73,10 +73,27 @@ async def list_accounts(
             )
         )
 
+    count_q = select(func.count(Account.id)).where(Account.deleted_at.is_(None))
+    if current_user.role != "admin":
+        count_q = count_q.where(Account.user_id == current_user.id)
+    if folder:
+        count_q = count_q.where(Account.folder == folder)
+    if status_filter:
+        count_q = count_q.where(Account.status == status_filter)
+    if search:
+        count_q = count_q.where(
+            or_(
+                Account.phone_number.ilike(search_like),
+                Account.username.ilike(search_like),
+                Account.first_name.ilike(search_like),
+            )
+        )
+    total = (await db.execute(count_q)).scalar()
+
     q = q.order_by(Account.id.desc())
+    q = q.offset((page - 1) * page_size).limit(page_size)
     result = await db.execute(q)
     items = result.scalars().all()
-    total = len(items)
 
     # Compute folder counts
     cq = select(Account.folder, func.count(Account.id)).where(Account.deleted_at.is_(None))

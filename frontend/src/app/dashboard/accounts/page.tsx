@@ -137,6 +137,9 @@ export default function AccountsPage() {
   const [counts, setCounts]             = useState<FolderCounts | null>(null);
   const [selected, setSelected]         = useState<Set<string>>(new Set());
   const [search, setSearch]             = useState("");
+  const [page, setPage]                 = useState(1);
+  const [totalPages, setTotalPages]     = useState(1);
+  const [totalAccounts, setTotalAccounts] = useState(0);
   const [loading, setLoading]           = useState(false);
   const [bulkAction, setBulkAction]     = useState("");
   const [runningCheck, setRunningCheck] = useState(false);
@@ -153,12 +156,14 @@ export default function AccountsPage() {
     setLoading(true);
     try {
       const [accRes, warmRes] = await Promise.allSettled([
-        api.get(`/accounts?folder=${activeFolder}&search=${encodeURIComponent(search)}`),
+        api.get(`/accounts?folder=${activeFolder}&search=${encodeURIComponent(search)}&page=${page}&page_size=50`),
         api.get("/warmup/jobs"),
       ]);
       if (accRes.status === "fulfilled") {
         setAccounts(accRes.value.data.accounts || []);
         setCounts(accRes.value.data.counts || null);
+        setTotalPages(accRes.value.data.total_pages || 1);
+        setTotalAccounts(accRes.value.data.total || 0);
       }
       if (warmRes.status === "fulfilled" && warmRes.value.data?.jobs) {
         const activeWarm = new Set<string>(
@@ -173,6 +178,10 @@ export default function AccountsPage() {
     } finally {
       setLoading(false);
     }
+  }, [activeFolder, search, page]);
+
+  useEffect(() => {
+    setPage(1);
   }, [activeFolder, search]);
 
   useEffect(() => {
@@ -626,6 +635,30 @@ export default function AccountsPage() {
               )}
             </tbody>
           </table>
+        </div>
+        
+        {/* Pagination Controls */}
+        <div className="p-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
+          <div>
+            Showing <span className="font-bold text-foreground">{(page - 1) * 50 + 1}</span> to <span className="font-bold text-foreground">{Math.min(page * 50, totalAccounts)}</span> of <span className="font-bold text-foreground">{totalAccounts}</span> accounts
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-3 py-1.5 rounded-lg border border-border hover:bg-secondary disabled:opacity-50 transition"
+            >
+              Previous
+            </button>
+            <span className="px-2">Page {page} of {totalPages}</span>
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="px-3 py-1.5 rounded-lg border border-border hover:bg-secondary disabled:opacity-50 transition"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
 

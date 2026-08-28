@@ -111,11 +111,16 @@ async def upload_single_tdata(
         os.unlink(tmp_path)
 
 
+from fastapi import BackgroundTasks
+
 @router.post("/bulk", response_model=BulkUploadResult)
 async def bulk_upload_tdata(
+    background_tasks: BackgroundTasks,
     files: List[UploadFile] = File(..., description="Multiple TData ZIP files"),
     api_id: int = Form(...),
     api_hash: str = Form(...),
+    custom_first_name: Optional[str] = Form(None),
+    custom_username: Optional[str] = Form(None),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -171,6 +176,7 @@ async def bulk_upload_tdata(
         result = await tdata_uploader.bulk_import_tdata(temp_files, user.id, api_id, api_hash)
         logger.info(f"Bulk upload parse result: total_accounts={result.get('total_accounts')}, successful={result.get('successful')}")
 
+        saved_phones = []
         # Persist parsed accounts to the database
         saved_count = 0
         for detail in result.get("details", []):
@@ -194,7 +200,12 @@ async def bulk_upload_tdata(
                     existing_acct.api_hash = acct_data.get("api_hash", api_hash)
                     existing_acct.device_model = acct_data.get("device_model")
                     existing_acct.app_version = acct_data.get("app_version")
+                    if custom_first_name:
+                        existing_acct.first_name = custom_first_name
+                    if custom_username:
+                        existing_acct.username = custom_username
                     saved_count += 1
+                    saved_phones.append(phone)
                     continue
 
                 new_account = Account(
@@ -208,14 +219,32 @@ async def bulk_upload_tdata(
                     status="warming",
                     trust_score=0.0,
                     daily_message_count=0,
+                    first_name=custom_first_name,
+                    username=custom_username,
                 )
                 db.add(new_account)
                 saved_count += 1
+                saved_phones.append(phone)
                 logger.info(f"Saved account {phone} to database")
 
         if saved_count > 0:
             await db.commit()
             logger.info(f"Committed {saved_count} accounts to database")
+            
+            # Fetch all created/updated account IDs for background extraction
+            res = await db.execute(select(Account.id).where(Account.phone_number.in_(saved_phones)))
+            saved_ids = [r[0] for r in res.all()]
+            if saved_ids:
+                async def _bg_extract(account_ids: list[int]):
+                    import asyncio
+                    from app.db.session import async_session_factory
+                    from app.services.account_health import check_bulk
+                    await asyncio.sleep(3)  # brief delay to ensure transaction finishes
+                    async with async_session_factory() as bg_db:
+                        logger.info(f"Running background auto-extract for {len(account_ids)} accounts")
+                        await check_bulk(bg_db, account_ids)
+                
+                background_tasks.add_task(_bg_extract, saved_ids)
 
         return result
     except Exception as e:
