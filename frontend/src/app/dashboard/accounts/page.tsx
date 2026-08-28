@@ -6,11 +6,20 @@ import {
   Snowflake, Star, Archive, Trash2,
   RefreshCw, Shield, Wifi, User,
   ChevronRight, MoreHorizontal, Search,
-  Sliders, Plus, Loader2, Download
+  Sliders, Plus, Loader2, Download, Pencil
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import api from "@/lib/api";
 import Link from "next/link";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 // ── Folder Config ─────────────────────────────────────────────────────────────
 const FOLDERS = [
@@ -133,6 +142,12 @@ export default function AccountsPage() {
   const [runningCheck, setRunningCheck] = useState(false);
   const [warmingAccountIds, setWarmingAccountIds] = useState<Set<string>>(new Set());
 
+  // Edit Modal State
+  const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+  const [editFirstName, setEditFirstName] = useState("");
+  const [editUsername, setEditUsername] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+
   // ── Fetch accounts & warming jobs ───────────────────────────────────────
   const fetchAccounts = useCallback(async () => {
     setLoading(true);
@@ -227,6 +242,23 @@ export default function AccountsPage() {
   };
 
   const folder = FOLDERS.find((f) => f.id === activeFolder) || FOLDERS[0];
+
+  const handleSaveEdit = async () => {
+    if (!editingAccount) return;
+    setSavingEdit(true);
+    try {
+      await api.put(`/accounts/${editingAccount.id}`, {
+        first_name: editFirstName,
+        username: editUsername,
+      });
+      await fetchAccounts();
+      setEditingAccount(null);
+    } catch (e) {
+      console.error("Failed to save account", e);
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -470,7 +502,7 @@ export default function AccountsPage() {
                     <tr
                       key={account.id}
                       className={cn(
-                        "border-b border-border/40 hover:bg-secondary/40 transition",
+                        "group border-b border-border/40 hover:bg-secondary/40 transition",
                         isSelected && "bg-primary/5"
                       )}
                     >
@@ -490,11 +522,21 @@ export default function AccountsPage() {
                           </div>
                           <div>
                             <div className="flex items-center gap-1.5">
-                              <p className="text-foreground font-bold text-xs">
+                              <p className="text-foreground font-bold text-xs flex items-center gap-1">
                                 {account.first_name}
                                 {account.premium && (
-                                  <Star className="inline w-3 h-3 ml-1 text-warning fill-current" />
+                                  <Star className="inline w-3 h-3 text-warning fill-current" />
                                 )}
+                                <button
+                                  onClick={() => {
+                                    setEditingAccount(account);
+                                    setEditFirstName(account.first_name.replace(/^User #\d+$/, ""));
+                                    setEditUsername(account.username || "");
+                                  }}
+                                  className="text-muted-foreground hover:text-foreground p-0.5 rounded opacity-0 group-hover:opacity-100 transition"
+                                >
+                                  <Pencil className="w-3 h-3" />
+                                </button>
                               </p>
                               {warmingAccountIds.has(account.id) && (
                                 <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[10px] font-black bg-primary/20 text-primary border border-primary/30">
@@ -586,6 +628,51 @@ export default function AccountsPage() {
           </table>
         </div>
       </div>
+
+      <Dialog open={!!editingAccount} onOpenChange={(open) => !open && setEditingAccount(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Profile</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <label htmlFor="first_name" className="text-sm font-medium">
+                Name
+              </label>
+              <Input
+                id="first_name"
+                value={editFirstName}
+                onChange={(e) => setEditFirstName(e.target.value)}
+                placeholder="Name"
+              />
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="username" className="text-sm font-medium">
+                Username
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-2.5 text-muted-foreground">@</span>
+                <Input
+                  id="username"
+                  className="pl-7"
+                  value={editUsername}
+                  onChange={(e) => setEditUsername(e.target.value)}
+                  placeholder="username"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingAccount(null)} disabled={savingEdit}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit} disabled={savingEdit}>
+              {savingEdit && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Save changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

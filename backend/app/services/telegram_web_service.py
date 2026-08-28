@@ -551,7 +551,7 @@ class TelegramWebService:
 
     @classmethod
     async def get_stories(cls, account: Account) -> Dict[str, Any]:
-        """Fetch active stories for the connected account."""
+        """Fetch active stories for the connected account's contacts."""
         client = cls.get_client(account)
         if not client:
             return {"stories": [], "error": "No session string"}
@@ -559,18 +559,51 @@ class TelegramWebService:
         try:
             if not client.is_connected():
                 await client.connect()
-            me = await client.get_me()
-            stories_res = await client(GetPeerStoriesRequest(peer=me))
+            
+            # Fetch all stories from contacts and channels
+            from telethon.tl.functions.stories import GetAllStoriesRequest
+            stories_res = await client(GetAllStoriesRequest(
+                next_offset='',
+                state='',
+                hidden=False
+            ))
 
             stories_list = []
-            if hasattr(stories_res, "stories") and hasattr(stories_res.stories, "stories"):
-                for s in stories_res.stories.stories:
+            if hasattr(stories_res, "peer_stories"):
+                for peer_story in stories_res.peer_stories:
+                    peer_id = None
+                    if hasattr(peer_story, "peer"):
+                        peer = peer_story.peer
+                        if hasattr(peer, "user_id"):
+                            peer_id = peer.user_id
+                        elif hasattr(peer, "channel_id"):
+                            peer_id = peer.channel_id
+                    
+                    if hasattr(peer_story, "stories") and hasattr(peer_story.stories, "stories"):
+                        for s in peer_story.stories.stories:
+                            stories_list.append({
+                                "id": s.id,
+                                "peer_id": peer_id,
+                                "date": s.date.isoformat() if hasattr(s, "date") else None,
+                                "expire_date": s.expire_date.isoformat() if hasattr(s, "expire_date") else None,
+                                "caption": getattr(s, "caption", ""),
+                                "views": getattr(s, "views", None)
+                            })
+
+            # Also fetch our own stories just in case
+            from telethon.tl.functions.stories import GetPeerStoriesRequest
+            me = await client.get_me()
+            my_stories_res = await client(GetPeerStoriesRequest(peer=me))
+            if hasattr(my_stories_res, "stories") and hasattr(my_stories_res.stories, "stories"):
+                for s in my_stories_res.stories.stories:
                     stories_list.append({
                         "id": s.id,
+                        "peer_id": me.id,
                         "date": s.date.isoformat() if hasattr(s, "date") else None,
                         "expire_date": s.expire_date.isoformat() if hasattr(s, "expire_date") else None,
                         "caption": getattr(s, "caption", ""),
                         "views": getattr(s, "views", None),
+                        "is_mine": True
                     })
 
             return {"stories": stories_list}
@@ -626,6 +659,23 @@ class TelegramWebService:
             me = await client.get_me()
             full = await client(functions.users.GetFullUserRequest(me))
 
+            authorizations = await client(functions.account.GetAuthorizationsRequest())
+            auth_list = []
+            for auth in authorizations.authorizations:
+                auth_list.append({
+                    "hash": str(auth.hash),
+                    "device_model": auth.device_model,
+                    "platform": auth.platform,
+                    "system_version": auth.system_version,
+                    "app_name": auth.app_name,
+                    "app_version": auth.app_version,
+                    "date_created": auth.date_created.isoformat() if auth.date_created else None,
+                    "date_active": auth.date_active.isoformat() if auth.date_active else None,
+                    "ip": auth.ip,
+                    "country": auth.country,
+                    "current": getattr(auth, 'current', False)
+                })
+
             return {
                 "id": me.id,
                 "first_name": me.first_name or "",
@@ -636,6 +686,7 @@ class TelegramWebService:
                 "is_premium": bool(getattr(me, "premium", False)),
                 "is_verified": bool(getattr(me, "verified", False)),
                 "dc_id": getattr(me.photo, "dc_id", None) if getattr(me, "photo", None) else None,
+                "sessions": auth_list
             }
         except Exception as e:
             logger.exception(f"Get settings failed: {e}")

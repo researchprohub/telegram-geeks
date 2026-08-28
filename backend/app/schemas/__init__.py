@@ -102,6 +102,8 @@ class AccountUpdate(BaseModel):
     session_string: Optional[str] = None
     proxy_config: Optional[dict] = None
     status: Optional[str] = None
+    first_name: Optional[str] = None
+    username: Optional[str] = None
 
 
 class AccountOut(BaseModel):

@@ -203,6 +203,10 @@ async def update_account(
         account.proxy_config = body.proxy_config
     if body.status is not None:
         account.status = body.status
+    if body.first_name is not None:
+        account.first_name = body.first_name
+    if body.username is not None:
+        account.username = body.username
     account.updated_at = datetime.utcnow()
 
     await db.commit()

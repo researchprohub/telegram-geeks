@@ -1765,6 +1765,28 @@ export default function TelegramWebClient({
                     </div>
                   </div>
                 )}
+                
+                {telegramProfile?.sessions && (
+                  <div>
+                    <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1 mt-2">
+                      Active Sessions ({telegramProfile.sessions.length})
+                    </label>
+                    <div className="max-h-32 overflow-y-auto space-y-2 border border-border/50 rounded-xl p-2 bg-secondary/20">
+                      {telegramProfile.sessions.map((s: any, idx: number) => (
+                        <div key={idx} className="bg-card rounded-lg p-2 text-[10px] flex justify-between items-center border border-border/50">
+                          <div>
+                            <div className="font-bold flex items-center gap-1">
+                              {s.app_name} {s.app_version}
+                              {s.current && <span className="bg-primary/20 text-primary px-1 rounded text-[8px]">CURRENT</span>}
+                            </div>
+                            <div className="text-muted-foreground font-mono">{s.device_model} • {s.platform}</div>
+                            <div className="text-muted-foreground">{s.ip} • {s.country}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

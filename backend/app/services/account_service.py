@@ -53,16 +53,17 @@ class AccountServiceClass:
 
         async def check_one(account: Account):
             async with semaphore:
-                new_folder = await self._check_account_status(account)
+                updates = await self._check_account_status(account)
                 async with async_session_factory() as db:
                     acc = await db.get(Account, account.id)
                     if acc:
-                        acc.folder = new_folder
+                        for k, v in updates.items():
+                            setattr(acc, k, v)
                         acc.health_check_at = datetime.now(timezone.utc)
                         if not acc.ping_ms:
                             acc.ping_ms = random.randint(35, 120)
                         await db.commit()
-                folder_counts[new_folder] = folder_counts.get(new_folder, 0) + 1
+                folder_counts[updates["folder"]] = folder_counts.get(updates["folder"], 0) + 1
 
         for acc in accounts:
             tasks.append(asyncio.create_task(check_one(acc)))
@@ -77,14 +78,16 @@ class AccountServiceClass:
             "folders": folder_counts,
         }
 
-    async def _check_account_status(self, account: Account) -> str:
+    async def _check_account_status(self, account: Account) -> dict:
         """
         Connects to Telegram and determines the account's real status.
+        Also fetches the latest profile info (name, username).
         """
+        updates = {"folder": AccountFolder.ACTIVE.value}
         if not account.session_string:
             if account.status in ["banned", "ban"]:
-                return AccountFolder.PERM_BAN.value
-            return AccountFolder.ACTIVE.value
+                updates["folder"] = AccountFolder.PERM_BAN.value
+            return updates
 
         try:
             proxy_tuple = None
@@ -109,34 +112,47 @@ class AccountServiceClass:
 
             if not is_auth:
                 await client.disconnect()
-                return AccountFolder.FROZEN.value
+                updates["folder"] = AccountFolder.FROZEN.value
+                return updates
 
             me = await asyncio.wait_for(client.get_me(), timeout=8)
             if not me:
                 await client.disconnect()
-                return AccountFolder.FROZEN.value
+                updates["folder"] = AccountFolder.FROZEN.value
+                return updates
 
+            updates["first_name"] = me.first_name
+            updates["username"] = me.username
+            
             if getattr(me, "premium", False):
-                folder = AccountFolder.PREMIUM.value
+                updates["folder"] = AccountFolder.PREMIUM.value
+                updates["is_premium"] = True
             else:
-                folder = AccountFolder.ACTIVE.value
+                updates["folder"] = AccountFolder.ACTIVE.value
+                updates["is_premium"] = False
 
             await client.disconnect()
-            return folder
+            return updates
 
         except (AuthKeyUnregisteredError, SessionPasswordNeededError):
-            return AccountFolder.FROZEN.value
+            updates["folder"] = AccountFolder.FROZEN.value
+            return updates
         except UserDeactivatedBanError:
-            return AccountFolder.PERM_BAN.value
+            updates["folder"] = AccountFolder.PERM_BAN.value
+            return updates
         except UserDeactivatedError:
-            return AccountFolder.DELETED.value
+            updates["folder"] = AccountFolder.DELETED.value
+            return updates
         except FloodWaitError as e:
             flood_bus.register_flood(str(account.id), e.seconds)
-            return AccountFolder.ACTIVE.value
+            updates["folder"] = AccountFolder.ACTIVE.value
+            return updates
         except asyncio.TimeoutError:
-            return AccountFolder.FROZEN.value
+            updates["folder"] = AccountFolder.FROZEN.value
+            return updates
         except Exception:
-            return AccountFolder.FROZEN.value
+            updates["folder"] = AccountFolder.FROZEN.value
+            return updates
 
     # ── HELPER QUERIES ───────────────────────────────────────────────────────
     async def get_by_id(self, account_id: str | int) -> Optional[Account]:
