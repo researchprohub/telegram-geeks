@@ -518,7 +518,8 @@ class WorkflowStepDispatcher:
             acc_ids = payload.get("account_ids", [])
             if not acc_ids:
                 return {"status": "error", "message": "No account_ids provided"}
-            job_ids = await TelegramBooster.start(account_ids=acc_ids)
+            booster = TelegramBooster()
+            job_ids = await booster.start(account_ids=acc_ids)
             return {
                 "status": "started",
                 "job_ids": job_ids,
@@ -744,7 +745,8 @@ class WorkflowStepDispatcher:
         post_link = payload.get("post_link", "https://t.me/telegramgeeks/42")
         reactions = payload.get("reactions", ["👍", "🔥", "❤️", "🎉"])
         accounts_count = int(payload.get("accounts_count", 15))
-        res = await TelegramBooster.add_reactions(
+        booster = TelegramBooster()
+        res = await booster.add_reactions(
             post_urls=[post_link],
             reactions=reactions,
             randomize=True,
