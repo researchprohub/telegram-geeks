@@ -513,6 +513,19 @@ class WorkflowStepDispatcher:
         if stage == 2 and step == "2B":
             return await self._stage2_proxy_operations(action, payload)
 
+        # Step 2C: Account Booster (Warming)
+        if stage == 2 and step == "2C":
+            acc_ids = payload.get("account_ids", [])
+            if not acc_ids:
+                return {"status": "error", "message": "No account_ids provided"}
+            job_ids = await TelegramBooster.start(account_ids=acc_ids)
+            return {
+                "status": "started",
+                "job_ids": job_ids,
+                "count": len(job_ids),
+                "message": f"Started {len(job_ids)} warming jobs successfully."
+            }
+
         # Step 3A: Scraper
         if stage == 3 and step == "3A":
             return await self._stage3_scrape_audience(payload, user)
